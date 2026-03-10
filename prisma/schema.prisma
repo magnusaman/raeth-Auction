@@ -1,0 +1,210 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ─── Registered Agents ───────────────────────────────────────
+model Agent {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String   @default("")
+  apiKey      String   @unique
+  createdAt   DateTime @default(now())
+
+  auctionTeams AuctionTeam[]
+}
+
+// ─── Auction Run ─────────────────────────────────────────────
+model Auction {
+  id          String   @id @default(cuid())
+  status      String   @default("LOBBY") // LOBBY, RUNNING, COMPLETED
+  createdAt   DateTime @default(now())
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  // Serialized config (purse, squad size limits, etc.)
+  config      String   @default("{}")
+
+  teams       AuctionTeam[]
+  players     AuctionPlayer[]
+  lots        Lot[]
+  evaluation  Evaluation?
+}
+
+// ─── Team in an Auction (Agent + Team assignment) ────────────
+model AuctionTeam {
+  id             String  @id @default(cuid())
+  auctionId      String
+  agentId        String
+  teamIndex      Int     // 0-3 → Neon Vipers, Iron Hawks, Crimson Wolves, Phantom Kings
+  purseRemaining Float   @default(100) // in Crores
+  squadSize      Int     @default(0)
+  overseasCount  Int     @default(0)
+
+  auction  Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  agent    Agent   @relation(fields: [agentId], references: [id])
+
+  bids     Bid[]
+  wonPlayers AuctionPlayer[] @relation("WonBy")
+
+  @@unique([auctionId, teamIndex])
+  @@unique([auctionId, agentId])
+}
+
+// ─── Player in an Auction Pool ───────────────────────────────
+model AuctionPlayer {
+  id           String  @id @default(cuid())
+  auctionId    String
+  name         String
+  nationality  String  // "Indian" or country name
+  age          Int
+  role         String  // BATSMAN, BOWLER, ALL_ROUNDER, WICKET_KEEPER
+  subType      String  // powerplay_hitter, death_bowler, anchor, etc.
+  basePrice    Float   // in Crores
+  auctionOrder Int     // order in auction
+
+  // Visible career stats (JSON)
+  careerStats  String  @default("{}")
+  // Recent form - last 3 seasons (JSON array)
+  recentForm   String  @default("[]")
+  // Style tags (JSON array)
+  styleTags    String  @default("[]")
+
+  // Hidden values (only revealed post-auction)
+  hiddenTrueValue     Float   @default(0) // what they're actually worth
+  hiddenSeasonPerf    String  @default("{}") // simulated season stats
+  isTrap              Boolean @default(false) // looks good, performs bad
+  isSleeper           Boolean @default(false) // looks mediocre, performs great
+
+  // Result
+  soldPrice    Float?
+  wonByTeamId  String?
+  wonByTeam    AuctionTeam? @relation("WonBy", fields: [wonByTeamId], references: [id], onDelete: SetNull)
+  isUnsold     Boolean @default(false)
+
+  auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  lot     Lot?
+
+  @@index([auctionId])
+}
+
+// ─── Lot (One player being auctioned) ────────────────────────
+model Lot {
+  id          String   @id @default(cuid())
+  auctionId   String
+  playerId    String   @unique
+  lotNumber   Int
+  status      String   @default("PENDING") // PENDING, BIDDING, SOLD, UNSOLD
+  startedAt   DateTime?
+  endedAt     DateTime?
+
+  finalPrice  Float?
+  winnerId    String?  // AuctionTeam id
+
+  auction Auction       @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  player  AuctionPlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  bids    Bid[]
+
+  @@index([auctionId])
+}
+
+// ─── Individual Bid Action ───────────────────────────────────
+model Bid {
+  id          String   @id @default(cuid())
+  lotId       String
+  teamId      String
+  action      String   // "bid" or "pass"
+  amount      Float?   // null if pass
+  reasoning   String   @default("") // agent's reasoning text
+  timestamp   DateTime @default(now())
+  roundNumber Int      @default(0) // which bidding round within this lot
+
+  lot  Lot         @relation(fields: [lotId], references: [id], onDelete: Cascade)
+  team AuctionTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@index([lotId])
+}
+
+// ─── Post-Auction Evaluation ─────────────────────────────────
+model Evaluation {
+  id         String   @id @default(cuid())
+  auctionId  String   @unique
+  createdAt  DateTime @default(now())
+
+  // Full evaluation results (JSON) — grader scores per team, rankings, etc.
+  results    String   @default("{}")
+
+  // Season simulation results (JSON)
+  seasonSim  String   @default("{}")
+
+  auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+}
+
+// ─── TourBench: Tournament ─────────────────────────────────
+model Tournament {
+  id          String   @id @default(cuid())
+  auctionId   String?  // optional link to AuctionBench run
+  status      String   @default("PENDING") // PENDING, PREDICTING, COMPLETED
+  config      String   @default("{}")
+  dataSource  String   @default("synthetic") // "synthetic" | "real"
+  evalSeason  String   @default("")          // "S1" | "S2" | "S3" | "S4"
+  createdAt   DateTime @default(now())
+  completedAt DateTime?
+
+  matches     TournamentMatch[]
+  evaluation  TournamentEvaluation?
+}
+
+// ─── TourBench: Match ──────────────────────────────────────
+model TournamentMatch {
+  id             String  @id @default(cuid())
+  tournamentId   String
+  matchNumber    Int
+  matchType      String  @default("LEAGUE") // LEAGUE, QUALIFIER, FINAL
+  team1Index     Int
+  team2Index     Int
+  venue          String
+  venueTraits    String  @default("{}")
+  homeTeamIndex  Int?
+
+  actualWinner   Int?
+  actualMargin   String?
+  team1Strength  Float   @default(0)
+  team2Strength  Float   @default(0)
+
+  tournament  Tournament  @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  predictions TournamentPrediction[]
+
+  @@index([tournamentId])
+}
+
+// ─── TourBench: Agent Prediction ───────────────────────────
+model TournamentPrediction {
+  id               String  @id @default(cuid())
+  matchId          String
+  agentId          String
+  agentName        String  @default("")
+  predictedWinner  Int
+  confidence       Float
+  predictedMargin  String  @default("")
+  keyFactors       String  @default("[]")
+  reasoning        String  @default("")
+
+  match TournamentMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, agentId])
+  @@index([matchId])
+}
+
+// ─── TourBench: Evaluation ─────────────────────────────────
+model TournamentEvaluation {
+  id            String   @id @default(cuid())
+  tournamentId  String   @unique
+  createdAt     DateTime @default(now())
+  results       String   @default("{}")
+  tournament    Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+}

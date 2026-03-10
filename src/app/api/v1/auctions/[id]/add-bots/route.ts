@@ -1,0 +1,137 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { joinAuction } from "@/lib/auction-engine";
+import { TEAMS } from "@/data/team-config";
+import crypto from "crypto";
+
+const DEFAULT_AGENTS = [
+  { name: "Claude Sonnet 4", model: "anthropic/claude-sonnet-4" },
+  { name: "GPT-4o", model: "openai/gpt-4o" },
+  { name: "Gemini 2.5 Flash", model: "google/gemini-2.5-flash" },
+  { name: "DeepSeek V3", model: "deepseek/deepseek-chat-v3-0324" },
+];
+
+// POST /api/v1/auctions/[id]/add-bots — Register 2-10 AI agents to the lobby
+// Supports "external" model type for external agents that connect via API
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: auctionId } = await params;
+    const body = await req.json().catch(() => ({}));
+
+    // Accept custom agents from request body, or use defaults
+    const customAgents: { name: string; model: string }[] = body.agents || [];
+    const agentConfigs = customAgents.length >= 2
+      ? customAgents.map((a) => ({ name: a.name, model: a.model }))
+      : DEFAULT_AGENTS;
+
+    const teamCount = agentConfigs.length;
+    if (teamCount < 2 || teamCount > 10) {
+      return NextResponse.json({ error: "Team count must be between 2 and 10" }, { status: 400 });
+    }
+
+    const auction = await prisma.auction.findUnique({
+      where: { id: auctionId },
+      include: { teams: true },
+    });
+
+    if (!auction) return NextResponse.json({ error: "Auction not found" }, { status: 404 });
+    if (auction.status !== "LOBBY") return NextResponse.json({ error: "Auction already started" }, { status: 400 });
+
+    const joined: { team_index: number; team_name: string; agent_name: string; model: string; external_token?: string }[] = [];
+    const externalSlots: Record<string, { token: string }> = {};
+
+    for (let i = 0; i < teamCount; i++) {
+      const config = agentConfigs[i];
+      const team = TEAMS[i];
+      const isExternal = config.model === "external";
+
+      // Use model-based name with team suffix for uniqueness
+      const agentName = isExternal
+        ? `External Agent [${team.shortName}]`
+        : `${config.name} [${team.shortName}]`;
+
+      // Check if agent exists, if not create
+      let agent = await prisma.agent.findUnique({ where: { name: agentName } });
+      if (!agent) {
+        agent = await prisma.agent.create({
+          data: {
+            name: agentName,
+            description: isExternal
+              ? `External agent slot for ${team.name} — joins via API`
+              : `AI agent using ${config.model} for ${team.name}`,
+            apiKey: `ab_${Date.now()}_${i}_${Math.random().toString(36).slice(2, 8)}`,
+          },
+        });
+      }
+
+      // Check if already joined
+      const existing = auction.teams.find((t) => t.agentId === agent!.id);
+      if (existing) {
+        const entry: typeof joined[0] = {
+          team_index: existing.teamIndex,
+          team_name: team.name,
+          agent_name: agentName,
+          model: config.model,
+        };
+        if (isExternal) {
+          const token = crypto.randomBytes(16).toString("hex");
+          externalSlots[String(existing.teamIndex)] = { token };
+          entry.external_token = token;
+        }
+        joined.push(entry);
+        continue;
+      }
+
+      const { teamIndex } = await joinAuction(auctionId, agent.id, i);
+
+      const entry: typeof joined[0] = {
+        team_index: teamIndex,
+        team_name: TEAMS[teamIndex].name,
+        agent_name: agentName,
+        model: config.model,
+      };
+
+      if (isExternal) {
+        const token = crypto.randomBytes(16).toString("hex");
+        externalSlots[String(teamIndex)] = { token };
+        entry.external_token = token;
+      }
+
+      joined.push(entry);
+    }
+
+    // Store model mapping, team count, and external slots in auction config
+    const existingConfig = JSON.parse(auction.config || "{}");
+    existingConfig.teamCount = teamCount;
+    existingConfig.maxTeams = teamCount;
+    existingConfig.agentModels = agentConfigs.map((a, i) => ({
+      teamIndex: i,
+      name: a.model === "external" ? `External Agent [${TEAMS[i].shortName}]` : `${a.name} [${TEAMS[i].shortName}]`,
+      model: a.model,
+    }));
+
+    if (Object.keys(externalSlots).length > 0) {
+      existingConfig.externalSlots = externalSlots;
+    }
+
+    await prisma.auction.update({
+      where: { id: auctionId },
+      data: { config: JSON.stringify(existingConfig) },
+    });
+
+    return NextResponse.json({
+      message: `${teamCount} agents joined the auction`,
+      agents: joined,
+      external_count: Object.keys(externalSlots).length,
+    });
+  } catch (error: any) {
+    console.error("Add bots error:", error);
+    return NextResponse.json(
+      { error: error?.message || "Failed to add bots" },
+      { status: 500 }
+    );
+  }
+}

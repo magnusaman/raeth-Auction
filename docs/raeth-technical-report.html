@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raeth.ai — Technical Architecture Report</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121c;
+    --elevated: #1a1a28;
+    --border: #2a2a40;
+    --text: #e8e8ef;
+    --text-dim: #8a8a9f;
+    --cyan: #00f0ff;
+    --green: #00ff88;
+    --orange: #ff8c00;
+    --red: #ff3366;
+    --purple: #b347ff;
+    --gold: #ffd700;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 60px 48px;
+    page-break-after: always;
+    min-height: 100vh;
+    position: relative;
+  }
+
+  .page:last-child { page-break-after: avoid; }
+
+  /* ─── Cover Page ─── */
+  .cover {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 100vh;
+  }
+
+  .cover .logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 72px;
+    font-weight: 900;
+    letter-spacing: 8px;
+    background: linear-gradient(135deg, #ff8c00, #ffd700);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+
+  .cover .subtitle {
+    font-size: 22px;
+    color: var(--text-dim);
+    font-weight: 300;
+    margin-bottom: 48px;
+  }
+
+  .cover .tagline {
+    font-size: 36px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--cyan), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 16px;
+    line-height: 1.3;
+  }
+
+  .cover .desc {
+    font-size: 16px;
+    color: var(--text-dim);
+    max-width: 600px;
+    line-height: 1.8;
+  }
+
+  .cover .meta {
+    position: absolute;
+    bottom: 60px;
+    font-size: 13px;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .cover .meta span { color: var(--cyan); }
+
+  /* ─── Section Headers ─── */
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--cyan);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  h1 {
+    font-size: 36px;
+    font-weight: 800;
+    margin-bottom: 32px;
+    line-height: 1.2;
+  }
+
+  h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 36px 0 16px;
+    color: var(--cyan);
+  }
+
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 24px 0 12px;
+    color: var(--gold);
+  }
+
+  p { margin-bottom: 14px; color: var(--text); font-size: 15px; }
+  .dim { color: var(--text-dim); }
+
+  /* ─── Cards ─── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin: 20px 0;
+  }
+
+  .card-grid.three { grid-template-columns: repeat(3, 1fr); }
+  .card-grid.four { grid-template-columns: repeat(4, 1fr); }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .card .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .card .card-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 28px;
+    font-weight: 800;
+  }
+
+  .card .card-desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  /* ─── Flow Diagrams ─── */
+  .flow {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    margin: 20px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 2;
+    white-space: pre-wrap;
+    overflow-x: auto;
+  }
+
+  .flow .arrow { color: var(--cyan); }
+  .flow .label { color: var(--gold); }
+  .flow .action { color: var(--green); }
+  .flow .warn { color: var(--orange); }
+  .flow .dim { color: var(--text-dim); }
+
+  /* ─── Tables ─── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+
+  th {
+    text-align: left;
+    padding: 12px 16px;
+    background: var(--surface);
+    border-bottom: 2px solid var(--cyan);
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--cyan);
+  }
+
+  td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  tr:hover td { background: var(--surface); }
+
+  /* ─── Code blocks ─── */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--surface);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: var(--cyan);
+  }
+
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    overflow-x: auto;
+    margin: 16px 0;
+    white-space: pre;
+  }
+
+  /* ─── Badges ─── */
+  .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .badge.cyan { background: #00f0ff20; color: var(--cyan); border: 1px solid #00f0ff40; }
+  .badge.green { background: #00ff8820; color: var(--green); border: 1px solid #00ff8840; }
+  .badge.purple { background: #b347ff20; color: var(--purple); border: 1px solid #b347ff40; }
+  .badge.orange { background: #ff8c0020; color: var(--orange); border: 1px solid #ff8c0040; }
+  .badge.gold { background: #ffd70020; color: var(--gold); border: 1px solid #ffd70040; }
+  .badge.red { background: #ff336620; color: var(--red); border: 1px solid #ff336640; }
+
+  /* ─── List ─── */
+  ul, ol {
+    margin: 12px 0 12px 24px;
+    font-size: 15px;
+  }
+
+  li { margin-bottom: 6px; }
+
+  /* ─── Divider ─── */
+  hr {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 32px 0;
+  }
+
+  /* ─── Highlight box ─── */
+  .highlight {
+    border-left: 4px solid var(--cyan);
+    background: var(--surface);
+    padding: 16px 20px;
+    border-radius: 0 8px 8px 0;
+    margin: 16px 0;
+  }
+
+  .highlight.orange { border-left-color: var(--orange); }
+  .highlight.green { border-left-color: var(--green); }
+  .highlight.red { border-left-color: var(--red); }
+
+  /* ─── Team colors ─── */
+  .team-mi { color: #004BA0; }
+  .team-csk { color: #FDB913; }
+  .team-rcb { color: #EC1C24; }
+  .team-kkr { color: #9B59B6; }
+
+  /* ─── Print ─── */
+  @media print {
+    body { background: #0a0a0f !important; }
+    .page { padding: 40px 36px; }
+    .no-print { display: none; }
+  }
+
+  /* ─── Sticky print button ─── */
+  .print-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 14px 28px;
+    background: linear-gradient(135deg, var(--cyan), var(--purple));
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    z-index: 100;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 0 4px 20px #b347ff60;
+  }
+
+  .print-btn:hover { transform: scale(1.05); }
+
+  @media print { .print-btn { display: none; } }
+</style>
+</head>
+<body>
+
+<button class="print-btn no-print" onclick="window.print()">Save as PDF</button>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- COVER PAGE -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page cover">
+  <div class="logo">RAETH</div>
+  <div class="subtitle">Arena</div>
+  <div class="tagline">AI Agent Evaluation Platform</div>
+  <div class="desc">
+    A dual-benchmark system for evaluating AI model reasoning through
+    competitive cricket auctions and tournament predictions.
+    <br><br>
+    <span class="badge cyan">AuctionBench</span>
+    <span class="badge purple">TourBench</span>
+    <span class="badge green">19+ Models</span>
+    <span class="badge gold">External API</span>
+  </div>
+  <div class="meta">
+    Technical Architecture Report &mdash; <span>March 2026</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PAGE 1: WHAT IS RAETH? -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-num">01 &mdash; Overview</div>
+  <h1>What is Raeth.ai?</h1>
+
+  <p>
+    Raeth Arena is an <strong>AI agent evaluation platform</strong> that tests how well
+    large language models reason under constraints, manage resources, and make strategic
+    decisions &mdash; all through the lens of cricket.
+  </p>
+
+  <div class="highlight">
+    <strong>The core insight:</strong> Cricket auctions are a perfect testbed for AI reasoning.
+    They require budget management, opponent modeling, value estimation, role balancing,
+    and long-horizon planning &mdash; all in a single, measurable task.
+  </div>
+
+  <h2>Two Benchmarks</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-color: #00f0ff40;">
+      <div class="card-title" style="color: var(--cyan);">AuctionBench</div>
+      <div class="card-desc">
+        Each AI agent controls a cricket franchise with a &#8377;100 Cr budget.
+        They compete in a live auction of 80 synthetic players, making 50-70+
+        bid/pass decisions. Tests: <strong>sequential reasoning, budget management,
+        value estimation, trap detection, constraint satisfaction.</strong>
+      </div>
+    </div>
+    <div class="card" style="border-color: #b347ff40;">
+      <div class="card-title" style="color: var(--purple);">TourBench</div>
+      <div class="card-desc">
+        AI agents predict match outcomes with confidence scores. Two modes:
+        <strong>Synthetic</strong> (14 simulated matches) or <strong>Real Data</strong>
+        (59-74 real IPL season matches, S1-S4). 2-10 agents compete simultaneously.
+        Tests: <strong>predictive reasoning, confidence calibration, upset detection,
+        venue analysis, cricket knowledge.</strong>
+      </div>
+    </div>
+  </div>
+
+  <h2>Why Cricket?</h2>
+  <ul>
+    <li><strong>Constrained optimization</strong> &mdash; Fixed budget, squad rules, overseas limits</li>
+    <li><strong>Hidden information</strong> &mdash; "Trap" and "sleeper" players test information processing</li>
+    <li><strong>Multi-step decisions</strong> &mdash; 80 lots, each decision affects future options</li>
+    <li><strong>Opponent modeling</strong> &mdash; Must track other teams' budgets and needs</li>
+    <li><strong>Measurable outcomes</strong> &mdash; 10 deterministic graders + season simulation = objective scoring</li>
+  </ul>
+
+  <h2>Tech Stack</h2>
+  <div class="card-grid four">
+    <div class="card">
+      <div class="card-title" style="color: var(--cyan);">Frontend</div>
+      <div class="card-desc">Next.js 16<br>React 19<br>TailwindCSS v4<br>Framer Motion<br>Recharts</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color: var(--green);">Backend</div>
+      <div class="card-desc">Next.js API Routes<br>TypeScript<br>Prisma v7 ORM<br>SQLite (better-sqlite3)</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color: var(--purple);">AI</div>
+      <div class="card-desc">OpenRouter API<br>19+ LLM models<br>External Agent API<br>Token-based auth</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color: var(--gold);">Deploy</div>
+      <div class="card-desc">Docker<br>Docker Compose<br>SQLite volume<br>Single-command startup</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PAGE 2: ARCHITECTURE -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-num">02 &mdash; Architecture</div>
+  <h1>System Architecture</h1>
+
+  <div class="flow"><span class="label">┌─────────────────────────────────────────────────────────────┐</span>
+<span class="label">│                      RAETH ARENA                            │</span>
+<span class="label">└─────────────────────────────────────────────────────────────┘</span>
+
+  <span class="dim">Browser</span>                    <span class="dim">Server</span>                    <span class="dim">External</span>
+  ┌──────────┐              ┌──────────────┐           ┌──────────┐
+  │ Next.js  │  <span class="arrow">──poll──▶</span>  │  API Routes  │  <span class="arrow">◀─token─</span> │ External │
+  │ Frontend │              │              │           │  Agent   │
+  │          │  <span class="arrow">◀──JSON──</span>  │  /api/v1/*   │  <span class="arrow">──bid──▶</span> │  (API)   │
+  └──────────┘              └──────┬───────┘           └──────────┘
+                                   │
+                           <span class="arrow">┌───────┴───────┐</span>
+                           │               │
+                    ┌──────┴──────┐ ┌──────┴──────┐
+                    │  Auction    │ │ OpenRouter  │
+                    │  Engine     │ │   API       │
+                    │  (Prisma)   │ │  (19+ LLMs) │
+                    └──────┬──────┘ └─────────────┘
+                           │
+                    ┌──────┴──────┐
+                    │   SQLite    │
+                    │   Database  │
+                    └─────────────┘</div>
+
+  <h2>Database Schema (11 Models)</h2>
+
+  <div class="flow"><span class="label">Agent</span> ─────────┐
+  id, name, apiKey   │
+                     │ 1:N
+<span class="label">Auction</span> ──────────┼──────── <span class="label">AuctionTeam</span> ──── <span class="label">Bid</span>
+  id, status,        │          teamIndex,        action, amount,
+  config (JSON)      │          purseRemaining     reasoning
+                     │
+                     ├──────── <span class="label">AuctionPlayer</span>
+                     │          name, role, stats
+                     │          hiddenTrueValue    <span class="warn">← revealed after auction</span>
+                     │          isTrap, isSleeper   <span class="warn">← secret flags</span>
+                     │
+                     ├──────── <span class="label">Lot</span>
+                     │          lotNumber, status
+                     │          finalPrice, winnerId
+                     │
+                     └──────── <span class="label">Evaluation</span>
+                                results (JSON)
+                                seasonSim (JSON)</div>
+
+  <h2>Key API Endpoints</h2>
+
+  <table>
+    <tr><th>Endpoint</th><th>Method</th><th>Purpose</th></tr>
+    <tr><td><code>/api/v1/auctions/create</code></td><td>POST</td><td>Create auction + 80 synthetic players</td></tr>
+    <tr><td><code>/api/v1/auctions/[id]/add-bots</code></td><td>POST</td><td>Add 2-10 AI agents to auction</td></tr>
+    <tr><td><code>/api/v1/auctions/[id]/start</code></td><td>POST</td><td>Start bidding loop (background)</td></tr>
+    <tr><td><code>/api/v1/auctions/[id]/live</code></td><td>GET</td><td>Poll live state (frontend)</td></tr>
+    <tr><td><code>/api/v1/auctions/[id]/results</code></td><td>GET</td><td>Get evaluation results</td></tr>
+    <tr><td><code>/api/v1/auctions/[id]/external/state</code></td><td>GET</td><td>External agent polls state</td></tr>
+    <tr><td><code>/api/v1/auctions/[id]/external/bid</code></td><td>POST</td><td>External agent submits bid</td></tr>
+    <tr><td><code>/api/v1/tournaments/run</code></td><td>POST</td><td>Run full tournament + predictions</td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PAGE 3: PLAYER GENERATION -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-num">03 &mdash; Player Generation</div>
+  <h1>Synthetic Player System</h1>
+
+  <p>
+    Each auction generates <strong>80 unique synthetic cricket players</strong> with realistic
+    statistics drawn from configurable distributions. Players have both <em>visible</em> stats
+    (shown to agents) and <em>hidden</em> values (revealed only during evaluation).
+  </p>
+
+  <h2>Role Distribution</h2>
+  <div class="card-grid four">
+    <div class="card">
+      <div class="card-value" style="color: var(--cyan);">30</div>
+      <div class="card-title">Batsmen</div>
+      <div class="card-desc">Powerplay hitters, anchors, finishers, accumulators</div>
+    </div>
+    <div class="card">
+      <div class="card-value" style="color: var(--green);">25</div>
+      <div class="card-title">Bowlers</div>
+      <div class="card-desc">Pace aces, death bowlers, spin wizards, medium pacers</div>
+    </div>
+    <div class="card">
+      <div class="card-value" style="color: var(--purple);">15</div>
+      <div class="card-title">All-Rounders</div>
+      <div class="card-desc">Batting all-rounders, bowling all-rounders</div>
+    </div>
+    <div class="card">
+      <div class="card-value" style="color: var(--gold);">10</div>
+      <div class="card-title">Keepers</div>
+      <div class="card-desc">Keeper-batsmen, specialist keepers</div>
+    </div>
+  </div>
+
+  <h2>The Information Asymmetry Challenge</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-color: #ff336640;">
+      <div class="card-title" style="color: var(--red);">Trap Players (5-8 per auction)</div>
+      <div class="card-desc">
+        <strong>Look great, perform terribly.</strong><br>
+        Inflated career stats, good recent form, high base price.
+        But hidden season performance is 0.3-0.6x normal.
+        Tagged "marquee_material" to lure agents into overpaying.
+        <br><br>
+        <em>Tests: Can the agent detect inflated stats?</em>
+      </div>
+    </div>
+    <div class="card" style="border-color: #00ff8840;">
+      <div class="card-title" style="color: var(--green);">Sleeper Players (3-5 per auction)</div>
+      <div class="card-desc">
+        <strong>Look mediocre, perform brilliantly.</strong><br>
+        Below-average career stats, declining form, low base price.
+        But hidden season performance is 1.5-2.0x normal.
+        Tagged "raw_talent" subtly.
+        <br><br>
+        <em>Tests: Can the agent find hidden value?</em>
+      </div>
+    </div>
+  </div>
+
+  <h2>Player Data Structure</h2>
+  <div class="code-block"><span style="color: var(--gold);">VISIBLE TO AGENTS:</span>
+  name: "Rohit Varma"           nationality: "India"         age: 27
+  role: BATSMAN                 subType: "anchor"
+  basePrice: 1.5 Cr            styleTags: ["consistent", "anchor"]
+
+  careerStats: {
+    matches: 89, innings: 85, runs: 2340,
+    battingAvg: 34.2, strikeRate: 138.5,
+    fifties: 14, hundreds: 3, boundaryPct: 52.3
+  }
+  recentForm: [
+    { season: 1, matches: 12, runs: 380, avg: 31.6, sr: 141.2, rating: 7 },
+    { season: 2, matches: 14, runs: 510, avg: 36.4, sr: 145.8, rating: 8 },
+    { season: 3, matches: 11, runs: 290, avg: 26.3, sr: 132.1, rating: 6 }
+  ]
+
+<span style="color: var(--red);">HIDDEN (revealed during evaluation):</span>
+  hiddenTrueValue: 4.2 Cr      <span style="color: var(--text-dim);">← actual worth</span>
+  isTrap: false                 isSleeper: false
+  hiddenSeasonPerf: {
+    matchesPlayed: 13, overallRating: 7.2, impactScore: 42,
+    projectedRuns: 410, projectedAvg: 31.5, projectedSR: 139.8
+  }</div>
+
+  <h2>Auction Ordering (Quality Sort)</h2>
+  <p>
+    Players are sorted by a <strong>visible quality score</strong> computed from career stats,
+    recent form, age, and base price. Best players appear first, weakest last. This ensures
+    marquee players are auctioned early (high stakes) and budget picks come later.
+  </p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PAGE 4: AUCTION FLOW -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-num">04 &mdash; Auction Flow</div>
+  <h1>How an Auction Works</h1>
+
+  <div class="flow"><span class="label">PHASE 1: LOBBY</span>
+<span class="action">Create Auction</span> <span class="arrow">→</span> 80 players generated <span class="arrow">→</span> 80 lots created (PENDING)
+<span class="action">Add 4 Agents</span>  <span class="arrow">→</span> Each gets a team (MI, CSK, RCB, KKR) + ₹100 Cr purse
+
+<span class="label">PHASE 2: RUNNING</span>
+For each of 80 lots:
+  <span class="arrow">│</span>
+  <span class="arrow">├─</span> Lot status <span class="arrow">→</span> BIDDING
+  <span class="arrow">├─</span> <span class="action">Round-Robin Bidding:</span>
+  <span class="arrow">│   ├─</span> Team 0 (MI)  <span class="arrow">→</span> LLM decides: BID ₹2.0Cr or PASS
+  <span class="arrow">│   ├─</span> Team 1 (CSK) <span class="arrow">→</span> LLM decides: BID ₹2.2Cr or PASS
+  <span class="arrow">│   ├─</span> Team 2 (RCB) <span class="arrow">→</span> LLM decides: PASS
+  <span class="arrow">│   └─</span> Team 3 (KKR) <span class="arrow">→</span> LLM decides: PASS
+  <span class="arrow">│</span>
+  <span class="arrow">├─</span> CSK has highest bid, MI/RCB/KKR all passed after
+  <span class="arrow">├─</span> Lot <span class="arrow">→</span> <span class="action">SOLD</span> to CSK at ₹2.2 Cr
+  <span class="arrow">├─</span> CSK purse: ₹100 <span class="arrow">→</span> ₹97.8 Cr, squad: 0 <span class="arrow">→</span> 1
+  <span class="arrow">└─</span> Next lot starts...
+
+<span class="label">PHASE 3: COMPLETED</span>
+All 80 lots done <span class="arrow">→</span> Run 10 code graders <span class="arrow">→</span> Simulate season <span class="arrow">→</span> Rankings</div>
+
+  <h2>Auction Rules</h2>
+
+  <table>
+    <tr><th>Rule</th><th>Value</th><th>Purpose</th></tr>
+    <tr><td>Purse per team</td><td>₹100 Cr</td><td>Budget constraint</td></tr>
+    <tr><td>Min squad size</td><td>15 players</td><td>Must build complete team</td></tr>
+    <tr><td>Max squad size</td><td>18 players</td><td>Upper limit</td></tr>
+    <tr><td>Max overseas</td><td>8 players</td><td>Nationality constraint</td></tr>
+    <tr><td>Min batsmen</td><td>5</td><td rowspan="4">Role composition requirements</td></tr>
+    <tr><td>Min bowlers</td><td>5</td></tr>
+    <tr><td>Min all-rounders</td><td>3</td></tr>
+    <tr><td>Min keepers</td><td>2</td></tr>
+    <tr><td>Bid increment (0-5 Cr)</td><td>₹0.20 Cr</td><td rowspan="3">Minimum bid raise</td></tr>
+    <tr><td>Bid increment (5-10 Cr)</td><td>₹0.50 Cr</td></tr>
+    <tr><td>Bid increment (10+ Cr)</td><td>₹1.00 Cr</td></tr>
+  </table>
+
+  <h2>Teams (2&ndash;10 configurable)</h2>
+  <p>Users select <strong>2 to 10 IPL franchises</strong> from the lobby. Each team gets its own AI model.</p>
+  <div class="card-grid four">
+    <div class="card" style="border-left: 4px solid #004BA0;">
+      <div class="card-title" style="color: #4a9fff;">🏏 MI</div>
+      <div class="card-desc">Mumbai Indians</div>
+    </div>
+    <div class="card" style="border-left: 4px solid #FDB913;">
+      <div class="card-title" style="color: #FDB913;">🦁 CSK</div>
+      <div class="card-desc">Chennai Super Kings</div>
+    </div>
+    <div class="card" style="border-left: 4px solid #EC1C24;">
+      <div class="card-title" style="color: #ff4455;">👑 RCB</div>
+      <div class="card-desc">Royal Challengers</div>
+    </div>
+    <div class="card" style="border-left: 4px solid #9B59B6;">
+      <div class="card-title" style="color: #b06adf;">⚡ KKR</div>
+      <div class="card-desc">Kolkata Knight Riders</div>
+    </div>
+  </div>
+  <p style="margin-top: 8px; color: var(--text-dim); font-size: 13px;">+ SRH, RR, DC, PBKS, GT, LSG &mdash; all 10 IPL franchises available</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PAGE 5: AGENT DECISION SYSTEM -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-num">05 &mdash; Agent Decisions</div>
+  <h1>How AI Agents Make Decisions</h1>
+
+  <p>
+    Each agent is an LLM (via OpenRouter) that receives structured game state and must
+    respond with a bid/pass decision. The system supports <strong>19+ models</strong> across 8 providers
+    (Anthropic, OpenAI, Google, DeepSeek, Meta, Mistral, Qwen, Cohere) and
+    <strong>external agents</strong> via API.
+  </p>
+
+  <h2>What the Agent Sees Each Turn</h2>
+
+  <div class="code-block"><span style="color: var(--cyan);">SYSTEM PROMPT:</span> You are an AI agent competing in a cricket player auction...
+  Your #1 GOAL: Build a COMPLETE squad of at least 15 players.
+  ABSOLUTE RULES: Squad under 15 = ZERO score. Min 5 bat, 5 bowl, 3 AR, 2 WK.
+
+<span style="color: var(--gold);">USER PROMPT (each lot):</span>
+  CURRENT LOT #14: Arjun Mehta
+  Role: BATSMAN (anchor) | Age: 28 | India | Base: ₹1.5 Cr
+  Career: { avg: 34.2, sr: 138.5, matches: 89, fifties: 14 }
+  Recent Form: [Season 3: rating 6, Season 2: rating 8, Season 1: rating 7]
+  Current Bid: ₹2.2 Cr
+
+  YOUR TEAM: ₹87.4 Cr | 4/18 players | Need: 3 bat, 5 bowl, 3 AR, 2 WK
+  OPPONENTS: Team 1: ₹91.2 Cr, 3 players | Team 2: ₹95.0 Cr, 2 players
+
+  <span style="color: var(--green);">UPCOMING PLAYERS (next 15):</span>
+    #15 Vikram Singh (BOWLER, India) Base ₹1.0Cr — Econ 7.8, Wkt 45
+    #16 James Anderson (ALL_ROUNDER, England) Base ₹2.0Cr — Avg 28, SR 142
+    ...
+
+  <span style="color: var(--orange);">⚠️ YOU STILL NEED 11 MORE PLAYERS TO REACH THE MINIMUM 15!</span>
+
+<span style="color: var(--cyan);">AGENT RESPONSE:</span>
+  ACTION: bid
+  AMOUNT: 2.4
+  REASONING: Strong anchor batsman, good career avg. Need batsmen urgently.</div>
+
+  <h2>Smart Features</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-color: #00f0ff40;">
+      <div class="card-title" style="color: var(--cyan);">Conversation History</div>
+      <div class="card-desc">
+        Last 10 completed lots are reconstructed as user/assistant message pairs,
+        so the agent remembers what it bid on before and can learn from past decisions.
+      </div>
+    </div>
+    <div class="card" style="border-color: #00ff8840;">
+      <div class="card-title" style="color: var(--green);">Upcoming Players Preview</div>
+      <div class="card-desc">
+        Agents see the next 15 upcoming players with role, nationality, base price,
+        and key stats &mdash; enabling strategic planning (save budget for better options).
+      </div>
+    </div>
+    <div class="card" style="border-color: #ff8c0040;">
+      <div class="card-title" style="color: var(--orange);">Urgency Warnings</div>
+      <div class="card-desc">
+        When <code>lotsRemaining / slotsNeeded &le; 2.0</code>, agents get a WARNING.
+        When &le; 1.2, they get a CRITICAL MUST-BUY alert in the prompt.
+      </div>
+    </div>
+    <div class="card" style="border-color: #ff336640;">
+      <div class="card-title" style="color: var(--red);">Forced-Bid Override</div>
+      <div class="card-desc">
+        If an agent passes in a must-buy situation (needs players, lots running out),
+        the system overrides the LLM and forces a bid at minimum price.
+      </div>
+    </div>
+  </div>
+
+  <h2>Supported Models</h2>
+  <div class="card-grid three">
+    <div class="card"><div class="card-desc">
+      <span class="badge cyan">Claude Sonnet 4</span><br>
+      <span class="badge cyan">Claude Haiku 3.5</span><br>
+      <span class="badge cyan">Claude Opus 4</span>
+    </div></div>
+    <div class="card"><div class="card-desc">
+      <span class="badge green">GPT-4o</span><br>
+      <span class="badge green">GPT-4o Mini</span><br>
+      <span class="badge green">GPT-4.1</span>
+    </div></div>
+    <div class="card"><div class="card-desc">
+      <span class="badge purple">Gemini 2.5 Flash</span><br>
+      <span class="badge purple">Gemini 2.5 Pro</span><br>
+      <span class="badge gold">DeepSeek V3</span><br>
+      <span class="badge orange">Llama 3.1 70B</span>
+    </div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PAGE 6: EVALUATION SYSTEM -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-num">06 &mdash; Evaluation</div>
+  <h1>Scoring &amp; Evaluation System</h1>
+
+  <p>
+    After all 80 lots are auctioned, teams are evaluated by <strong>10 deterministic
+    code graders</strong> that measure different aspects of auction performance.
+    Hidden player values are revealed, and a season is simulated.
+  </p>
+
+  <h2>10 Code Graders</h2>
+
+  <table>
+    <tr><th>#</th><th>Grader</th><th>Weight</th><th>What It Measures</th></tr>
+    <tr><td>1</td><td>Budget Efficiency</td><td>10%</td><td>Purse utilization (85-98% optimal)</td></tr>
+    <tr><td>2</td><td>Valuation Accuracy</td><td>15%</td><td>Paid price vs hidden true value</td></tr>
+    <tr><td>3</td><td>Squad Balance</td><td>15%</td><td>Met role minimums (5 bat, 5 bowl, 3 AR, 2 WK)</td></tr>
+    <tr><td>4</td><td>Overseas Optimization</td><td>8%</td><td>Quality of overseas picks within 8-slot limit</td></tr>
+    <tr><td>5</td><td>Overbid Penalty</td><td>12%</td><td>Penalty for paying more than true value</td></tr>
+    <tr><td>6</td><td>Pass Discipline</td><td>10%</td><td>Correctly passed on overpriced players</td></tr>
+    <tr><td>7</td><td>Constraint Compliance</td><td>10%</td><td>Never violated auction rules (binary)</td></tr>
+    <tr><td>8</td><td>Purse Management</td><td>8%</td><td>Maintained enough reserve for squad completion</td></tr>
+    <tr><td>9</td><td>Trap Resistance</td><td>6%</td><td>Avoided buying trap players at inflated prices</td></tr>
+    <tr><td>10</td><td>Value Discovery</td><td>6%</td><td>Found and bought undervalued sleeper players</td></tr>
+  </table>
+
+  <div class="highlight green">
+    <strong>Composite Score</strong> = Weighted average of all 10 graders (0.0 to 1.0 scale).
+    The agent with the highest composite score wins the auction evaluation.
+  </div>
+
+  <h2>Season Simulation</h2>
+  <p>
+    After scoring, a round-robin season is simulated using the <strong>hidden true values</strong>
+    of each team's players:
+  </p>
+  <ul>
+    <li>Team strength = average impact score of all players in squad</li>
+    <li>Each team plays each other twice (home + away) = 12 total matches</li>
+    <li>Win probability: 70% skill-based (strength difference) + 30% randomness</li>
+    <li>Generates full standings table with W/L/NRR/Points</li>
+  </ul>
+
+  <h2>Evaluation Output</h2>
+  <div class="flow"><span class="label">Per Team:</span>
+  <span class="action">├─</span> 10 grader scores (0.0-1.0 each)
+  <span class="action">├─</span> Composite score (weighted average)
+  <span class="action">├─</span> Rank (1st-4th)
+  <span class="action">├─</span> Best decision: "Bought sleeper X at ₹0.5Cr (true value ₹4.2Cr)"
+  <span class="action">└─</span> Worst decision: "Overpaid ₹8Cr for trap Y (true value ₹1.1Cr)"
+
+<span class="label">Season Simulation:</span>
+  ┌──────┬────┬────┬─────┬────────┐
+  │ Team │ W  │ L  │ NRR │ Points │
+  ├──────┼────┼────┼─────┼────────┤
+  │ CSK  │  5 │  1 │+0.8 │   10   │  <span class="action">← Winner</span>
+  │ MI   │  4 │  2 │+0.3 │    8   │
+  │ RCB  │  2 │  4 │-0.4 │    4   │
+  │ KKR  │  1 │  5 │-0.7 │    2   │
+  └──────┴────┴────┴─────┴────────┘</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PAGE 7: EXTERNAL AGENTS -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-num">07 &mdash; External Agents</div>
+  <h1>External Agent API</h1>
+
+  <p>
+    Any AI system can participate in an auction via the External Agent API.
+    This allows independent agents (running in Docker, Claude Code, custom scripts, etc.)
+    to compete against the built-in OpenRouter agents.
+  </p>
+
+  <h2>How It Works</h2>
+
+  <div class="flow"><span class="label">1. SETUP</span>
+  Agent added with model = "external"
+  <span class="arrow">→</span> System generates a random 32-char hex <span class="action">token</span>
+  <span class="arrow">→</span> Token displayed in lobby UI
+
+<span class="label">2. CONNECT</span>
+  External agent polls: <span class="action">GET /external/state?token=TOKEN</span>
+  <span class="arrow">→</span> First poll marks agent as "connected"
+  <span class="arrow">→</span> Green notification appears in lobby UI
+
+<span class="label">3. PLAY</span>
+  During bidding loop, when it's the external agent's turn:
+  <span class="arrow">│</span>
+  <span class="arrow">├─</span> Bidding loop sets <span class="warn">pendingExternalBid</span> in auction config
+  <span class="arrow">├─</span> UI shows "Waiting for External Agent" banner
+  <span class="arrow">├─</span> External agent sees <span class="action">your_turn: true</span> in state response
+  <span class="arrow">├─</span> External agent POSTs: <span class="action">POST /external/bid?token=TOKEN</span>
+  <span class="arrow">│</span>   Body: { action: "bid", amount: 2.4, reasoning: "..." }
+  <span class="arrow">├─</span> Bidding loop detects the bid in DB
+  <span class="arrow">└─</span> Continues normally
+
+<span class="label">4. TIMEOUT</span>
+  If external agent doesn't respond within <span class="warn">120 seconds</span>
+  <span class="arrow">→</span> Auto-pass for that turn</div>
+
+  <h2>API Reference</h2>
+
+  <table>
+    <tr><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
+    <tr>
+      <td><code>GET /api/v1/auctions/[id]/external/state?token=TOKEN</code></td>
+      <td>Query param</td>
+      <td>Get full auction state: current lot, your team, opponents, your_turn flag</td>
+    </tr>
+    <tr>
+      <td><code>POST /api/v1/auctions/[id]/external/bid?token=TOKEN</code></td>
+      <td>Query param</td>
+      <td>Submit bid/pass: <code>{ action, amount?, reasoning }</code></td>
+    </tr>
+  </table>
+
+  <h2>State Response Shape</h2>
+  <div class="code-block">{
+  "auction_id": "cmmi...",
+  "status": "RUNNING",
+  <span style="color: var(--green);">"your_turn": true,</span>              <span style="color: var(--text-dim);">// Is it my turn?</span>
+  "your_team": {
+    "team_id": "...", "purse_remaining": 87.4,
+    "squad_size": 4, "overseas_count": 1,
+    "role_counts": { "BATSMAN": 2, "BOWLER": 1, ... },
+    "needs": { "batsmenNeeded": 3, "bowlersNeeded": 4, ... }
+  },
+  "current_lot": {
+    "lot_number": 14, "name": "Arjun Mehta",
+    "role": "BATSMAN", "nationality": "India",
+    "base_price": 1.5, "career_stats": { ... }
+  },
+  "current_bid": { "amount": 2.2, "team_id": "..." },
+  "opponents": [ { "purse_remaining": 91.2, "squad_size": 3 }, ... ]
+}</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PAGE 8: PROMPT ENGINEERING — WHAT MODELS SEE -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-num">08 &mdash; Prompt Engineering</div>
+  <h1>What Models Actually See</h1>
+
+  <p>
+    Raeth uses <strong>zero tool-use, zero function-calling</strong>. Each LLM receives a structured
+    prompt and returns structured text, parsed with regex. The "agent" behavior comes from
+    the orchestrator loop, conversation history, and forced-bid overrides &mdash; not from LLM tool-use.
+  </p>
+
+  <h2>Auction vs TourBench &mdash; Data Comparison</h2>
+
+  <table style="font-size: 12px;">
+    <tr><th>#</th><th>Attribute</th><th style="text-align:center;">Auction</th><th style="text-align:center;">TourBench</th></tr>
+    <tr><td colspan="4" style="color: var(--cyan); font-weight: 700; padding-top: 12px;">Player-Level Data</td></tr>
+    <tr><td>1</td><td>Player name, role, subType</td><td style="text-align:center; color: var(--green);">&check;</td><td style="text-align:center; color: var(--red);">&times;</td></tr>
+    <tr><td>2</td><td>Nationality, age, base price</td><td style="text-align:center; color: var(--green);">&check;</td><td style="text-align:center; color: var(--red);">&times;</td></tr>
+    <tr><td>3</td><td>Style tags (e.g. "powerplay_hitter")</td><td style="text-align:center; color: var(--green);">&check;</td><td style="text-align:center; color: var(--red);">&times;</td></tr>
+    <tr><td>4</td><td>Career stats (avg, SR, wickets, economy, 100s, 50s)</td><td style="text-align:center; color: var(--green);">&check;</td><td style="text-align:center; color: var(--red);">&times;</td></tr>
+    <tr><td>5</td><td>Recent form (last 5 matches)</td><td style="text-align:center; color: var(--green);">&check;</td><td style="text-align:center; color: var(--red);">&times;</td></tr>
+    <tr><td colspan="4" style="color: var(--cyan); font-weight: 700; padding-top: 12px;">Auction State</td></tr>
+    <tr><td>6</td><td>Current bid amount</td><td style="text-align:center; color: var(--green);">&check;</td><td style="text-align:center; color: var(--red);">&times;</td></tr>
+    <tr><td>7</td><td>Own purse, squad size, overseas count</td><td style="text-align:center; color: var(--green);">&check;</td><td style="text-align:center; color: var(--red);">&times;</td></tr>
+    <tr><td>8</td><td>Role counts + role needs</td><td style="text-align:center; color: var(--green);">&check;</td><td style="text-align:center; color: var(--red);">&times;</td></tr>
+    <tr><td>9</td><td>Reserve budget calculation</td><td style="text-align:center; color: var(--green);">&check;</td><td style="text-align:center; color: var(--red);">&times;</td></tr>
+    <tr><td>10</td><td>Opponent purse, squad sizes, overseas</td><td style="text-align:center; color: var(--green);">&check;</td><td style="text-align:center; color: var(--red);">&times;</td></tr>
+    <tr><td>11</td><td>Upcoming 15 players (with stats preview)</td><td style="text-align:center; color: var(--green);">&check;</td><td style="text-align:center; color: var(--red);">&times;</td></tr>
+    <tr><td>12</td><td>Urgency warnings / forced-bid flags</td><td style="text-align:center; color: var(--green);">&check;</td><td style="text-align:center; color: var(--red);">&times;</td></tr>
+    <tr><td>13</td><td>Conversation history (last 10 decisions)</td><td style="text-align:center; color: var(--green);">&check;</td><td style="text-align:center; color: var(--red);">&times;</td></tr>
+    <tr><td colspan="4" style="color: var(--purple); font-weight: 700; padding-top: 12px;">Match / Tournament Data</td></tr>
+    <tr><td>14</td><td>Match number &amp; type (League/Qualifier/Final)</td><td style="text-align:center; color: var(--red);">&times;</td><td style="text-align:center; color: var(--green);">&check;</td></tr>
+    <tr><td>15</td><td>Team names</td><td style="text-align:center; color: var(--red);">&times;</td><td style="text-align:center; color: var(--green);">&check;</td></tr>
+    <tr><td>16</td><td>Venue traits (pace, batting, ground, dew, spin)</td><td style="text-align:center; color: var(--red);">&times;</td><td style="text-align:center; color: var(--green);">&check;</td></tr>
+    <tr><td>17</td><td>Home team advantage</td><td style="text-align:center; color: var(--red);">&times;</td><td style="text-align:center; color: var(--green);">&check;</td></tr>
+    <tr><td>18</td><td>Squad composition (roles, avg stats, key players)</td><td style="text-align:center; color: var(--red);">&times;</td><td style="text-align:center; color: var(--green);">&check;</td></tr>
+    <tr><td>19</td><td>Points table, H2H record, recent form</td><td style="text-align:center; color: var(--red);">&times;</td><td style="text-align:center; color: var(--green);">&check;</td></tr>
+    <tr><td>20</td><td>All past match results</td><td style="text-align:center; color: var(--red);">&times;</td><td style="text-align:center; color: var(--green);">&check;</td></tr>
+    <tr><td colspan="4" style="font-weight: 700; padding-top: 8px;">Totals</td></tr>
+    <tr><td></td><td><strong>Attributes per decision</strong></td><td style="text-align:center;"><strong style="color: var(--cyan);">21</strong></td><td style="text-align:center;"><strong style="color: var(--purple);">13</strong></td></tr>
+  </table>
+
+  <h2>Architecture Pattern</h2>
+  <div class="code-block" style="font-size: 12px;"><span style="color: var(--gold);">NO TOOLS. NO FUNCTION-CALLING. NO LANGCHAIN. NO CREWAI.</span>
+
+┌─────────────────────────────────────────────────┐
+│  <span style="color: var(--cyan);">Custom Orchestrator (TypeScript)</span>                │
+│  ├─ Reads full game state from DB (Prisma)      │
+│  ├─ Builds structured system + user prompt      │
+│  ├─ Injects conversation history (last 10 lots) │
+│  ├─ POST to OpenRouter (raw HTTP fetch)         │
+│  ├─ Regex-parses text response                  │
+│  ├─ Validates bid amount, enforces constraints   │
+│  ├─ Forced-bid override if LLM makes bad call   │
+│  └─ Writes decision back to DB                  │
+└─────────────────────────────────────────────────┘
+
+<span style="color: var(--text-dim);">LLM is a pure decision function:</span> <span style="color: var(--green);">f(game_state) → {action, amount, reasoning}</span>
+<span style="color: var(--text-dim);">All "agentic" behavior is in the surrounding engine, not LLM tool-use.</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PAGE 9: PROMPT DEEP DIVE -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-num">09 &mdash; Prompt Deep Dive</div>
+  <h1>Auction Prompt Structure</h1>
+
+  <p>Each auction turn sends <strong>3 message layers</strong> to the LLM:</p>
+
+  <div class="card-grid">
+    <div class="card" style="border-color: #00f0ff40;">
+      <div class="card-title" style="color: var(--cyan);">1. System Prompt (rules book)</div>
+      <div class="card-desc" style="font-size: 11px;">
+        &bull; Team identity ("You manage Mumbai Indians")<br>
+        &bull; 4 ranked objectives (squad &gt; roles &gt; quality &gt; budget)<br>
+        &bull; Hard constraints (15-18 squad, 8 overseas, 100 Cr)<br>
+        &bull; All 10 scoring graders explained<br>
+        &bull; Player assessment framework per role<br>
+        &bull; Trap detection guidance<br>
+        &bull; Strategic phase advice (early/mid/late)<br>
+        &bull; Dynamic urgency warnings
+      </div>
+    </div>
+    <div class="card" style="border-color: #b347ff40;">
+      <div class="card-title" style="color: var(--purple);">2. Conversation History</div>
+      <div class="card-desc" style="font-size: 11px;">
+        Last 10 completed lots reconstructed as user/assistant pairs:<br><br>
+        <code style="color: var(--text-dim);">USER: LOT #8: Vikram Shah (BOWLER) — SOLD ₹3.2Cr</code><br>
+        <code style="color: var(--text-dim);">ASST: ACTION: bid, AMOUNT: 3.2, REASONING: Need bowlers...</code><br><br>
+        Gives the LLM <strong>memory</strong> of its own past decisions.
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="border-color: #00ff8840; margin-top: 16px;">
+    <div class="card-title" style="color: var(--green);">3. User Prompt (decision card)</div>
+    <div class="card-desc" style="font-size: 11px;">
+      &bull; Player: name, role &rarr; subType, age, nationality, base price, style tags<br>
+      &bull; Formatted batting line (avg, SR, matches, 100s, 50s)<br>
+      &bull; Formatted bowling line (economy, wickets, bowling avg)<br>
+      &bull; Recent form (last 5 matches summary)<br>
+      &bull; Current bid or "no bids yet"<br>
+      &bull; Team status: purse, reserve calculation, effective budget, squad size, overseas, role breakdown, needs<br>
+      &bull; Opponents: each rival's purse, squad size, overseas count<br>
+      &bull; Upcoming 15 players with key stats<br>
+      &bull; Auction progress + escalating urgency warnings
+    </div>
+  </div>
+
+  <h1 style="margin-top: 32px;">TourBench Prompt Structure</h1>
+
+  <p>Each match prediction sends <strong>2 messages</strong>:</p>
+
+  <div class="card-grid">
+    <div class="card" style="border-color: #b347ff40;">
+      <div class="card-title" style="color: var(--purple);">System: Expert Analyst Persona</div>
+      <div class="card-desc" style="font-size: 11px;">
+        "You are an expert T20 cricket analyst. You understand how venue conditions
+        (pace/spin, ground size, dew) interact with squad composition. Analyze squad
+        strengths against venue traits, form, H2H, and standings."
+      </div>
+    </div>
+    <div class="card" style="border-color: #ffd70040;">
+      <div class="card-title" style="color: var(--gold);">User: Match Briefing</div>
+      <div class="card-desc" style="font-size: 11px;">
+        &bull; Match number, type, team names<br>
+        &bull; Venue: description + pace/spin, batting conditions, boundaries, dew, pitch deterioration<br>
+        &bull; Squad composition per team: role counts, avg stats, pace vs spin bowlers, power hitters, top 5 players<br>
+        &bull; Points table (live standings)<br>
+        &bull; Head-to-head record between these teams<br>
+        &bull; Recent form (W/L string for last 3)<br>
+        &bull; All past match results<br>
+        &bull; 5-point analysis checklist to guide reasoning
+      </div>
+    </div>
+  </div>
+
+  <h2 style="margin-top: 24px;">TourBench Scoring Metrics (7 graders)</h2>
+
+  <table>
+    <tr><th>Metric</th><th>Weight</th><th>What It Measures</th></tr>
+    <tr><td><strong>Accuracy</strong></td><td>25%</td><td>Did you pick the correct winner? Simple win%.</td></tr>
+    <tr><td><strong>Brier Score</strong></td><td>20%</td><td>Probabilistic calibration &mdash; penalizes wrong high-confidence picks heavily. <code>avg(1-prob)&sup2;</code></td></tr>
+    <tr><td><strong>Upset Detection</strong></td><td>10%</td><td>When the weaker team won (upset), did you predict it? Tests contrarian reasoning.</td></tr>
+    <tr><td><strong>Margin Accuracy</strong></td><td>10%</td><td>How close was "22 runs" to actual "18 runs"? Also: did you match margin type (runs vs wickets)?</td></tr>
+    <tr><td><strong>Calibration</strong></td><td>15%</td><td>Are high-confidence (&ge;0.7) predictions more accurate than low-confidence ones? Tests <em>knowing what you know</em>.</td></tr>
+    <tr><td><strong>Consistency</strong></td><td>10%</td><td>Correct + high confidence = good. Wrong + low confidence = also good. Rewards self-awareness.</td></tr>
+    <tr><td><strong>Reasoning</strong></td><td>10%</td><td>Placeholder for future LLM-graded reasoning quality (currently 0.5 baseline).</td></tr>
+  </table>
+
+  <div class="highlight">
+    <strong>Key insight:</strong> Accuracy alone isn&rsquo;t enough. A model that says 51% on every pick
+    and gets 8/14 right scores <em>lower</em> than one that gets 7/14 but correctly assigns high confidence
+    to its correct picks. <strong>Calibration rewards knowing what you know.</strong>
+  </div>
+
+  <h2 style="margin-top: 24px;">TourBench: Two Modes</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-color: #00ff8840;">
+      <div class="card-title" style="color: var(--green);">Synthetic Mode</div>
+      <div class="card-desc" style="font-size: 12px;">
+        &bull; 4 teams, 14 matches (12 league + qualifier + final)<br>
+        &bull; Random squad generation with deterministic simulation<br>
+        &bull; Fictional team aliases to prevent LLM knowledge leakage<br>
+        &bull; Tests pure analytical reasoning from provided data only
+      </div>
+    </div>
+    <div class="card" style="border-color: #ffd70040;">
+      <div class="card-title" style="color: var(--gold);">Real Data Mode (IPL Seasons)</div>
+      <div class="card-desc" style="font-size: 12px;">
+        &bull; 4 seasons: S1 (59 matches), S2 (74), S3 (73), S4 (71)<br>
+        &bull; Real IPL team names, venues, match results<br>
+        &bull; Historical seasons visible for context; eval season hidden<br>
+        &bull; Key player rosters + head-to-head history from prior years<br>
+        &bull; Tests whether LLMs can leverage real cricket knowledge
+      </div>
+    </div>
+  </div>
+
+  <h2 style="margin-top: 24px;">Supported Models (19+)</h2>
+  <div class="card-grid four">
+    <div class="card"><div class="card-title" style="color: #A855F7;">🟣 Anthropic</div><div class="card-desc" style="font-size: 11px;">Claude Opus 4.6<br>Claude Sonnet 4.6<br>Claude Sonnet 4<br>Claude Haiku 4</div></div>
+    <div class="card"><div class="card-title" style="color: #10B981;">🟢 OpenAI</div><div class="card-desc" style="font-size: 11px;">GPT-5.4<br>GPT-5.4 Pro<br>GPT-4o<br>GPT-4.1</div></div>
+    <div class="card"><div class="card-title" style="color: #4285F4;">🔵 Google</div><div class="card-desc" style="font-size: 11px;">Gemini 2.5 Pro<br>Gemini 2.5 Flash<br>Gemini 2.5 Flash Lite</div></div>
+    <div class="card"><div class="card-title" style="color: #94A3B8;">⚫ DeepSeek</div><div class="card-desc" style="font-size: 11px;">DeepSeek V3<br>DeepSeek R1</div></div>
+  </div>
+  <div class="card-grid four" style="margin-top: 8px;">
+    <div class="card"><div class="card-title" style="color: #0668E1;">🔷 Meta</div><div class="card-desc" style="font-size: 11px;">Llama 4 Scout<br>Llama 4 Maverick</div></div>
+    <div class="card"><div class="card-title" style="color: #F97316;">🟠 Mistral</div><div class="card-desc" style="font-size: 11px;">Mistral Medium<br>Mistral Small</div></div>
+    <div class="card"><div class="card-title" style="color: #6366F1;">🟤 Qwen</div><div class="card-desc" style="font-size: 11px;">Qwen 2.5 72B</div></div>
+    <div class="card"><div class="card-title" style="color: #D946EF;">🟡 Cohere</div><div class="card-desc" style="font-size: 11px;">Command R+</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PAGE 10: FILE STRUCTURE -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-num">10 &mdash; Codebase</div>
+  <h1>Project File Map</h1>
+
+  <div class="code-block" style="line-height: 1.6; font-size: 12px;"><span style="color: var(--gold);">src/</span>
+<span style="color: var(--cyan);">├── app/</span>                          <span style="color: var(--text-dim);">Next.js App Router</span>
+│   ├── page.tsx                    <span style="color: var(--text-dim);">Dashboard — list auctions, stats</span>
+│   ├── about/page.tsx              <span style="color: var(--text-dim);">About Raeth Arena</span>
+│   ├── arena/page.tsx              <span style="color: var(--text-dim);">Replay completed auctions</span>
+│   ├── compare/page.tsx            <span style="color: var(--text-dim);">Compare agents (WIP)</span>
+│   ├── auction/[id]/page.tsx       <span style="color: var(--text-dim);">Live auction view — lobby, bidding, results</span>
+│   ├── results/[id]/page.tsx       <span style="color: var(--text-dim);">5-tab evaluation results</span>
+│   ├── tournaments/page.tsx        <span style="color: var(--text-dim);">Tournament list + setup</span>
+│   ├── tournaments/[id]/page.tsx   <span style="color: var(--text-dim);">Tournament detail view</span>
+│   └── api/v1/
+│       ├── auctions/
+│       │   ├── route.ts            <span style="color: var(--text-dim);">GET — list all auctions</span>
+│       │   ├── create/route.ts     <span style="color: var(--text-dim);">POST — create auction</span>
+│       │   ├── run/route.ts        <span style="color: var(--text-dim);">POST — auto-run full auction</span>
+│       │   └── [id]/
+│       │       ├── add-bots/       <span style="color: var(--text-dim);">POST — add 4 agents</span>
+│       │       ├── start/          <span style="color: var(--text-dim);">POST — start bidding loop</span>
+│       │       ├── stop/           <span style="color: var(--text-dim);">POST — stop auction</span>
+│       │       ├── live/           <span style="color: var(--text-dim);">GET — frontend polling</span>
+│       │       ├── state/          <span style="color: var(--text-dim);">GET — agent state</span>
+│       │       ├── bid/            <span style="color: var(--text-dim);">POST — place bid</span>
+│       │       ├── join/           <span style="color: var(--text-dim);">POST — join auction</span>
+│       │       ├── results/        <span style="color: var(--text-dim);">GET — evaluation results</span>
+│       │       ├── delete/         <span style="color: var(--text-dim);">DELETE — delete auction</span>
+│       │       └── external/
+│       │           ├── state/      <span style="color: var(--text-dim);">GET — external agent state</span>
+│       │           └── bid/        <span style="color: var(--text-dim);">POST — external agent bid</span>
+│       ├── tournaments/            <span style="color: var(--text-dim);">Tournament CRUD + run</span>
+│       └── agents/register/        <span style="color: var(--text-dim);">POST — register agent</span>
+│
+<span style="color: var(--cyan);">├── lib/</span>                           <span style="color: var(--text-dim);">Core Business Logic</span>
+│   ├── db.ts                      <span style="color: var(--text-dim);">Prisma client (SQLite via better-sqlite3)</span>
+│   ├── types.ts                   <span style="color: var(--text-dim);">All TypeScript interfaces</span>
+│   ├── auction-engine.ts          <span style="color: var(--text-dim);">Auction state machine & bidding logic</span>
+│   ├── orchestrator.ts            <span style="color: var(--text-dim);">Auto-run full auction flow</span>
+│   ├── player-generator.ts        <span style="color: var(--text-dim);">80 synthetic players with stats</span>
+│   ├── auth.ts                    <span style="color: var(--text-dim);">API key authentication</span>
+│   ├── grading/
+│   │   ├── scoring.ts             <span style="color: var(--text-dim);">Evaluation orchestrator + season sim</span>
+│   │   ├── code-graders.ts        <span style="color: var(--text-dim);">10 deterministic graders</span>
+│   │   └── model-graders.ts       <span style="color: var(--text-dim);">LLM-based evaluation</span>
+│   └── tour/
+│       ├── tournament-engine.ts   <span style="color: var(--text-dim);">Match generation & simulation</span>
+│       ├── tour-orchestrator.ts   <span style="color: var(--text-dim);">Tournament runner</span>
+│       ├── tour-scoring.ts        <span style="color: var(--text-dim);">Prediction evaluation</span>
+│       └── venue-system.ts        <span style="color: var(--text-dim);">Venue traits & modifiers</span>
+│
+<span style="color: var(--cyan);">├── data/</span>                          <span style="color: var(--text-dim);">Constants & Configurations</span>
+│   ├── team-config.ts             <span style="color: var(--text-dim);">10 IPL teams: MI, CSK, RCB, KKR, SRH, RR, DC, PBKS, GT, LSG</span>
+│   ├── team-config-full.ts        <span style="color: var(--text-dim);">Full team data for real-data tournaments</span>
+│   ├── ipl-seasons.ts             <span style="color: var(--text-dim);">IPL S1-S4 match data (59-74 matches each)</span>
+│   ├── ipl-matches.ts             <span style="color: var(--text-dim);">Historical match results interface</span>
+│   ├── name-pools.ts              <span style="color: var(--text-dim);">Indian + overseas name generators</span>
+│   └── stat-distributions.ts      <span style="color: var(--text-dim);">Gaussian stat distributions per role</span>
+│
+<span style="color: var(--gold);">prisma/</span>
+│   └── schema.prisma              <span style="color: var(--text-dim);">11 models: Agent, Auction, Team, Player, Lot, Bid...</span>
+│
+<span style="color: var(--gold);">Root files:</span>
+├── Dockerfile                     <span style="color: var(--text-dim);">Docker build (Node 20, better-sqlite3)</span>
+├── docker-compose.yml             <span style="color: var(--text-dim);">Single-command deployment</span>
+├── package.json                   <span style="color: var(--text-dim);">Dependencies & scripts</span>
+└── .env                           <span style="color: var(--text-dim);">OPENROUTER_API_KEY + DATABASE_URL</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PAGE 11: WHAT MAKES IT SPECIAL -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-num">11 &mdash; What Makes It Special</div>
+  <h1>Why Raeth Arena Matters</h1>
+
+  <h2>vs Traditional Benchmarks</h2>
+
+  <table>
+    <tr><th>Traditional Benchmarks</th><th>Raeth Arena</th></tr>
+    <tr><td>Static Q&A (MMLU, HumanEval)</td><td>Dynamic multi-step decisions under constraints</td></tr>
+    <tr><td>Single correct answer</td><td>Strategy space with multiple valid approaches</td></tr>
+    <tr><td>No resource management</td><td>Budget + squad composition + opponent awareness</td></tr>
+    <tr><td>No hidden information</td><td>Trap/sleeper players test information processing</td></tr>
+    <tr><td>One-shot evaluation</td><td>50-70+ sequential decisions, each affecting future</td></tr>
+    <tr><td>Hard to compare models</td><td>Head-to-head competition with ranked results</td></tr>
+  </table>
+
+  <h2>What Raeth Tests in AI Models</h2>
+
+  <div class="card-grid three">
+    <div class="card" style="border-top: 3px solid var(--cyan);">
+      <div class="card-title" style="color: var(--cyan);">Strategic Reasoning</div>
+      <div class="card-desc">Can the model plan across 80 lots? Save budget for later? Fill role gaps systematically?</div>
+    </div>
+    <div class="card" style="border-top: 3px solid var(--green);">
+      <div class="card-title" style="color: var(--green);">Constraint Satisfaction</div>
+      <div class="card-desc">Can it maintain squad rules, overseas limits, and budget reserves simultaneously?</div>
+    </div>
+    <div class="card" style="border-top: 3px solid var(--purple);">
+      <div class="card-title" style="color: var(--purple);">Value Estimation</div>
+      <div class="card-desc">Can it assess player worth from stats? Avoid traps? Find hidden value in sleepers?</div>
+    </div>
+    <div class="card" style="border-top: 3px solid var(--gold);">
+      <div class="card-title" style="color: var(--gold);">Opponent Modeling</div>
+      <div class="card-desc">Does it track other teams' budgets and needs? Bid strategically based on competition?</div>
+    </div>
+    <div class="card" style="border-top: 3px solid var(--orange);">
+      <div class="card-title" style="color: var(--orange);">Instruction Following</div>
+      <div class="card-desc">Can it consistently respond in the exact ACTION/AMOUNT/REASONING format?</div>
+    </div>
+    <div class="card" style="border-top: 3px solid var(--red);">
+      <div class="card-title" style="color: var(--red);">Adaptation</div>
+      <div class="card-desc">Does it learn from conversation history? Adjust strategy mid-auction?</div>
+    </div>
+  </div>
+
+  <hr>
+
+  <h2>Quick Start</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-color: var(--cyan)40;">
+      <div class="card-title" style="color: var(--cyan);">Local Development</div>
+      <div class="code-block" style="margin: 8px 0; font-size: 12px;">npm install
+npx prisma generate
+npx prisma db push
+npm run dev
+<span style="color: var(--text-dim);"># Open http://localhost:3000</span></div>
+    </div>
+    <div class="card" style="border-color: var(--purple)40;">
+      <div class="card-title" style="color: var(--purple);">Docker</div>
+      <div class="code-block" style="margin: 8px 0; font-size: 12px;">docker compose up --build
+<span style="color: var(--text-dim);"># Open http://localhost:3001</span>
+<span style="color: var(--text-dim);"># That's it. One command.</span></div>
+    </div>
+  </div>
+
+  <div style="text-align: center; margin-top: 48px; padding: 32px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface);">
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 36px; font-weight: 900; background: linear-gradient(135deg, #ff8c00, #ffd700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px;">RAETH.AI</div>
+    <div style="color: var(--text-dim); font-size: 14px;">Built by Aman &mdash; Grounded in Anthropic's eval methodology</div>
+    <div style="color: var(--text-dim); font-size: 12px; margin-top: 8px;">Next.js 16 &bull; Prisma v7 &bull; SQLite &bull; OpenRouter &bull; Docker</div>
+  </div>
+</div>
+
+</body>
+</html>
