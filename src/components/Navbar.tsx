@@ -96,12 +96,9 @@ export default function Navbar() {
       <div className="mx-auto flex h-[84px] max-w-[1200px] items-center justify-between px-5 md:px-6">
         {/* Brand */}
         <Link href="/" className="flex items-center no-underline group transition-transform hover:scale-[1.02]">
-          <img
-            src="/logo.png"
-            alt="Raeth"
-            className="h-[40px] md:h-[48px] w-auto object-contain shrink-0"
-            style={{ mixBlendMode: "lighten" }}
-          />
+          <span className="text-[15px] font-bold tracking-[0.25em] uppercase mt-[2px]" style={{ color: "#7877C6" }}>
+            Raeth
+          </span>
           <div className="h-[22px] w-px mx-4" style={{ background: "rgba(255,255,255,0.15)" }} />
           <span className="text-[15px] font-bold tracking-[0.25em] uppercase mt-[2px]" style={{ color: "#7877C6" }}>
             Arena
