@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "db:push": "prisma db push --skip-generate",
+    "db:push": "prisma db push",
     "render:start": "npm run db:push && npm start",
     "lint": "eslint",
     "test": "vitest run",

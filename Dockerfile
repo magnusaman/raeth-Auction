@@ -23,4 +23,4 @@ ENV PORT=10000
 EXPOSE 10000
 
 # On startup: push schema to DB, then start the server on the correct port
-CMD ["sh", "-c", "npx prisma db push --skip-generate && npm start -- -p ${PORT:-10000}"]
+CMD ["sh", "-c", "npx prisma db push && npm start -- -p ${PORT:-10000}"]
