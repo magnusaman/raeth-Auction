@@ -56,13 +56,10 @@ export function loadIPLPlayerPool(): SyntheticPlayer[] {
     quality: computeVisibleQuality(p),
   }));
 
-  scored.sort((a, b) => b.quality - a.quality);
-
-  // Slight shuffle within quality tiers for variety
-  for (let i = 0; i < scored.length - 1; i++) {
-    if (Math.random() < 0.15 && Math.abs(scored[i].quality - scored[i + 1].quality) < 1.0) {
-      [scored[i], scored[i + 1]] = [scored[i + 1], scored[i]];
-    }
+  // Fisher-Yates shuffle for fully randomized player order
+  for (let i = scored.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [scored[i], scored[j]] = [scored[j], scored[i]];
   }
 
   return scored.map((s, idx) => ({
