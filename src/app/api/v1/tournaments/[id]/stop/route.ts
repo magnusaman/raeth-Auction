@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 
 // POST /api/v1/tournaments/[id]/stop — Cancel a running prediction
 export async function POST(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {

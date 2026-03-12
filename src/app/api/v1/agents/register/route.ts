@@ -1,18 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { createId } from "@paralleldrive/cuid2";
+import { RegisterAgentSchema, zodError } from "@/lib/api-schemas";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, description } = body;
+    const parsed = RegisterAgentSchema.safeParse(body);
+    if (!parsed.success) return zodError(parsed);
 
-    if (!name || typeof name !== "string" || name.trim().length === 0) {
-      return NextResponse.json(
-        { error: "Agent name is required" },
-        { status: 400 }
-      );
-    }
+    const { name, description } = parsed.data;
 
     // Check if name taken
     const existing = await prisma.agent.findUnique({

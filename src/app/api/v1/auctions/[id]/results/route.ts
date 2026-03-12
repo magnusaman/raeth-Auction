@@ -116,7 +116,7 @@ export async function GET(
     // Extract cost tracking data from auction config
     const costTracking = auctionConfig.costTracking || null;
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       auction_id: auction.id,
       status: auction.status,
       started_at: auction.startedAt,
@@ -127,6 +127,8 @@ export async function GET(
       evaluation,
       cost_tracking: costTracking,
     });
+    response.headers.set("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
+    return response;
   } catch (error: any) {
     return NextResponse.json(
       { error: error?.message || "Failed to get results" },

@@ -1,21 +1,29 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { TEAMS } from "@/data/team-config";
 import { TEAMS_FULL } from "@/data/team-config-full";
 
 // GET /api/v1/tournaments — List all tournaments
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const tournaments = await prisma.tournament.findMany({
-      orderBy: { createdAt: "desc" },
-      include: {
-        matches: {
-          orderBy: { matchNumber: "asc" },
-          include: { predictions: true },
+    const page = Math.max(1, parseInt(req.nextUrl.searchParams.get("page") || "1"));
+    const limit = Math.min(100, Math.max(1, parseInt(req.nextUrl.searchParams.get("limit") || "20")));
+
+    const [tournaments, total] = await Promise.all([
+      prisma.tournament.findMany({
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          matches: {
+            orderBy: { matchNumber: "asc" },
+            include: { predictions: true },
+          },
+          evaluation: true,
         },
-        evaluation: true,
-      },
-    });
+      }),
+      prisma.tournament.count(),
+    ]);
 
     const result = tournaments.map((t) => {
       const config = JSON.parse(t.config || "{}");
@@ -70,7 +78,7 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ tournaments: result });
+    return NextResponse.json({ tournaments: result, page, limit, total });
   } catch (error: any) {
     console.error("List tournaments error:", error);
     return NextResponse.json(

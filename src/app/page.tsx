@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AnimatedBackground from "@/components/AnimatedBackground";
+import StatusBadge from "@/components/ui/StatusBadge";
 
 const TEAMS = [
   { short: "MI", name: "Mumbai Indians", color: "#004BA0", logo: "/teams/mi.png" },
@@ -533,21 +534,3 @@ function StatCard({ value, label, accent, suffix = "" }: { value: number; label:
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const config: Record<string, { color: string; bg: string; border: string }> = {
-    COMPLETED: { color: "#10B981", bg: "rgba(16,185,129,0.1)", border: "rgba(16,185,129,0.2)" },
-    RUNNING: { color: "#EF4444", bg: "rgba(239,68,68,0.1)", border: "rgba(239,68,68,0.2)" },
-    LOBBY: { color: "#F59E0B", bg: "rgba(245,158,11,0.1)", border: "rgba(245,158,11,0.2)" },
-  };
-  const s = config[status] || { color: "#6B7280", bg: "rgba(107,114,128,0.1)", border: "rgba(107,114,128,0.2)" };
-
-  return (
-    <span
-      className="status-badge"
-      style={{ color: s.color, background: s.bg, borderColor: s.border }}
-    >
-      {status === "RUNNING" && <span className="live-dot" style={{ width: 5, height: 5 }} />}
-      {status}
-    </span>
-  );
-}

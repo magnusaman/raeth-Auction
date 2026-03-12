@@ -100,10 +100,12 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       models,
       totalAuctions: auctions.filter((a) => a.evaluation).length,
     });
+    response.headers.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=120");
+    return response;
   } catch (error: any) {
     console.error("Trends error:", error);
     return NextResponse.json(

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 
 // DELETE /api/v1/tournaments/[id]/delete
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {

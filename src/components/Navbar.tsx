@@ -73,6 +73,10 @@ export default function Navbar() {
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
+    <>
+    <a href="#main" className="skip-to-content">
+      Skip to content
+    </a>
     <nav
       className="sticky top-0 z-50 transition-all duration-300"
       style={{
@@ -287,5 +291,6 @@ export default function Navbar() {
         )}
       </AnimatePresence>
     </nav>
+    </>
   );
 }

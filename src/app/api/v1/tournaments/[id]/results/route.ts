@@ -121,7 +121,7 @@ export async function GET(
     });
     standings.sort((a, b) => b.points - a.points);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       tournament_id: tournament.id,
       status: tournament.status,
       created_at: tournament.createdAt,
@@ -134,6 +134,8 @@ export async function GET(
       matches,
       evaluation: evalResults,
     });
+    response.headers.set("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
+    return response;
   } catch (error: any) {
     console.error("Tournament results error:", error);
     return NextResponse.json(

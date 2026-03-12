@@ -1,4 +1,5 @@
 import { prisma } from "./db";
+import { PrismaClient } from "@/generated/prisma/client";
 import { loadIPLPlayerPool } from "./player-loader";
 import {
   AuctionConfig,
@@ -10,6 +11,8 @@ import {
   YourTeamInfo,
   SquadMember,
 } from "./types";
+
+type TxClient = Parameters<Parameters<PrismaClient["$transaction"]>[0]>[0];
 
 // ─── Create a New Auction ────────────────────────────────────
 
@@ -431,120 +434,122 @@ export async function checkLotCompletion(
   lotId: string,
   config: AuctionConfig
 ): Promise<{ completed: boolean; status?: "SOLD" | "UNSOLD" }> {
-  const lot = await prisma.lot.findUnique({
-    where: { id: lotId },
-    include: {
-      bids: { orderBy: { timestamp: "desc" } },
-      player: true,
-    },
-  });
+  return await prisma.$transaction(async (tx) => {
+    const lot = await tx.lot.findUnique({
+      where: { id: lotId },
+      include: {
+        bids: { orderBy: { timestamp: "desc" } },
+        player: true,
+      },
+    });
 
-  if (!lot) return { completed: false };
+    if (!lot) return { completed: false };
 
-  // Guard: if lot is already completed, don't process again
-  if (lot.status === "SOLD" || lot.status === "UNSOLD") {
-    return { completed: true, status: lot.status as "SOLD" | "UNSOLD" };
-  }
+    // Guard: if lot is already completed, don't process again
+    if (lot.status === "SOLD" || lot.status === "UNSOLD") {
+      return { completed: true, status: lot.status as "SOLD" | "UNSOLD" };
+    }
 
-  const auction = await prisma.auction.findUnique({
-    where: { id: auctionId },
-    include: { teams: true },
-  });
-  if (!auction) return { completed: false };
+    const auction = await tx.auction.findUnique({
+      where: { id: auctionId },
+      include: { teams: true },
+    });
+    if (!auction) return { completed: false };
 
-  // Get recent round of responses — all teams that responded after the last bid
-  const lastBid = lot.bids.find((b) => b.action === "bid");
+    // Get recent round of responses — all teams that responded after the last bid
+    const lastBid = lot.bids.find((b) => b.action === "bid");
 
-  if (!lastBid) {
-    // No bids at all — check if all unique teams passed
-    const uniquePassedTeams = new Set(
+    if (!lastBid) {
+      // No bids at all — check if all unique teams passed
+      const uniquePassedTeams = new Set(
+        lot.bids.filter((b) => b.action === "pass").map((b) => b.teamId)
+      );
+      if (uniquePassedTeams.size >= auction.teams.length) {
+        // Lot unsold
+        await tx.lot.update({
+          where: { id: lotId },
+          data: { status: "UNSOLD", endedAt: new Date() },
+        });
+        await tx.auctionPlayer.update({
+          where: { id: lot.playerId },
+          data: { isUnsold: true },
+        });
+        await advanceToNextLot(auctionId, tx);
+        return { completed: true, status: "UNSOLD" };
+      }
+      return { completed: false };
+    }
+
+    // IPL rule: a team that passes at ANY point is out for this lot.
+    // Collect all teams that have ever passed during this lot.
+    const allDroppedTeams = new Set(
       lot.bids.filter((b) => b.action === "pass").map((b) => b.teamId)
     );
-    if (uniquePassedTeams.size >= auction.teams.length) {
-      // Lot unsold
-      await prisma.lot.update({
+    const otherTeams = auction.teams.filter((t) => t.id !== lastBid.teamId);
+
+    // SOLD if all other teams have dropped out (passed at any point)
+    if (otherTeams.every((t) => allDroppedTeams.has(t.id))) {
+      const winnerTeam = auction.teams.find((t) => t.id === lastBid.teamId)!;
+
+      // Update lot
+      await tx.lot.update({
         where: { id: lotId },
-        data: { status: "UNSOLD", endedAt: new Date() },
+        data: {
+          status: "SOLD",
+          finalPrice: lastBid.amount,
+          winnerId: lastBid.teamId,
+          endedAt: new Date(),
+        },
       });
-      await prisma.auctionPlayer.update({
+
+      // Update player
+      await tx.auctionPlayer.update({
         where: { id: lot.playerId },
-        data: { isUnsold: true },
+        data: {
+          soldPrice: lastBid.amount,
+          wonByTeamId: lastBid.teamId,
+        },
       });
-      await advanceToNextLot(auctionId);
-      return { completed: true, status: "UNSOLD" };
+
+      // Update team purse and counts
+      const isOverseas = lot.player.nationality !== "India";
+      await tx.auctionTeam.update({
+        where: { id: lastBid.teamId },
+        data: {
+          purseRemaining: winnerTeam.purseRemaining - lastBid.amount!,
+          squadSize: winnerTeam.squadSize + 1,
+          overseasCount: isOverseas
+            ? winnerTeam.overseasCount + 1
+            : winnerTeam.overseasCount,
+        },
+      });
+
+      await advanceToNextLot(auctionId, tx);
+      return { completed: true, status: "SOLD" };
     }
+
     return { completed: false };
-  }
-
-  // IPL rule: a team that passes at ANY point is out for this lot.
-  // Collect all teams that have ever passed during this lot.
-  const allDroppedTeams = new Set(
-    lot.bids.filter((b) => b.action === "pass").map((b) => b.teamId)
-  );
-  const otherTeams = auction.teams.filter((t) => t.id !== lastBid.teamId);
-
-  // SOLD if all other teams have dropped out (passed at any point)
-  if (otherTeams.every((t) => allDroppedTeams.has(t.id))) {
-    const winnerTeam = auction.teams.find((t) => t.id === lastBid.teamId)!;
-
-    // Update lot
-    await prisma.lot.update({
-      where: { id: lotId },
-      data: {
-        status: "SOLD",
-        finalPrice: lastBid.amount,
-        winnerId: lastBid.teamId,
-        endedAt: new Date(),
-      },
-    });
-
-    // Update player
-    await prisma.auctionPlayer.update({
-      where: { id: lot.playerId },
-      data: {
-        soldPrice: lastBid.amount,
-        wonByTeamId: lastBid.teamId,
-      },
-    });
-
-    // Update team purse and counts
-    const isOverseas = lot.player.nationality !== "India";
-    await prisma.auctionTeam.update({
-      where: { id: lastBid.teamId },
-      data: {
-        purseRemaining: winnerTeam.purseRemaining - lastBid.amount!,
-        squadSize: winnerTeam.squadSize + 1,
-        overseasCount: isOverseas
-          ? winnerTeam.overseasCount + 1
-          : winnerTeam.overseasCount,
-      },
-    });
-
-    await advanceToNextLot(auctionId);
-    return { completed: true, status: "SOLD" };
-  }
-
-  return { completed: false };
+  });
 }
 
 // ─── Advance to Next Lot ─────────────────────────────────────
 
-async function advanceToNextLot(auctionId: string): Promise<void> {
-  const nextLot = await prisma.lot.findFirst({
+async function advanceToNextLot(auctionId: string, tx: TxClient = prisma as unknown as TxClient): Promise<void> {
+  const nextLot = await tx.lot.findFirst({
     where: { auctionId, status: "PENDING" },
     orderBy: { lotNumber: "asc" },
   });
 
   if (!nextLot) {
     // Auction complete
-    await prisma.auction.update({
+    await tx.auction.update({
       where: { id: auctionId },
       data: { status: "COMPLETED", completedAt: new Date() },
     });
     return;
   }
 
-  await prisma.lot.update({
+  await tx.lot.update({
     where: { id: nextLot.id },
     data: { status: "BIDDING", startedAt: new Date() },
   });

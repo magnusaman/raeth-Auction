@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { authenticateAgent } from "@/lib/auth";
 import { processBid } from "@/lib/auction-engine";
 import { prisma } from "@/lib/db";
+import { BidActionSchema, zodError } from "@/lib/api-schemas";
 
 export async function POST(
   req: NextRequest,
@@ -15,13 +16,8 @@ export async function POST(
 
     const { id: auctionId } = await params;
     const body = await req.json();
-
-    if (!body.action || !["bid", "pass"].includes(body.action)) {
-      return NextResponse.json(
-        { error: "action must be 'bid' or 'pass'" },
-        { status: 400 }
-      );
-    }
+    const parsed = BidActionSchema.safeParse(body);
+    if (!parsed.success) return zodError(parsed);
 
     // Find this agent's team
     const team = await prisma.auctionTeam.findFirst({
@@ -36,9 +32,9 @@ export async function POST(
     }
 
     const result = await processBid(auctionId, team.id, {
-      action: body.action,
-      amount: body.amount,
-      reasoning: body.reasoning,
+      action: parsed.data.action,
+      amount: parsed.data.amount,
+      reasoning: parsed.data.reasoning,
     });
 
     if (!result.success) {

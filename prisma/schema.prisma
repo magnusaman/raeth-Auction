@@ -33,6 +33,9 @@ model Auction {
   players     AuctionPlayer[]
   lots        Lot[]
   evaluation  Evaluation?
+
+  @@index([status])
+  @@index([status, createdAt])
 }
 
 // ─── Team in an Auction (Agent + Team assignment) ────────────
@@ -90,6 +93,8 @@ model AuctionPlayer {
   lot     Lot?
 
   @@index([auctionId])
+  @@index([wonByTeamId])
+  @@index([auctionId, auctionOrder])
 }
 
 // ─── Lot (One player being auctioned) ────────────────────────
@@ -110,6 +115,7 @@ model Lot {
   bids    Bid[]
 
   @@index([auctionId])
+  @@index([auctionId, status])
 }
 
 // ─── Individual Bid Action ───────────────────────────────────
@@ -127,6 +133,8 @@ model Bid {
   team AuctionTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@index([lotId])
+  @@index([teamId])
+  @@index([lotId, timestamp])
 }
 
 // ─── Post-Auction Evaluation ─────────────────────────────────

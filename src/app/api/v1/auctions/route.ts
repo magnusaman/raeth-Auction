@@ -1,19 +1,28 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { TEAMS } from "@/data/team-config";
+import { apiError } from "@/lib/api-response";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const auctions = await prisma.auction.findMany({
-      orderBy: { createdAt: "desc" },
-      include: {
-        teams: {
-          include: { agent: true },
-          orderBy: { teamIndex: "asc" },
+    const page = Math.max(1, parseInt(req.nextUrl.searchParams.get("page") || "1"));
+    const limit = Math.min(100, Math.max(1, parseInt(req.nextUrl.searchParams.get("limit") || "20")));
+
+    const [auctions, total] = await Promise.all([
+      prisma.auction.findMany({
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          teams: {
+            include: { agent: true },
+            orderBy: { teamIndex: "asc" },
+          },
+          evaluation: true,
         },
-        evaluation: true,
-      },
-    });
+      }),
+      prisma.auction.count(),
+    ]);
 
     const result = auctions.map((a) => ({
       auction_id: a.id,
@@ -31,12 +40,11 @@ export async function GET() {
       has_evaluation: !!a.evaluation,
     }));
 
-    return NextResponse.json({ auctions: result });
+    const response = NextResponse.json({ auctions: result, page, limit, total });
+    response.headers.set("Cache-Control", "public, s-maxage=10, stale-while-revalidate=30");
+    return response;
   } catch (error: any) {
     console.error("List auctions error:", error);
-    return NextResponse.json(
-      { error: "Failed to list auctions", details: error?.message },
-      { status: 500 }
-    );
+    return apiError("Failed to list auctions", 500);
   }
 }

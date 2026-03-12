@@ -23,6 +23,8 @@ services:
     environment:
       - DATABASE_URL=postgresql://raeth:raeth@postgres:5432/raeth
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - ADMIN_SECRET=${ADMIN_SECRET:-raeth-dev-secret-key-min16}
+      - PORT=3000
     depends_on:
       postgres:
         condition: service_healthy

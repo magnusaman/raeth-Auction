@@ -343,7 +343,7 @@
     <br><br>
     <span class="badge cyan">AuctionBench</span>
     <span class="badge purple">TourBench</span>
-    <span class="badge green">19+ Models</span>
+    <span class="badge green">19+ LLMs</span>
     <span class="badge gold">External API</span>
   </div>
   <div class="meta">
@@ -377,7 +377,7 @@
       <div class="card-title" style="color: var(--cyan);">AuctionBench</div>
       <div class="card-desc">
         Each AI agent controls a cricket franchise with a &#8377;100 Cr budget.
-        They compete in a live auction of 80 synthetic players, making 50-70+
+        They compete in a live auction of 120 real IPL players (randomized order), making 50-70+
         bid/pass decisions. Tests: <strong>sequential reasoning, budget management,
         value estimation, trap detection, constraint satisfaction.</strong>
       </div>
@@ -411,15 +411,15 @@
     </div>
     <div class="card">
       <div class="card-title" style="color: var(--green);">Backend</div>
-      <div class="card-desc">Next.js API Routes<br>TypeScript<br>Prisma v7 ORM<br>SQLite (better-sqlite3)</div>
+      <div class="card-desc">Next.js API Routes<br>TypeScript<br>Prisma v7 ORM<br>PostgreSQL (Supabase)<br>Socket.io WebSocket</div>
     </div>
     <div class="card">
       <div class="card-title" style="color: var(--purple);">AI</div>
-      <div class="card-desc">OpenRouter API<br>19+ LLM models<br>External Agent API<br>Token-based auth</div>
+      <div class="card-desc">OpenRouter + Direct APIs<br>19+ LLM models<br>Multi-provider routing<br>External Agent API</div>
     </div>
     <div class="card">
       <div class="card-title" style="color: var(--gold);">Deploy</div>
-      <div class="card-desc">Docker<br>Docker Compose<br>SQLite volume<br>Single-command startup</div>
+      <div class="card-desc">Docker<br>Render (cloud)<br>Supabase PostgreSQL<br>Vitest (90 tests)</div>
     </div>
   </div>
 </div>
@@ -451,8 +451,8 @@
                     └──────┬──────┘ └─────────────┘
                            │
                     ┌──────┴──────┐
-                    │   SQLite    │
-                    │   Database  │
+                    │ PostgreSQL  │
+                    │ (Supabase)  │
                     └─────────────┘</div>
 
   <h2>Database Schema (11 Models)</h2>
@@ -481,7 +481,7 @@
 
   <table>
     <tr><th>Endpoint</th><th>Method</th><th>Purpose</th></tr>
-    <tr><td><code>/api/v1/auctions/create</code></td><td>POST</td><td>Create auction + 80 synthetic players</td></tr>
+    <tr><td><code>/api/v1/auctions/create</code></td><td>POST</td><td>Create auction + load real IPL players</td></tr>
     <tr><td><code>/api/v1/auctions/[id]/add-bots</code></td><td>POST</td><td>Add 2-10 AI agents to auction</td></tr>
     <tr><td><code>/api/v1/auctions/[id]/start</code></td><td>POST</td><td>Start bidding loop (background)</td></tr>
     <tr><td><code>/api/v1/auctions/[id]/live</code></td><td>GET</td><td>Poll live state (frontend)</td></tr>
@@ -496,12 +496,12 @@
 <!-- PAGE 3: PLAYER GENERATION -->
 <!-- ═══════════════════════════════════════════════════════════ -->
 <div class="page">
-  <div class="section-num">03 &mdash; Player Generation</div>
-  <h1>Synthetic Player System</h1>
+  <div class="section-num">03 &mdash; Player System</div>
+  <h1>Real IPL Player Pool</h1>
 
   <p>
-    Each auction generates <strong>80 unique synthetic cricket players</strong> with realistic
-    statistics drawn from configurable distributions. Players have both <em>visible</em> stats
+    Auctions draw from a pool of <strong>120 real IPL players</strong> sourced from the 2025 TATA IPL Auction,
+    with authentic career statistics. Players have both <em>visible</em> stats
     (shown to agents) and <em>hidden</em> values (revealed only during evaluation).
   </p>
 
@@ -581,11 +581,11 @@
     projectedRuns: 410, projectedAvg: 31.5, projectedSR: 139.8
   }</div>
 
-  <h2>Auction Ordering (Quality Sort)</h2>
+  <h2>Auction Ordering (Randomized)</h2>
   <p>
-    Players are sorted by a <strong>visible quality score</strong> computed from career stats,
-    recent form, age, and base price. Best players appear first, weakest last. This ensures
-    marquee players are auctioned early (high stakes) and budget picks come later.
+    Players are <strong>fully randomized</strong> using a Fisher-Yates shuffle for each auction.
+    Every auction has a different player sequence, preventing agents from memorizing lot order
+    and forcing genuine real-time evaluation of each player.
   </p>
 </div>
 
@@ -597,11 +597,11 @@
   <h1>How an Auction Works</h1>
 
   <div class="flow"><span class="label">PHASE 1: LOBBY</span>
-<span class="action">Create Auction</span> <span class="arrow">→</span> 80 players generated <span class="arrow">→</span> 80 lots created (PENDING)
+<span class="action">Create Auction</span> <span class="arrow">→</span> 120 real IPL players loaded <span class="arrow">→</span> lots created (PENDING)
 <span class="action">Add 4 Agents</span>  <span class="arrow">→</span> Each gets a team (MI, CSK, RCB, KKR) + ₹100 Cr purse
 
 <span class="label">PHASE 2: RUNNING</span>
-For each of 80 lots:
+For each lot:
   <span class="arrow">│</span>
   <span class="arrow">├─</span> Lot status <span class="arrow">→</span> BIDDING
   <span class="arrow">├─</span> <span class="action">Round-Robin Bidding:</span>
@@ -616,7 +616,7 @@ For each of 80 lots:
   <span class="arrow">└─</span> Next lot starts...
 
 <span class="label">PHASE 3: COMPLETED</span>
-All 80 lots done <span class="arrow">→</span> Run 10 code graders <span class="arrow">→</span> Simulate season <span class="arrow">→</span> Rankings</div>
+All lots done <span class="arrow">→</span> Run 10 code graders <span class="arrow">→</span> Simulate season <span class="arrow">→</span> Rankings</div>
 
   <h2>Auction Rules</h2>
 
@@ -736,20 +736,20 @@ All 80 lots done <span class="arrow">→</span> Run 10 code graders <span class=
   <h2>Supported Models</h2>
   <div class="card-grid three">
     <div class="card"><div class="card-desc">
-      <span class="badge cyan">Claude Sonnet 4</span><br>
-      <span class="badge cyan">Claude Haiku 3.5</span><br>
-      <span class="badge cyan">Claude Opus 4</span>
+      <span class="badge cyan">Claude Sonnet 4.6</span><br>
+      <span class="badge cyan">Claude Opus 4.6</span><br>
+      <span class="badge cyan">Claude Haiku 4</span>
     </div></div>
     <div class="card"><div class="card-desc">
+      <span class="badge green">GPT-5.4</span><br>
       <span class="badge green">GPT-4o</span><br>
-      <span class="badge green">GPT-4o Mini</span><br>
       <span class="badge green">GPT-4.1</span>
     </div></div>
     <div class="card"><div class="card-desc">
+      <span class="badge purple">Gemini 3.1 Pro Preview</span><br>
       <span class="badge purple">Gemini 2.5 Flash</span><br>
-      <span class="badge purple">Gemini 2.5 Pro</span><br>
-      <span class="badge gold">DeepSeek V3</span><br>
-      <span class="badge orange">Llama 3.1 70B</span>
+      <span class="badge gold">DeepSeek V3.2</span><br>
+      <span class="badge orange">Llama 4 Maverick</span>
     </div></div>
   </div>
 </div>
@@ -762,7 +762,7 @@ All 80 lots done <span class="arrow">→</span> Run 10 code graders <span class=
   <h1>Scoring &amp; Evaluation System</h1>
 
   <p>
-    After all 80 lots are auctioned, teams are evaluated by <strong>10 deterministic
+    After all lots are auctioned, teams are evaluated by <strong>10 deterministic
     code graders</strong> that measure different aspects of auction performance.
     Hidden player values are revealed, and a season is simulated.
   </p>
@@ -1083,8 +1083,8 @@ All 80 lots done <span class="arrow">→</span> Run 10 code graders <span class=
   <div class="card-grid four">
     <div class="card"><div class="card-title" style="color: #A855F7;">🟣 Anthropic</div><div class="card-desc" style="font-size: 11px;">Claude Opus 4.6<br>Claude Sonnet 4.6<br>Claude Sonnet 4<br>Claude Haiku 4</div></div>
     <div class="card"><div class="card-title" style="color: #10B981;">🟢 OpenAI</div><div class="card-desc" style="font-size: 11px;">GPT-5.4<br>GPT-5.4 Pro<br>GPT-4o<br>GPT-4.1</div></div>
-    <div class="card"><div class="card-title" style="color: #4285F4;">🔵 Google</div><div class="card-desc" style="font-size: 11px;">Gemini 2.5 Pro<br>Gemini 2.5 Flash<br>Gemini 2.5 Flash Lite</div></div>
-    <div class="card"><div class="card-title" style="color: #94A3B8;">⚫ DeepSeek</div><div class="card-desc" style="font-size: 11px;">DeepSeek V3<br>DeepSeek R1</div></div>
+    <div class="card"><div class="card-title" style="color: #4285F4;">🔵 Google</div><div class="card-desc" style="font-size: 11px;">Gemini 3.1 Pro Preview<br>Gemini 2.5 Pro<br>Gemini 2.5 Flash</div></div>
+    <div class="card"><div class="card-title" style="color: #94A3B8;">⚫ DeepSeek</div><div class="card-desc" style="font-size: 11px;">DeepSeek V3.2<br>DeepSeek R1</div></div>
   </div>
   <div class="card-grid four" style="margin-top: 8px;">
     <div class="card"><div class="card-title" style="color: #0668E1;">🔷 Meta</div><div class="card-desc" style="font-size: 11px;">Llama 4 Scout<br>Llama 4 Maverick</div></div>
@@ -1133,11 +1133,15 @@ All 80 lots done <span class="arrow">→</span> Run 10 code graders <span class=
 │       └── agents/register/        <span style="color: var(--text-dim);">POST — register agent</span>
 │
 <span style="color: var(--cyan);">├── lib/</span>                           <span style="color: var(--text-dim);">Core Business Logic</span>
-│   ├── db.ts                      <span style="color: var(--text-dim);">Prisma client (SQLite via better-sqlite3)</span>
+│   ├── db.ts                      <span style="color: var(--text-dim);">Prisma client (PostgreSQL via @prisma/adapter-pg)</span>
 │   ├── types.ts                   <span style="color: var(--text-dim);">All TypeScript interfaces</span>
 │   ├── auction-engine.ts          <span style="color: var(--text-dim);">Auction state machine & bidding logic</span>
 │   ├── orchestrator.ts            <span style="color: var(--text-dim);">Auto-run full auction flow</span>
-│   ├── player-generator.ts        <span style="color: var(--text-dim);">80 synthetic players with stats</span>
+│   ├── player-loader.ts           <span style="color: var(--text-dim);">120 real IPL players (Fisher-Yates shuffle)</span>
+│   ├── llm.ts                     <span style="color: var(--text-dim);">LLM call wrapper with retry & cost tracking</span>
+│   ├── llm-providers.ts           <span style="color: var(--text-dim);">Multi-provider routing (OpenRouter + direct APIs)</span>
+│   ├── emit.ts                    <span style="color: var(--text-dim);">In-process EventEmitter for real-time updates</span>
+│   ├── socket-server.ts           <span style="color: var(--text-dim);">Socket.io server (room-based WebSocket)</span>
 │   ├── auth.ts                    <span style="color: var(--text-dim);">API key authentication</span>
 │   ├── grading/
 │   │   ├── scoring.ts             <span style="color: var(--text-dim);">Evaluation orchestrator + season sim</span>
@@ -1150,6 +1154,7 @@ All 80 lots done <span class="arrow">→</span> Run 10 code graders <span class=
 │       └── venue-system.ts        <span style="color: var(--text-dim);">Venue traits & modifiers</span>
 │
 <span style="color: var(--cyan);">├── data/</span>                          <span style="color: var(--text-dim);">Constants & Configurations</span>
+│   ├── ipl-players.ts             <span style="color: var(--text-dim);">120 real IPL players with full stats</span>
 │   ├── team-config.ts             <span style="color: var(--text-dim);">10 IPL teams: MI, CSK, RCB, KKR, SRH, RR, DC, PBKS, GT, LSG</span>
 │   ├── team-config-full.ts        <span style="color: var(--text-dim);">Full team data for real-data tournaments</span>
 │   ├── ipl-seasons.ts             <span style="color: var(--text-dim);">IPL S1-S4 match data (59-74 matches each)</span>
@@ -1160,9 +1165,20 @@ All 80 lots done <span class="arrow">→</span> Run 10 code graders <span class=
 <span style="color: var(--gold);">prisma/</span>
 │   └── schema.prisma              <span style="color: var(--text-dim);">11 models: Agent, Auction, Team, Player, Lot, Bid...</span>
 │
+<span style="color: var(--cyan);">├── hooks/</span>                         <span style="color: var(--text-dim);">React Hooks</span>
+│   └── useSocket.ts               <span style="color: var(--text-dim);">Client-side Socket.io hook</span>
+│
+<span style="color: var(--cyan);">├── __tests__/</span>                     <span style="color: var(--text-dim);">Vitest Test Suite (90 tests)</span>
+│   ├── auction-engine.test.ts     <span style="color: var(--text-dim);">24 tests — bid processing, lot completion</span>
+│   ├── tournament-engine.test.ts  <span style="color: var(--text-dim);">13 tests — schedule, team resolution</span>
+│   ├── llm.test.ts                <span style="color: var(--text-dim);">16 tests — cost tracking, response parsing</span>
+│   └── code-graders.test.ts       <span style="color: var(--text-dim);">37 tests — all 6 code graders</span>
+│
 <span style="color: var(--gold);">Root files:</span>
-├── Dockerfile                     <span style="color: var(--text-dim);">Docker build (Node 20, better-sqlite3)</span>
-├── docker-compose.yml             <span style="color: var(--text-dim);">Single-command deployment</span>
+├── Dockerfile                     <span style="color: var(--text-dim);">Docker build (Node 20-slim, multi-stage)</span>
+├── render.yaml                    <span style="color: var(--text-dim);">Render deployment config</span>
+├── vitest.config.ts               <span style="color: var(--text-dim);">Test configuration with path aliases</span>
+├── prisma.config.ts               <span style="color: var(--text-dim);">Prisma config (reads DATABASE_URL from env)</span>
 ├── package.json                   <span style="color: var(--text-dim);">Dependencies & scripts</span>
 └── .env                           <span style="color: var(--text-dim);">OPENROUTER_API_KEY + DATABASE_URL</span></div>
 </div>
@@ -1191,7 +1207,7 @@ All 80 lots done <span class="arrow">→</span> Run 10 code graders <span class=
   <div class="card-grid three">
     <div class="card" style="border-top: 3px solid var(--cyan);">
       <div class="card-title" style="color: var(--cyan);">Strategic Reasoning</div>
-      <div class="card-desc">Can the model plan across 80 lots? Save budget for later? Fill role gaps systematically?</div>
+      <div class="card-desc">Can the model plan across all lots? Save budget for later? Fill role gaps systematically?</div>
     </div>
     <div class="card" style="border-top: 3px solid var(--green);">
       <div class="card-title" style="color: var(--green);">Constraint Satisfaction</div>
@@ -1229,17 +1245,20 @@ npm run dev
 <span style="color: var(--text-dim);"># Open http://localhost:3000</span></div>
     </div>
     <div class="card" style="border-color: var(--purple)40;">
-      <div class="card-title" style="color: var(--purple);">Docker</div>
-      <div class="code-block" style="margin: 8px 0; font-size: 12px;">docker compose up --build
-<span style="color: var(--text-dim);"># Open http://localhost:3001</span>
-<span style="color: var(--text-dim);"># That's it. One command.</span></div>
+      <div class="card-title" style="color: var(--purple);">Docker + Render</div>
+      <div class="code-block" style="margin: 8px 0; font-size: 12px;">docker build -t raeth-arena .
+docker run -p 10000:10000 \
+  -e DATABASE_URL="..." \
+  -e OPENROUTER_API_KEY="..." \
+  raeth-arena
+<span style="color: var(--text-dim);"># Deployed on Render via render.yaml</span></div>
     </div>
   </div>
 
   <div style="text-align: center; margin-top: 48px; padding: 32px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface);">
     <div style="font-family: 'JetBrains Mono', monospace; font-size: 36px; font-weight: 900; background: linear-gradient(135deg, #ff8c00, #ffd700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px;">RAETH.AI</div>
     <div style="color: var(--text-dim); font-size: 14px;">Built by Aman &mdash; Grounded in Anthropic's eval methodology</div>
-    <div style="color: var(--text-dim); font-size: 12px; margin-top: 8px;">Next.js 16 &bull; Prisma v7 &bull; SQLite &bull; OpenRouter &bull; Docker</div>
+    <div style="color: var(--text-dim); font-size: 12px; margin-top: 8px;">Next.js 16 &bull; Prisma v7 &bull; PostgreSQL (Supabase) &bull; OpenRouter &bull; Socket.io &bull; Docker &bull; Render</div>
   </div>
 </div>
 

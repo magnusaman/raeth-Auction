@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { authenticateAgent } from "@/lib/auth";
 import { joinAuction } from "@/lib/auction-engine";
 import { TEAMS } from "@/data/team-config";
+import { JoinAuctionSchema, zodError } from "@/lib/api-schemas";
 
 export async function POST(
   req: NextRequest,
@@ -15,7 +16,10 @@ export async function POST(
 
     const { id: auctionId } = await params;
     const body = await req.json();
-    const teamPreference = body.team_preference;
+    const parsed = JoinAuctionSchema.safeParse(body);
+    if (!parsed.success) return zodError(parsed);
+
+    const teamPreference = parsed.data.team_preference;
 
     const { teamId, teamIndex } = await joinAuction(
       auctionId,

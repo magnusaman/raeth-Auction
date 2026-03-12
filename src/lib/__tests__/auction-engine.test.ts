@@ -3,31 +3,35 @@ import { DEFAULT_AUCTION_CONFIG, type AuctionConfig } from "@/lib/types";
 
 // ─── Mock Prisma (use vi.hoisted so the variable is available in vi.mock factory) ──
 
-const mockPrisma = vi.hoisted(() => ({
-  auction: {
-    findUnique: vi.fn(),
-    create: vi.fn(),
-    update: vi.fn(),
-  },
-  auctionTeam: {
-    create: vi.fn(),
-    update: vi.fn(),
-  },
-  auctionPlayer: {
-    createMany: vi.fn(),
-    findMany: vi.fn(),
-    update: vi.fn(),
-  },
-  lot: {
-    findFirst: vi.fn(),
-    findUnique: vi.fn(),
-    createMany: vi.fn(),
-    update: vi.fn(),
-  },
-  bid: {
-    create: vi.fn(),
-  },
-}));
+const mockPrisma = vi.hoisted(() => {
+  const mock = {
+    auction: {
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+    },
+    auctionTeam: {
+      create: vi.fn(),
+      update: vi.fn(),
+    },
+    auctionPlayer: {
+      createMany: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+    },
+    lot: {
+      findFirst: vi.fn(),
+      findUnique: vi.fn(),
+      createMany: vi.fn(),
+      update: vi.fn(),
+    },
+    bid: {
+      create: vi.fn(),
+    },
+    $transaction: vi.fn((fn: (tx: typeof mock) => Promise<unknown>) => fn(mock)),
+  };
+  return mock;
+});
 
 vi.mock("@/lib/db", () => ({
   prisma: mockPrisma,

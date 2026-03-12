@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import StatusBadge from "@/components/ui/StatusBadge";
 
 const TEAM_COLORS: Record<string, string> = {
   MI: "#004BA0", CSK: "#FDB913", RCB: "#EC1C24", KKR: "#3A225D",
@@ -101,6 +102,9 @@ export default function TournamentsPage() {
   const dropdownBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
   const dropdownContainerRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [sourceFilter, setSourceFilter] = useState("ALL");
   const router = useRouter();
 
   useEffect(() => {
@@ -221,6 +225,14 @@ export default function TournamentsPage() {
     setAgentCount(next);
     setPredictorModels(prev => prev.slice(0, next));
   }
+
+  const filteredTournaments = tournaments.filter((t) => {
+    if (searchQuery && !t.tournament_id.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (statusFilter !== "ALL" && t.status !== statusFilter) return false;
+    if (sourceFilter === "real" && t.data_source !== "real") return false;
+    if (sourceFilter === "synthetic" && t.data_source === "real") return false;
+    return true;
+  });
 
   const completedCount = tournaments.filter((t) => t.status === "COMPLETED").length;
   const currentSeasonInfo = SEASONS.find((s) => s.id === selectedSeason);
@@ -479,6 +491,45 @@ export default function TournamentsPage() {
         </div>
       </div>
 
+      {/* Search & Filters */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <div className="relative flex-1">
+          <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#555]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search by tournament ID..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-[#EDEDED] placeholder-[#555] outline-none transition-colors"
+            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}
+          />
+        </div>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-4 py-2.5 rounded-xl text-sm font-medium text-[#EDEDED] outline-none cursor-pointer appearance-none"
+          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", minWidth: "140px" }}
+        >
+          <option value="ALL">All Statuses</option>
+          <option value="PENDING">Pending</option>
+          <option value="PREDICTING">Predicting</option>
+          <option value="COMPLETED">Completed</option>
+          <option value="CANCELLED">Cancelled</option>
+        </select>
+        <select
+          value={sourceFilter}
+          onChange={(e) => setSourceFilter(e.target.value)}
+          className="px-4 py-2.5 rounded-xl text-sm font-medium text-[#EDEDED] outline-none cursor-pointer appearance-none"
+          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", minWidth: "140px" }}
+        >
+          <option value="ALL">All Sources</option>
+          <option value="real">Real Data</option>
+          <option value="synthetic">Synthetic</option>
+        </select>
+      </div>
+
       {/* Tournament Table */}
       <div className="rounded-2xl overflow-hidden" style={{ background: "#0a0a0a", border: "1px solid rgba(255,255,255,0.06)" }}>
         <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(120,119,198,0.04)" }}>
@@ -488,7 +539,11 @@ export default function TournamentsPage() {
               Tournament Runs
             </span>
           </div>
-          <span className="text-base text-[#888] font-mono">{tournaments.length} total</span>
+          <span className="text-base text-[#888] font-mono">
+            {filteredTournaments.length === tournaments.length
+              ? `${tournaments.length} total`
+              : `${filteredTournaments.length} of ${tournaments.length}`}
+          </span>
         </div>
 
         {loading ? (
@@ -497,6 +552,11 @@ export default function TournamentsPage() {
           <div className="py-24 text-center">
             <p className="text-base text-[#EDEDED] mb-2">No tournaments yet</p>
             <p className="text-sm text-[#888]">Click &quot;New Tournament&quot; to run a predictive reasoning evaluation</p>
+          </div>
+        ) : filteredTournaments.length === 0 ? (
+          <div className="py-24 text-center">
+            <p className="text-base text-[#EDEDED] mb-2">No matching tournaments</p>
+            <p className="text-sm text-[#888]">Try adjusting your search or filters</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -511,7 +571,7 @@ export default function TournamentsPage() {
               </tr>
             </thead>
             <tbody>
-              {tournaments.map((t) => (
+              {filteredTournaments.map((t) => (
                 <tr
                   key={t.tournament_id}
                   onClick={() => router.push(`/tournaments/${t.tournament_id}`)}
@@ -602,16 +662,3 @@ export default function TournamentsPage() {
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    COMPLETED: "text-neon-green bg-neon-green/8 border-neon-green/15",
-    PREDICTING: "text-[#7877C6] bg-[#7877C6]/8 border-[#7877C6]/15",
-    PENDING: "text-neon-orange bg-neon-orange/8 border-neon-orange/15",
-    CANCELLED: "text-neon-red bg-neon-red/8 border-neon-red/15",
-  };
-  return (
-    <span className={`inline-flex items-center px-3 py-1.5 text-sm font-bold font-mono tracking-wider border rounded-md ${colors[status] || "text-[#888] bg-white/3 border-[#222]"}`}>
-      {status}
-    </span>
-  );
-}

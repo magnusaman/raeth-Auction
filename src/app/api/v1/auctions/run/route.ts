@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runFullAuction } from "@/lib/orchestrator";
+import { requireAdmin } from "@/lib/admin-auth";
 
 // POST /api/v1/auctions/run — Start a full automated auction with AI agents
 export async function POST(req: NextRequest) {
+  const denied = requireAdmin(req);
+  if (denied) return denied;
+
   try {
     const body = await req.json().catch(() => ({}));
 

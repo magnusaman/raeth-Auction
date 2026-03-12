@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { createTournament, createRealDataTournament } from "@/lib/tour/tournament-engine";
 import { runPredictionsAndEvaluate } from "@/lib/tour/tour-orchestrator";
 import type { SeasonId } from "@/data/ipl-seasons";
+import { requireAdmin } from "@/lib/admin-auth";
 
 const VALID_SEASONS = ["S1", "S2", "S3", "S4"];
 
 // POST /api/v1/tournaments/run — Create tournament and start predictions in background
 export async function POST(req: NextRequest) {
+  const denied = requireAdmin(req);
+  if (denied) return denied;
+
   try {
     const body = await req.json().catch(() => ({}));
     const auctionId = body.auctionId || undefined;

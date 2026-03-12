@@ -1,13 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { TEAMS } from "@/data/team-config";
+import { apiError } from "@/lib/api-response";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    // Fetch all completed auctions with evaluations and teams
+    const window = Math.min(200, Math.max(1, parseInt(req.nextUrl.searchParams.get("window") || "50")));
+
+    // Fetch recent completed auctions with evaluations and teams
     const auctions = await prisma.auction.findMany({
       where: { status: "COMPLETED" },
       orderBy: { completedAt: "desc" },
+      take: window,
       include: {
         teams: {
           include: { agent: true },
@@ -137,15 +141,14 @@ export async function GET() {
       }))
       .sort((a, b) => b.avgScore - a.avgScore);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       leaderboard,
       totalAuctions: auctions.filter((a) => a.evaluation).length,
     });
+    response.headers.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=120");
+    return response;
   } catch (error: any) {
     console.error("Leaderboard error:", error);
-    return NextResponse.json(
-      { error: "Failed to build leaderboard", details: error?.message },
-      { status: 500 }
-    );
+    return apiError("Failed to build leaderboard", 500);
   }
 }

@@ -1,10 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { loadIPLPlayerPool } from "@/lib/player-loader";
 import { DEFAULT_AUCTION_CONFIG } from "@/lib/types";
+import { requireAdmin } from "@/lib/admin-auth";
 
 // POST /api/v1/seed — Create a completed auction with realistic results
-export async function POST() {
+export async function POST(req: NextRequest) {
+  const denied = requireAdmin(req);
+  if (denied) return denied;
+
   try {
     const config = DEFAULT_AUCTION_CONFIG;
     const players = loadIPLPlayerPool();

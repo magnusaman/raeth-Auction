@@ -49,7 +49,7 @@ export default function RootLayout({
       <body className={`${inter.variable} ${jetbrains.variable} antialiased bg-bg-deep text-text-primary`}>
         <ThemeProvider>
           <Navbar />
-          <main className="relative">
+          <main id="main" className="relative">
             {children}
           </main>
         </ThemeProvider>

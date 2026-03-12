@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { TEAMS } from "@/data/team-config";
+import { ExternalBidSchema, zodError } from "@/lib/api-schemas";
 
 // POST /api/v1/auctions/[id]/external/bid?token=xxx
 // External agent submits a bid/pass decision
-// Body: { action: "bid"|"pass", amount?: number, reasoning: string }
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -18,11 +18,10 @@ export async function POST(
     }
 
     const body = await req.json();
-    const { action, amount, reasoning } = body;
+    const parsed = ExternalBidSchema.safeParse(body);
+    if (!parsed.success) return zodError(parsed);
 
-    if (!action || (action !== "bid" && action !== "pass")) {
-      return NextResponse.json({ error: 'action must be "bid" or "pass"' }, { status: 400 });
-    }
+    const { action, amount, reasoning } = parsed.data;
 
     if (action === "bid" && (amount === undefined || amount <= 0)) {
       return NextResponse.json({ error: "amount is required for bid action" }, { status: 400 });
