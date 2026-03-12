@@ -141,8 +141,12 @@ export default function AuctionPage() {
   const [autoScroll, setAutoScroll] = useState(true);
   const [showAllReasoning, setShowAllReasoning] = useState(false);
   const [expandedBids, setExpandedBids] = useState<Set<string>>(new Set());
+  const [customPurse, setCustomPurse] = useState(100);
+  const [customMaxSquad, setCustomMaxSquad] = useState(20);
+  const [customMinSquad, setCustomMinSquad] = useState(15);
+  const [customMaxOverseas, setCustomMaxOverseas] = useState(8);
   const feedRef = useRef<HTMLDivElement>(null);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // pollRef removed — now using SSE with auto-reconnect
   const dropdownRefs = useRef<(HTMLDivElement | null)[]>([]);
   const dropdownBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
@@ -176,48 +180,109 @@ export default function AuctionPage() {
     setModelSelections(prev => prev.slice(0, next));
   }
 
+  const [connectionStatus, setConnectionStatus] = useState<"connecting" | "connected" | "reconnecting">("connecting");
+
+  const processLiveData = useCallback((data: any) => {
+    setLiveData(data);
+
+    if (data.external_agents) {
+      for (const ext of data.external_agents) {
+        if (ext.connected) {
+          setConnectedAgents((prev) => {
+            if (!prev.has(ext.team_index)) {
+              const next = new Set(prev);
+              next.add(ext.team_index);
+              setNotification(`${TEAMS[ext.team_index]?.shortName || `T${ext.team_index}`} external agent connected!`);
+              setTimeout(() => setNotification(null), 5000);
+              return next;
+            }
+            return prev;
+          });
+        }
+      }
+    }
+
+    if (data.status === "LOBBY") {
+      setPhase("lobby");
+      setBotsAdded(data.teams?.length >= teamCount);
+    } else if (data.status === "RUNNING") {
+      setPhase("running");
+    } else if (data.status === "COMPLETED" || data.status === "STOPPED") {
+      setPhase("completed");
+    }
+  }, [teamCount]);
+
   const fetchLive = useCallback(async () => {
     try {
       const res = await fetch(`/api/v1/auctions/${id}/live`);
       const data = await res.json();
-      setLiveData(data);
-
-      if (data.external_agents) {
-        for (const ext of data.external_agents) {
-          if (ext.connected) {
-            setConnectedAgents((prev) => {
-              if (!prev.has(ext.team_index)) {
-                const next = new Set(prev);
-                next.add(ext.team_index);
-                setNotification(`${TEAMS[ext.team_index]?.shortName || `T${ext.team_index}`} external agent connected!`);
-                setTimeout(() => setNotification(null), 5000);
-                return next;
-              }
-              return prev;
-            });
-          }
-        }
-      }
-
-      if (data.status === "LOBBY") {
-        setPhase("lobby");
-        setBotsAdded(data.teams?.length >= teamCount);
-      } else if (data.status === "RUNNING") {
-        setPhase("running");
-      } else if (data.status === "COMPLETED" || data.status === "STOPPED") {
-        setPhase("completed");
-        if (pollRef.current) clearInterval(pollRef.current);
-      }
+      processLiveData(data);
     } catch (e) {
       console.error("Poll error:", e);
     }
-  }, [id, teamCount]);
+  }, [id, processLiveData]);
 
+  // SSE with fallback to polling
   useEffect(() => {
-    fetchLive();
-    pollRef.current = setInterval(fetchLive, 2000);
-    return () => { if (pollRef.current) clearInterval(pollRef.current); };
-  }, [fetchLive]);
+    let eventSource: EventSource | null = null;
+    let fallbackInterval: ReturnType<typeof setInterval> | null = null;
+    let retryTimeout: ReturnType<typeof setTimeout> | null = null;
+    let retryCount = 0;
+    let stopped = false;
+
+    function connectSSE() {
+      if (stopped) return;
+      setConnectionStatus("connecting");
+
+      try {
+        eventSource = new EventSource(`/api/v1/auctions/${id}/stream`);
+
+        eventSource.onopen = () => {
+          retryCount = 0;
+          setConnectionStatus("connected");
+        };
+
+        eventSource.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (!data.error) {
+              setConnectionStatus("connected");
+              processLiveData(data);
+              if (data.status === "COMPLETED" || data.status === "STOPPED") {
+                eventSource?.close();
+              }
+            }
+          } catch {}
+        };
+
+        eventSource.onerror = () => {
+          eventSource?.close();
+          eventSource = null;
+          if (stopped) return;
+
+          retryCount++;
+          const delay = Math.min(1000 * Math.pow(2, retryCount - 1), 15000);
+          setConnectionStatus("reconnecting");
+
+          retryTimeout = setTimeout(connectSSE, delay);
+        };
+      } catch {
+        // SSE not supported — fall back to polling
+        setConnectionStatus("connected");
+        fallbackInterval = setInterval(fetchLive, 2000);
+      }
+    }
+
+    // Initial fetch then connect SSE
+    fetchLive().then(connectSSE);
+
+    return () => {
+      stopped = true;
+      eventSource?.close();
+      if (fallbackInterval) clearInterval(fallbackInterval);
+      if (retryTimeout) clearTimeout(retryTimeout);
+    };
+  }, [id, fetchLive, processLiveData]);
 
   useEffect(() => {
     if (autoScroll && feedRef.current) feedRef.current.scrollTop = feedRef.current.scrollHeight;
@@ -244,10 +309,19 @@ export default function AuctionPage() {
         const model = AVAILABLE_MODELS.find((m) => m.id === modelId);
         return { name: model?.label || modelId.split("/").pop() || "Agent", model: modelId };
       });
+      // Send custom config alongside agents
       const res = await fetch(`/api/v1/auctions/${id}/add-bots`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agents }),
+        body: JSON.stringify({
+          agents,
+          config: {
+            pursePerTeam: customPurse,
+            maxSquadSize: customMaxSquad,
+            minSquadSize: customMinSquad,
+            maxOverseas: customMaxOverseas,
+          },
+        }),
       });
       const data = await res.json();
       if (data.agents) {
@@ -504,27 +578,86 @@ export default function AuctionPage() {
 
 
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.35 }} className="bento-card p-7 mb-8">
-            <div className="grid grid-cols-3 gap-6">
-              <div className="flex items-start gap-4">
-                <span className="text-3xl mt-0.5">{"\u20B9"}</span>
-                <div>
-                  <div className="text-base font-bold text-[#EDEDED] mb-1">100 Cr Budget</div>
-                  <div className="text-base text-[#777] leading-relaxed">Each of the {teamCount} AI agents controls an IPL franchise with a 100 Cr purse</div>
+            <div className="flex items-center gap-2 mb-5">
+              <span className="w-[7px] h-[7px] rounded-full inline-block" style={{ background: "#7877C6" }} />
+              <span className="text-sm font-bold uppercase tracking-wider font-mono" style={{ color: "#7877C6" }}>Auction Settings</span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+              {/* Purse per team */}
+              <div>
+                <label className="block text-xs text-[#777] uppercase tracking-wider mb-2 font-semibold">Purse (Cr)</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min={50}
+                    max={200}
+                    step={10}
+                    value={customPurse}
+                    onChange={(e) => setCustomPurse(Number(e.target.value))}
+                    className="flex-1 h-1.5 rounded-full appearance-none cursor-pointer"
+                    style={{ background: `linear-gradient(90deg, #7877C6 ${((customPurse - 50) / 150) * 100}%, rgba(255,255,255,0.08) ${((customPurse - 50) / 150) * 100}%)`, accentColor: "#7877C6" }}
+                  />
+                  <span className="text-lg font-extrabold font-mono text-[#EDEDED] min-w-[48px] text-right">{customPurse}</span>
                 </div>
+                <p className="text-xs text-[#555] mt-1">50-200 Cr budget per team</p>
               </div>
-              <div className="flex items-start gap-4">
-                <span className="text-3xl mt-0.5">{"\u{1F3CF}"}</span>
-                <div>
-                  <div className="text-base font-bold text-[#EDEDED] mb-1">120 Real Players</div>
-                  <div className="text-base text-[#777] leading-relaxed">Real IPL players are auctioned with authentic base prices</div>
+              {/* Max squad */}
+              <div>
+                <label className="block text-xs text-[#777] uppercase tracking-wider mb-2 font-semibold">Max Squad</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min={10}
+                    max={25}
+                    step={1}
+                    value={customMaxSquad}
+                    onChange={(e) => {
+                      const v = Number(e.target.value);
+                      setCustomMaxSquad(v);
+                      if (customMinSquad > v) setCustomMinSquad(v);
+                    }}
+                    className="flex-1 h-1.5 rounded-full appearance-none cursor-pointer"
+                    style={{ background: `linear-gradient(90deg, #22D3EE ${((customMaxSquad - 10) / 15) * 100}%, rgba(255,255,255,0.08) ${((customMaxSquad - 10) / 15) * 100}%)`, accentColor: "#22D3EE" }}
+                  />
+                  <span className="text-lg font-extrabold font-mono text-[#EDEDED] min-w-[32px] text-right">{customMaxSquad}</span>
                 </div>
+                <p className="text-xs text-[#555] mt-1">Max players per squad</p>
               </div>
-              <div className="flex items-start gap-4">
-                <span className="text-3xl mt-0.5">{"\u{1F3AF}"}</span>
-                <div>
-                  <div className="text-base font-bold text-[#EDEDED] mb-1">10 Scoring Criteria</div>
-                  <div className="text-base text-[#777] leading-relaxed">Agents are scored on squad balance, value, stars, and more</div>
+              {/* Min squad */}
+              <div>
+                <label className="block text-xs text-[#777] uppercase tracking-wider mb-2 font-semibold">Min Squad</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min={5}
+                    max={customMaxSquad}
+                    step={1}
+                    value={customMinSquad}
+                    onChange={(e) => setCustomMinSquad(Number(e.target.value))}
+                    className="flex-1 h-1.5 rounded-full appearance-none cursor-pointer"
+                    style={{ background: `linear-gradient(90deg, #10B981 ${((customMinSquad - 5) / Math.max(1, customMaxSquad - 5)) * 100}%, rgba(255,255,255,0.08) ${((customMinSquad - 5) / Math.max(1, customMaxSquad - 5)) * 100}%)`, accentColor: "#10B981" }}
+                  />
+                  <span className="text-lg font-extrabold font-mono text-[#EDEDED] min-w-[32px] text-right">{customMinSquad}</span>
                 </div>
+                <p className="text-xs text-[#555] mt-1">Min players required</p>
+              </div>
+              {/* Max overseas */}
+              <div>
+                <label className="block text-xs text-[#777] uppercase tracking-wider mb-2 font-semibold">Max Overseas</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min={0}
+                    max={customMaxSquad}
+                    step={1}
+                    value={customMaxOverseas}
+                    onChange={(e) => setCustomMaxOverseas(Number(e.target.value))}
+                    className="flex-1 h-1.5 rounded-full appearance-none cursor-pointer"
+                    style={{ background: `linear-gradient(90deg, #F59E0B ${(customMaxOverseas / Math.max(1, customMaxSquad)) * 100}%, rgba(255,255,255,0.08) ${(customMaxOverseas / Math.max(1, customMaxSquad)) * 100}%)`, accentColor: "#F59E0B" }}
+                  />
+                  <span className="text-lg font-extrabold font-mono text-[#EDEDED] min-w-[32px] text-right">{customMaxOverseas}</span>
+                </div>
+                <p className="text-xs text-[#555] mt-1">Max overseas players</p>
               </div>
             </div>
           </motion.div>
@@ -601,6 +734,12 @@ export default function AuctionPage() {
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-mono text-[#888]">LOT #{lot.lot_number}</span>
                       <span className="status-badge status-live animate-pulse text-sm">LIVE</span>
+                      {connectionStatus === "reconnecting" && (
+                        <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-mono font-semibold text-accent-gold bg-accent-gold/10 border border-accent-gold/20">
+                          <span className="w-2 h-2 border border-accent-gold border-t-transparent rounded-full animate-spin" />
+                          RECONNECTING
+                        </span>
+                      )}
                     </div>
                     <Badge text={lot.player_role} color="#7877C6" />
                   </div>

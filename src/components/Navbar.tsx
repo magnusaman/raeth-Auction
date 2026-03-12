@@ -4,12 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const NAV_LINKS = [
   { href: "/", label: "Auctions" },
   { href: "/tournaments", label: "Tournaments" },
   { href: "/arena", label: "Replays" },
   { href: "/leaderboard", label: "Leaderboard" },
+  { href: "/trends", label: "Trends" },
   { href: "/about", label: "About" },
 ];
 
@@ -67,6 +69,8 @@ export default function Navbar() {
 
   const breadcrumbs = useMemo(() => buildBreadcrumbs(pathname), [pathname]);
 
+  const { theme, toggleTheme } = useTheme();
+
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
@@ -114,7 +118,7 @@ export default function Navbar() {
                 key={link.href}
                 href={link.href}
                 className={`
-                  relative block px-4 py-2 text-[17px] font-medium no-underline rounded-lg
+                  relative block px-3 py-2 text-[14px] font-medium no-underline rounded-lg
                   transition-colors duration-200
                   ${active
                     ? "text-[#EDEDED]"
@@ -144,6 +148,21 @@ export default function Navbar() {
 
         {/* Right side */}
         <div className="hidden md:flex items-center gap-3">
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors bg-transparent border-none cursor-pointer text-[#888] hover:text-[#EDEDED]"
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? (
+              <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            ) : (
+              <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            )}
+          </button>
           <Link
             href="/"
             className="btn-gradient text-[16px] py-2.5 px-6 font-semibold"
@@ -272,6 +291,21 @@ export default function Navbar() {
 
               <div className="px-4 pb-8">
                 <div className="h-px mb-4" style={{ background: "rgba(255,255,255,0.06)" }} />
+                <button
+                  onClick={toggleTheme}
+                  className="w-full flex items-center gap-3 px-4 py-3 mb-3 text-sm font-medium rounded-lg text-[#888] hover:text-[#EDEDED] hover:bg-white/[0.04] transition-colors bg-transparent border-none cursor-pointer text-left"
+                >
+                  {theme === "dark" ? (
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                  )}
+                  {theme === "dark" ? "Light Mode" : "Dark Mode"}
+                </button>
                 <Link
                   href="/"
                   onClick={() => setMobileOpen(false)}

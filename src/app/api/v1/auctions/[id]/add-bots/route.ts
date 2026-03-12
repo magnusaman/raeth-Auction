@@ -103,7 +103,7 @@ export async function POST(
       joined.push(entry);
     }
 
-    // Store model mapping, team count, and external slots in auction config
+    // Store model mapping, team count, custom config, and external slots in auction config
     const existingConfig = JSON.parse(auction.config || "{}");
     existingConfig.teamCount = teamCount;
     existingConfig.maxTeams = teamCount;
@@ -113,6 +113,13 @@ export async function POST(
       model: a.model,
     }));
 
+    // Merge custom auction settings (purse, squad sizes, overseas)
+    const customConfig = body.config || {};
+    if (customConfig.pursePerTeam) existingConfig.pursePerTeam = Math.min(200, Math.max(50, Number(customConfig.pursePerTeam)));
+    if (customConfig.maxSquadSize) existingConfig.maxSquadSize = Math.min(25, Math.max(10, Number(customConfig.maxSquadSize)));
+    if (customConfig.minSquadSize) existingConfig.minSquadSize = Math.min(existingConfig.maxSquadSize || 20, Math.max(5, Number(customConfig.minSquadSize)));
+    if (customConfig.maxOverseas !== undefined) existingConfig.maxOverseas = Math.min(existingConfig.maxSquadSize || 20, Math.max(0, Number(customConfig.maxOverseas)));
+
     if (Object.keys(externalSlots).length > 0) {
       existingConfig.externalSlots = externalSlots;
     }
@@ -121,6 +128,15 @@ export async function POST(
       where: { id: auctionId },
       data: { config: JSON.stringify(existingConfig) },
     });
+
+    // Update team purses if custom purse was provided
+    if (customConfig.pursePerTeam) {
+      const purse = existingConfig.pursePerTeam;
+      await prisma.auctionTeam.updateMany({
+        where: { auctionId },
+        data: { purseRemaining: purse },
+      });
+    }
 
     return NextResponse.json({
       message: `${teamCount} agents joined the auction`,

@@ -196,8 +196,8 @@ export default function LeaderboardPage() {
 
           {/* Leaderboard table */}
           <div className="bg-bg-surface border border-border-default rounded-xl overflow-hidden">
-            {/* Header row */}
-            <div className="grid grid-cols-[60px_1fr_80px_80px_100px_80px_120px] gap-4 px-5 py-3 border-b border-border-subtle text-xs uppercase tracking-wider text-text-muted font-semibold">
+            {/* Header row — hidden on mobile */}
+            <div className="hidden md:grid grid-cols-[60px_1fr_80px_80px_100px_80px_120px] gap-4 px-5 py-3 border-b border-border-subtle text-xs uppercase tracking-wider text-text-muted font-semibold">
               <span>Rank</span>
               <span>Agent</span>
               <span className="text-center">Played</span>
@@ -212,9 +212,10 @@ export default function LeaderboardPage() {
               const isExpanded = expandedAgent === agent.model;
               return (
                 <div key={agent.model}>
+                  {/* Desktop row */}
                   <button
                     onClick={() => setExpandedAgent(isExpanded ? null : agent.model)}
-                    className="w-full grid grid-cols-[60px_1fr_80px_80px_100px_80px_120px] gap-4 px-5 py-4 items-center hover:bg-bg-elevated/50 transition-colors border-b border-border-subtle cursor-pointer text-left"
+                    className="hidden md:grid w-full grid-cols-[60px_1fr_80px_80px_100px_80px_120px] gap-4 px-5 py-4 items-center hover:bg-bg-elevated/50 transition-colors border-b border-border-subtle cursor-pointer text-left"
                   >
                     <RankBadge rank={idx + 1} />
 
@@ -256,6 +257,38 @@ export default function LeaderboardPage() {
 
                     <div className="flex justify-center">
                       <SparkLine results={agent.recentResults} />
+                    </div>
+                  </button>
+
+                  {/* Mobile card */}
+                  <button
+                    onClick={() => setExpandedAgent(isExpanded ? null : agent.model)}
+                    className="md:hidden w-full px-4 py-4 border-b border-border-subtle hover:bg-bg-elevated/50 transition-colors cursor-pointer text-left"
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <RankBadge rank={idx + 1} />
+                      <span className="text-lg">{getModelIcon(agent.model)}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[14px] font-semibold text-text-primary truncate">{agent.model}</p>
+                        <p className="text-xs text-text-muted">{getModelProvider(agent.model)}</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-text-muted">Played</p>
+                        <p className="text-sm font-mono text-text-secondary">{agent.auctions}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-text-muted">Wins</p>
+                        <p className="text-sm font-mono font-semibold text-accent-gold">{agent.wins}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-text-muted">Win %</p>
+                        <p className="text-sm font-mono font-semibold" style={{ color: agent.winRate >= 50 ? "#22C55E" : agent.winRate >= 25 ? "#FDB913" : "#94A3B8" }}>{agent.winRate}%</p>
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <ScoreBar value={agent.avgScore} max={10} color={agent.avgScore >= 7 ? "#22C55E" : agent.avgScore >= 5 ? "#FDB913" : "#EF4444"} />
                     </div>
                   </button>
 

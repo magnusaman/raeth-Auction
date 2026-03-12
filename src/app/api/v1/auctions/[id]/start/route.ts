@@ -9,8 +9,13 @@ import {
 } from "@/lib/auction-engine";
 import { DEFAULT_AUCTION_CONFIG, BidAction } from "@/lib/types";
 import { TEAMS } from "@/data/team-config";
-
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+import {
+  callLLM,
+  parseAgentDecision,
+  createCostTracker,
+  recordUsage,
+  CostTracker,
+} from "@/lib/llm";
 
 interface AgentConfig {
   name: string;
@@ -87,12 +92,41 @@ export async function POST(
   }
 }
 
+// ─── Save cost tracking data to auction config ──────────────
+async function saveCostTracking(auctionId: string, costTracker: CostTracker) {
+  try {
+    const auction = await prisma.auction.findUnique({ where: { id: auctionId } });
+    if (!auction) return;
+    const cfg = JSON.parse(auction.config || "{}");
+    cfg.costTracking = {
+      totalCalls: costTracker.totalCalls,
+      totalPromptTokens: costTracker.totalPromptTokens,
+      totalCompletionTokens: costTracker.totalCompletionTokens,
+      totalLatencyMs: costTracker.totalLatencyMs,
+      avgLatencyMs: costTracker.totalCalls > 0
+        ? Math.round(costTracker.totalLatencyMs / costTracker.totalCalls)
+        : 0,
+      errors: costTracker.errors,
+      retries: costTracker.retries,
+      perTeam: costTracker.perTeam,
+    };
+    await prisma.auction.update({
+      where: { id: auctionId },
+      data: { config: JSON.stringify(cfg) },
+    });
+  } catch (e) {
+    console.warn(`[CostTracker] Failed to save:`, e);
+  }
+}
+
 // Background bidding loop (supports Round 1 + Round 2 for unsold players)
 async function runBiddingLoop(
   auctionId: string,
   agentTeams: { teamId: string; teamIndex: number; agentId: string; config: AgentConfig; isExternal: boolean }[]
 ) {
   const minSquad = DEFAULT_AUCTION_CONFIG.minSquadSize;
+  const costTracker = createCostTracker();
+  let lotsSinceLastSave = 0;
 
   for (let currentRound = 1; currentRound <= 2; currentRound++) {
     // ─── Round 2 setup: check if needed, re-queue unsold players ───
@@ -213,9 +247,11 @@ async function runBiddingLoop(
           delete cfg2.pendingExternalBid;
           await prisma.auction.update({ where: { id: auctionId }, data: { config: JSON.stringify(cfg2) } });
         } else {
-          // ─── Internal agent: call OpenRouter ───
+          // ─── Internal agent: call LLM with retry + validation ───
           const state = await getAuctionState(auctionId, agentTeam.teamId);
-          decision = await getAgentDecision(agentConfig(agentTeam), state, auctionId, agentTeam.teamId, currentRound);
+          decision = await getAgentDecision(
+            agentConfig(agentTeam), state, auctionId, agentTeam.teamId, currentRound, costTracker
+          );
         }
 
         const result = await processBid(auctionId, agentTeam.teamId, decision);
@@ -234,6 +270,13 @@ async function runBiddingLoop(
         }
       }
 
+      // Save cost tracking every 10 lots
+      lotsSinceLastSave++;
+      if (lotsSinceLastSave >= 10) {
+        await saveCostTracking(auctionId, costTracker);
+        lotsSinceLastSave = 0;
+      }
+
       // Round 2 early exit: if all squads complete, end auction immediately
       if (currentRound === 2) {
         const allTeams = await prisma.auctionTeam.findMany({ where: { auctionId } });
@@ -248,6 +291,15 @@ async function runBiddingLoop(
       }
     }
   }
+
+  // Final cost save
+  await saveCostTracking(auctionId, costTracker);
+  console.log(
+    `[CostTracker] Total: ${costTracker.totalCalls} calls, ` +
+    `${costTracker.totalPromptTokens} prompt tokens, ` +
+    `${costTracker.totalCompletionTokens} completion tokens, ` +
+    `${costTracker.errors} errors, ${costTracker.retries} retries`
+  );
 
   // Run evaluation
   console.log(`[Start] Auction complete, running evaluation...`);
@@ -309,7 +361,7 @@ async function waitForExternalBid(
   return { action: "pass", reasoning: "External agent timed out (120s)" };
 }
 
-// ─── Build conversation history from past decisions ─────────
+// ─── Build conversation history (sliding window: summary + last 15 lots) ───
 async function buildConversationHistory(
   auctionId: string,
   teamId: string
@@ -336,10 +388,42 @@ async function buildConversationHistory(
     lotDecisions.set(bid.lotId, existing);
   }
 
+  const allEntries = [...lotDecisions.entries()];
   const history: { role: string; content: string }[] = [];
 
-  // Take last 10 lots to avoid blowing context
-  const recentLots = [...lotDecisions.entries()].slice(-10);
+  // Sliding window: summarize older lots, keep last 15 in detail
+  const DETAIL_WINDOW = 15;
+
+  if (allEntries.length > DETAIL_WINDOW) {
+    // Summarize older decisions (before the detail window)
+    const olderEntries = allEntries.slice(0, allEntries.length - DETAIL_WINDOW);
+    let totalBids = 0;
+    let totalPasses = 0;
+    let totalSpent = 0;
+
+    for (const [, bids] of olderEntries) {
+      const myBid = [...bids].reverse().find((b) => b.teamId === teamId);
+      if (!myBid) continue;
+      if (myBid.action === "bid") {
+        totalBids++;
+        totalSpent += myBid.amount || 0;
+      } else {
+        totalPasses++;
+      }
+    }
+
+    history.push({
+      role: "user",
+      content: `[STRATEGY SUMMARY — Lots 1-${olderEntries.length}] You bid ${totalBids} times (₹${totalSpent.toFixed(1)} Cr total) and passed ${totalPasses} times across ${olderEntries.length} earlier lots.`,
+    });
+    history.push({
+      role: "assistant",
+      content: `Understood. I'll continue building on my strategy for the remaining lots.`,
+    });
+  }
+
+  // Detailed history for recent lots
+  const recentLots = allEntries.slice(-DETAIL_WINDOW);
 
   for (const [, bids] of recentLots) {
     const lot = bids[0].lot;
@@ -363,16 +447,15 @@ async function buildConversationHistory(
   return history;
 }
 
+// ─── Get Agent Decision (with retry, Zod validation, cost tracking) ───
 async function getAgentDecision(
-  agentConfig: AgentConfig,
+  agentCfg: AgentConfig,
   state: any,
   auctionId: string,
   teamId: string,
-  currentRound: number = 1
+  currentRound: number = 1,
+  costTracker?: CostTracker
 ): Promise<BidAction> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) return { action: "pass", reasoning: "No API key configured" };
-
   if (!state.currentLot) return { action: "pass", reasoning: "No active lot" };
 
   const lot = state.currentLot;
@@ -388,14 +471,13 @@ async function getAgentDecision(
 
   const totalPoolSize = state.auctionProgress.lotsCompleted + state.auctionProgress.lotsRemaining;
 
-  // Pacing check: is this team buying at a reasonable rate?
-  // Don't check pacing until at least 20% of lots are done — early lots are normal
+  // Pacing check
   const auctionProgress = state.auctionProgress.lotsCompleted / totalPoolSize;
   const expectedPlayersByNow = Math.max(1, Math.round(auctionProgress * minSquad));
   const isBehindPace = auctionProgress >= 0.2 && team.squadSize < expectedPlayersByNow * 0.5 && slotsNeeded > 3;
   const avgBudgetPerPlayer = team.purseRemaining / Math.max(1, slotsNeeded > 0 ? slotsNeeded : 3);
 
-  // Current bid info for decision context
+  // Current bid info
   const currentBidAmount = state.currentBid?.amount || state.currentLot?.basePrice || 0;
 
   const systemPrompt = `You are an AI agent competing in a cricket player auction (Blitz Premier League).
@@ -486,7 +568,10 @@ ${currentBidAmount > 0 ? "\nCurrent asking price for this player: ₹" + current
 
 ${isMustBuy ? "🚨 EMERGENCY: You MUST BID on this player. You need " + slotsNeeded + " more players and only " + lotsLeft + " lots remain. PASSING = AUTOMATIC LOSS." : ""}${isCritical && !isMustBuy ? "⚠️ URGENT: You need " + slotsNeeded + " more players and only " + lotsLeft + " lots remain. Strongly prefer BIDDING unless the player is terrible AND there are clearly better options coming." : ""}${isBehindPace && !isCritical ? "\n🚨 BEHIND PACE: By lot " + (state.auctionProgress.lotsCompleted + 1) + " you should have ~" + expectedPlayersByNow + " players but you only have " + team.squadSize + "! START BUYING NOW. You are falling dangerously behind — bid on any decent player at reasonable price!" : ""}
 
-RESPOND IN THIS EXACT FORMAT:
+RESPOND WITH VALID JSON:
+{"action": "bid" or "pass", "reasoning": "Your 1-2 sentence reasoning"}
+
+You may also respond in this format if you prefer:
 ACTION: bid OR pass
 REASONING: Your 1-2 sentence reasoning`;
 
@@ -523,7 +608,6 @@ REASONING: Your 1-2 sentence reasoning`;
 
   const cs = lot.careerStats;
   const rf = lot.recentForm;
-  // Build readable stat lines instead of raw JSON
   const batLine = cs.battingAvg ? `Avg: ${cs.battingAvg} | SR: ${cs.strikeRate || "?"} | Matches: ${cs.matches || "?"} | 100s: ${cs.hundreds || 0} | 50s: ${cs.fifties || 0}` : "N/A (not a primary batsman)";
   const bowlLine = cs.economy ? `Econ: ${cs.economy} | Wickets: ${cs.wickets || "?"} | Bowl Avg: ${cs.bowlingAvg || "?"} | Matches: ${cs.matches || "?"}` : "N/A (not a bowler)";
   const formLine = rf ? `Last 5 matches — Runs: ${rf.runs ?? "?"}, Avg: ${rf.recentAvg ?? "?"}, SR: ${rf.recentSR ?? "?"}, Wkts: ${rf.wickets ?? "?"}, Econ: ${rf.recentEcon ?? "?"}` : "No recent form data";
@@ -569,10 +653,10 @@ ${slotsNeeded > 0 ? `⚠️ YOU NEED ${slotsNeeded} MORE PLAYERS. ${urgencyRatio
 ${lot.nationality !== "India" && team.overseasCount >= 8 ? "⛔ You CANNOT buy this player — overseas cap reached. PASS." : ""}
 ${isMustBuy ? "🚨🚨 MUST-BUY: " + slotsNeeded + " slots needed, " + lotsLeft + " lots left. YOU MUST BID OR YOU LOSE. 🚨🚨" : ""}
 
-Should you BID or PASS?`;
+Should you BID or PASS? Respond with JSON: {"action": "...", "reasoning": "..."}`;
 
   try {
-    // Build conversation history from past decisions
+    // Build conversation history (sliding window: summary + last 15 lots)
     const history = await buildConversationHistory(auctionId, teamId);
 
     const messages = [
@@ -581,29 +665,28 @@ Should you BID or PASS?`;
       { role: "user", content: userPrompt },
     ];
 
-    const res = await fetch(OPENROUTER_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({
-        model: agentConfig.model,
+    // Call LLM with retry + exponential backoff + prompt caching
+    const llmResult = await callLLM(
+      {
+        model: agentCfg.model,
         messages,
-        max_tokens: 400,
+        maxTokens: 400,
         temperature: 0.3,
-      }),
-    });
+        jsonMode: true,
+      },
+      costTracker
+    );
 
-    const data = await res.json();
-    const content = data.choices?.[0]?.message?.content || "";
+    // Track cost per team
+    if (costTracker) {
+      recordUsage(costTracker, String(team.teamIndex), llmResult.usage, llmResult.latencyMs);
+    }
 
-    const actionMatch = content.match(/ACTION:\s*(bid|pass)/i);
-    const reasoningMatch = content.match(/REASONING:\s*(.+?)(?:\n|$)/i);
+    // Parse with Zod validation (JSON → regex fallback)
+    const parsed = parseAgentDecision(llmResult.content);
 
-    const action = actionMatch?.[1]?.toLowerCase() === "bid" ? "bid" : "pass";
-    const reasoning = reasoningMatch?.[1]?.trim() || content.slice(0, 200);
-
-    // Force-bid override: if agent needs players and lots are running out, don't let it pass
-    // BUT don't force at absurd prices — cap force-override at ₹15 Cr
-    if (action === "pass" && isMustBuy) {
+    // Force-bid override: if agent needs players and lots are running out
+    if (parsed.action === "pass" && isMustBuy) {
       const nextPrice = state.currentBid
         ? Math.round((state.currentBid.amount + getNextIncrement(state.currentBid.amount)) * 10) / 10
         : state.currentLot.basePrice;
@@ -611,12 +694,11 @@ Should you BID or PASS?`;
         console.log(`  [Override] Forcing bid at ₹${nextPrice} Cr — need ${slotsNeeded} players, only ${lotsLeft} lots left`);
         return { action: "bid", reasoning: `Forced bid: need ${slotsNeeded} more players, ${lotsLeft} lots remaining` };
       }
-      // Above ₹15 Cr, respect agent's pass decision even in must-buy
       console.log(`  [Override skipped] Price ₹${nextPrice} Cr too high for force-bid, respecting agent's pass`);
     }
 
-    // Force-bid for behind-pace teams (earlier intervention than must-buy)
-    if (action === "pass" && isBehindPace && !isMustBuy) {
+    // Force-bid for behind-pace teams
+    if (parsed.action === "pass" && isBehindPace && !isMustBuy) {
       const pacingPrice = state.currentBid
         ? Math.round((state.currentBid.amount + getNextIncrement(state.currentBid.amount)) * 10) / 10
         : state.currentLot.basePrice;
@@ -626,13 +708,11 @@ Should you BID or PASS?`;
       }
     }
 
-    if (action === "pass") return { action: "pass", reasoning };
-
-    // Agent chose to bid — engine handles the amount (base price or current + increment)
-    return { action: "bid", reasoning };
+    return { action: parsed.action, reasoning: parsed.reasoning };
   } catch (error) {
-    console.error(`[Agent ${agentConfig.name}] Error:`, error);
-    return { action: "pass", reasoning: "LLM call failed" };
+    console.error(`[Agent ${agentCfg.name}] Error after retries:`, error);
+    if (costTracker) costTracker.errors++;
+    return { action: "pass", reasoning: "LLM call failed after retries" };
   }
 }
 

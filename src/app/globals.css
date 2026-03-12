@@ -64,6 +64,142 @@
   --font-mono: var(--font-jetbrains), "JetBrains Mono", "Fira Code", monospace;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   LIGHT MODE OVERRIDES
+   ═══════════════════════════════════════════════════════════════ */
+
+[data-theme="light"] {
+  --color-bg-deep: #FAFAFA;
+  --color-bg-base: #FFFFFF;
+  --color-bg-surface: #F5F5F5;
+  --color-bg-elevated: #EEEEEE;
+  --color-bg-card: #FFFFFF;
+  --color-bg-card-2: #F9F9F9;
+  --color-bg-primary: #FFFFFF;
+
+  --color-text-primary: #171717;
+  --color-text-secondary: #525252;
+  --color-text-muted: #737373;
+  --color-text-disabled: #A3A3A3;
+
+  --color-border-default: rgba(0, 0, 0, 0.10);
+  --color-border-subtle: rgba(0, 0, 0, 0.06);
+  --color-border-hover: rgba(0, 0, 0, 0.20);
+
+  --color-brand: #6366F1;
+  --color-brand-soft: rgba(99, 102, 241, 0.10);
+  --color-brand-glow: rgba(99, 102, 241, 0.20);
+}
+
+[data-theme="light"] body {
+  background-color: #FAFAFA;
+  color: #171717;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.10);
+}
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,0,0,0.20);
+}
+
+[data-theme="light"] ::selection {
+  background: rgba(99,102,241,0.25);
+  color: #000;
+}
+
+[data-theme="light"] .glass {
+  background: rgba(0,0,0,0.03);
+  border-color: rgba(0,0,0,0.08);
+}
+
+[data-theme="light"] .glass-hover:hover {
+  border-color: rgba(0,0,0,0.15);
+  background: rgba(0,0,0,0.05);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.08);
+}
+
+[data-theme="light"] .glass-dark {
+  background: rgba(255,255,255,0.9);
+  border-color: rgba(0,0,0,0.08);
+}
+
+[data-theme="light"] .btn-primary {
+  color: #fff;
+  background: #171717;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+[data-theme="light"] .btn-primary:hover {
+  background: #000;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+[data-theme="light"] .btn-secondary {
+  border-color: rgba(0,0,0,0.15);
+  color: #171717;
+}
+[data-theme="light"] .btn-secondary:hover {
+  border-color: rgba(0,0,0,0.3);
+  background: rgba(0,0,0,0.04);
+}
+
+[data-theme="light"] .btn-gradient {
+  box-shadow: 0 0 32px rgba(99,102,241,0.2), 0 4px 12px rgba(0,0,0,0.1);
+}
+
+[data-theme="light"] .shimmer {
+  background: linear-gradient(90deg, rgba(0,0,0,0.04) 25%, rgba(0,0,0,0.08) 50%, rgba(0,0,0,0.04) 75%);
+  background-size: 200% 100%;
+}
+
+[data-theme="light"] .grid-overlay {
+  background-image:
+    linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
+}
+
+[data-theme="light"] .dot-bg {
+  background-image: radial-gradient(rgba(0,0,0,0.06) 1px, transparent 1px);
+}
+
+[data-theme="light"] .section-divider {
+  background: linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent);
+}
+
+[data-theme="light"] .divider-subtle {
+  background: linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent);
+}
+
+[data-theme="light"] .glass-card {
+  background: rgba(255,255,255,0.8);
+  border-color: rgba(0,0,0,0.08);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+}
+
+[data-theme="light"] .bento-card {
+  background: rgba(0,0,0,0.02);
+  border-color: rgba(0,0,0,0.08);
+}
+[data-theme="light"] .bento-card::before {
+  background: linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent);
+}
+[data-theme="light"] .bento-card:hover {
+  border-color: rgba(0,0,0,0.12);
+  background: rgba(0,0,0,0.03);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+}
+
+[data-theme="light"] nav {
+  background: rgba(250,250,250,0.85) !important;
+}
+
+[data-theme="light"] .text-gradient-hero {
+  background: linear-gradient(180deg, #171717 0%, rgba(23,23,23,0.6) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 html {
   scroll-behavior: smooth;
   font-size: 16px;

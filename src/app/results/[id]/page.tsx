@@ -1,11 +1,67 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, Cell,
 } from "recharts";
+
+/* ── Export helpers ── */
+function downloadFile(content: string, filename: string, type: string) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportJSON(data: any) {
+  downloadFile(JSON.stringify(data, null, 2), `auction-${data.auction_id?.slice(0, 8)}.json`, "application/json");
+}
+
+function exportCSV(data: any) {
+  const rows: string[][] = [];
+  // Header
+  rows.push(["Team", "Agent", "Rank", "Score", "Purse Spent", "Squad Size", "Overseas"]);
+  const evaluation = data.evaluation?.results;
+  const teamEvals = evaluation?.teamEvaluations || [];
+  const sorted = [...teamEvals].sort((a: any, b: any) => a.rank - b.rank);
+
+  for (const te of sorted) {
+    const team = data.teams?.find((t: any) => t.team_index === te.teamIndex);
+    rows.push([
+      team?.team_name || `Team ${te.teamIndex}`,
+      te.agentName,
+      String(te.rank),
+      (te.compositeScore * 100).toFixed(1) + "%",
+      team ? `${team.purse_spent?.toFixed(1)} Cr` : "",
+      String(team?.squad_size || 0),
+      String(team?.overseas_count || 0),
+    ]);
+  }
+
+  rows.push([]);
+  rows.push(["Player", "Role", "Team", "Price Paid", "True Value", "Trap", "Sleeper"]);
+  for (const team of data.teams || []) {
+    for (const p of team.squad || []) {
+      rows.push([
+        p.name,
+        p.role,
+        team.team_name,
+        `${p.price_paid} Cr`,
+        `${p.hidden_true_value?.toFixed(1)} Cr`,
+        p.is_trap ? "Yes" : "No",
+        p.is_sleeper ? "Yes" : "No",
+      ]);
+    }
+  }
+
+  const csv = rows.map((r) => r.map((c) => `"${c}"`).join(",")).join("\n");
+  downloadFile(csv, `auction-${data.auction_id?.slice(0, 8)}.csv`, "text/csv");
+}
 
 /* ── Color constants for recharts only ── */
 const COLORS = {
@@ -48,6 +104,26 @@ export default function ResultsPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
+  const [shareMsg, setShareMsg] = useState<string | null>(null);
+
+  const handleShare = useCallback(async () => {
+    if (!data) return;
+    const evaluation = data.evaluation?.results;
+    const winner = evaluation?.winner;
+    const winnerName = winner ? TEAM_NAMES[winner.teamIndex] : "Unknown";
+    const score = winner ? (winner.score * 100).toFixed(1) : "?";
+    const text = `Raeth Arena Auction Results\nWinner: ${winnerName} (${score}%)\n${window.location.href}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "Raeth Arena - Auction Results", text, url: window.location.href });
+        return;
+      } catch { /* user cancelled or not supported */ }
+    }
+    await navigator.clipboard.writeText(text);
+    setShareMsg("Copied to clipboard!");
+    setTimeout(() => setShareMsg(null), 2000);
+  }, [data]);
 
   useEffect(() => {
     fetch(`/api/v1/auctions/${params.id}/results`).then((r) => r.json()).then(setData).catch(console.error).finally(() => setLoading(false));
@@ -88,6 +164,38 @@ export default function ResultsPage() {
             </>
           )}
           <button onClick={() => router.push(`/auction/${params.id}`)} className="py-1.5 px-3.5 text-xs rounded-md border border-neon-cyan/20 bg-neon-cyan/5 text-neon-cyan cursor-pointer">Watch Replay →</button>
+          {/* Share & Export */}
+          <div className="relative flex items-center gap-1.5">
+            <button
+              onClick={handleShare}
+              className="py-1.5 px-3 text-xs rounded-md border border-border-default bg-bg-surface text-text-secondary hover:text-text-primary cursor-pointer transition-colors"
+              title="Share results"
+            >
+              <svg className="w-3.5 h-3.5 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              </svg>
+              Share
+            </button>
+            <button
+              onClick={() => exportCSV(data)}
+              className="py-1.5 px-3 text-xs rounded-md border border-border-default bg-bg-surface text-text-secondary hover:text-text-primary cursor-pointer transition-colors"
+              title="Export CSV"
+            >
+              CSV
+            </button>
+            <button
+              onClick={() => exportJSON(data)}
+              className="py-1.5 px-3 text-xs rounded-md border border-border-default bg-bg-surface text-text-secondary hover:text-text-primary cursor-pointer transition-colors"
+              title="Export JSON"
+            >
+              JSON
+            </button>
+            {shareMsg && (
+              <span className="absolute -bottom-7 right-0 text-xs text-neon-green whitespace-nowrap bg-bg-elevated px-2 py-1 rounded">
+                {shareMsg}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 

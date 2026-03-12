@@ -13,6 +13,14 @@ import {
   gradeTrapResistance,
   gradeValueDiscovery,
 } from "./code-graders";
+import {
+  gradeReasoningQuality,
+  gradeStrategicCoherence,
+  gradeNoHallucination,
+  gradeAdaptation,
+  gradeEmotionalDiscipline,
+  gradeNarrativeResistance,
+} from "./model-graders";
 
 // ─── Run Full Evaluation ─────────────────────────────────────
 
@@ -77,24 +85,142 @@ export async function runFullEvaluation(auctionId: string): Promise<EvaluationRe
       gradeValueDiscovery(playersBought, totalSleepers),
     ];
 
-    // Composite score (weighted average of code graders)
-    const weights: Record<string, number> = {
-      budget_efficiency: 0.1,
-      valuation_accuracy: 0.15,
-      squad_balance: 0.15,
-      overseas_optimization: 0.08,
-      overbid_penalty: 0.12,
-      pass_discipline: 0.1,
-      constraint_compliance: 0.1,
-      purse_management: 0.08,
-      trap_resistance: 0.06,
-      value_discovery: 0.06,
+    // ─── Run model graders (LLM-based evaluation with retry) ───
+    let modelGraderScoresArr: GraderResult[] = [];
+    try {
+      // Prepare data for model graders from the bid history
+      const teamBids = await prisma.bid.findMany({
+        where: { teamId: team.id, lot: { auctionId } },
+        include: { lot: { include: { player: true } } },
+        orderBy: { timestamp: "asc" },
+      });
+
+      // 1. Reasoning Quality — sample bid reasonings with player stats
+      const bidReasonings = teamBids
+        .filter(b => b.reasoning && b.reasoning.length > 5)
+        .map(b => ({
+          lotNumber: b.lot.lotNumber,
+          reasoning: b.reasoning,
+          playerStats: `${b.lot.player.role}, Base ₹${b.lot.player.basePrice}Cr, ${b.lot.player.careerStats.slice(0, 150)}`,
+        }));
+
+      // 2. Strategic Coherence — squad + bid history
+      const squadStr = team.wonPlayers
+        .map(p => `${p.name} (${p.role}, ${p.nationality}) — ₹${p.soldPrice} Cr`)
+        .join("\n");
+      const bidHistoryStr = teamBids
+        .filter(b => b.action === "bid" && b.amount)
+        .slice(0, 20)
+        .map(b => `Lot ${b.lot.lotNumber}: BID ₹${b.amount}Cr on ${b.lot.player.name} (${b.lot.player.role}) — ${b.reasoning}`)
+        .join("\n");
+
+      // 3. No Hallucination — reasoning vs actual stats
+      const hallCheckData = teamBids
+        .filter(b => b.reasoning && b.reasoning.length > 10)
+        .map(b => ({
+          reasoning: b.reasoning,
+          actualStats: b.lot.player.careerStats.slice(0, 200),
+        }));
+
+      // 4. Adaptation — early vs late decisions
+      const earlyBids = teamBids
+        .filter(b => b.lot.lotNumber <= 20)
+        .slice(0, 10)
+        .map(b => `Lot ${b.lot.lotNumber}: ${b.action} ${b.amount ? `₹${b.amount}Cr` : ""} — ${b.reasoning}`)
+        .join("\n");
+      const lateBids = teamBids
+        .filter(b => b.lot.lotNumber >= 60)
+        .slice(0, 10)
+        .map(b => `Lot ${b.lot.lotNumber}: ${b.action} ${b.amount ? `₹${b.amount}Cr` : ""} — ${b.reasoning}`)
+        .join("\n");
+      const stateChanges = `Started: ₹100 Cr, 0 players → Ended: ₹${team.purseRemaining.toFixed(1)} Cr, ${team.squadSize} players`;
+
+      // 5. Emotional Discipline — bid history with previous lot outcomes
+      const emotionData = teamBids
+        .slice(0, 12)
+        .map((b, i) => ({
+          lotNumber: b.lot.lotNumber,
+          action: b.action,
+          amount: b.amount || undefined,
+          reasoning: b.reasoning,
+          previousLotResult: i > 0
+            ? `${teamBids[i - 1].lot.status} (${teamBids[i - 1].lot.player.name})`
+            : "N/A",
+        }));
+
+      // 6. Narrative Resistance — high base price / high-profile players
+      const highProfileBids = teamBids
+        .filter(b => b.lot.player.basePrice >= 1.5 || b.action === "bid")
+        .slice(0, 8)
+        .map(b => ({
+          playerName: b.lot.player.name,
+          styleTags: JSON.parse(b.lot.player.styleTags || "[]") as string[],
+          basePrice: b.lot.player.basePrice,
+          finalPrice: b.lot.finalPrice || undefined,
+          reasoning: b.reasoning,
+        }));
+
+      // Run all 6 model graders in parallel
+      const [reasoning, coherence, hallucination, adaptation, discipline, narrative] =
+        await Promise.all([
+          gradeReasoningQuality(bidReasonings),
+          gradeStrategicCoherence(squadStr, bidHistoryStr),
+          gradeNoHallucination(hallCheckData),
+          gradeAdaptation(earlyBids || "No early decisions", lateBids || "No late decisions", stateChanges),
+          gradeEmotionalDiscipline(emotionData),
+          gradeNarrativeResistance(highProfileBids),
+        ]);
+
+      modelGraderScoresArr = [reasoning, coherence, hallucination, adaptation, discipline, narrative];
+    } catch (error) {
+      console.error(`[ModelGraders] Failed for team ${team.agent.name}:`, error);
+      // Model graders are optional — continue with code graders only
+    }
+
+    // Composite score: 80% code graders + 20% model graders (if available)
+    const codeWeights: Record<string, number> = {
+      budget_efficiency: 0.08,
+      valuation_accuracy: 0.12,
+      squad_balance: 0.12,
+      overseas_optimization: 0.06,
+      overbid_penalty: 0.10,
+      pass_discipline: 0.08,
+      constraint_compliance: 0.08,
+      purse_management: 0.06,
+      trap_resistance: 0.05,
+      value_discovery: 0.05,
+    };
+
+    const modelWeights: Record<string, number> = {
+      reasoning_quality: 0.05,
+      strategic_coherence: 0.05,
+      no_hallucination: 0.04,
+      adaptation: 0.03,
+      emotional_discipline: 0.02,
+      narrative_resistance: 0.01,
     };
 
     let compositeScore = 0;
+
+    // Code graders (80%)
     for (const grader of codeGraderScores) {
-      const weight = weights[grader.graderName] || 0.05;
+      const weight = codeWeights[grader.graderName] || 0.05;
       compositeScore += grader.score * weight;
+    }
+
+    // Model graders (20%) — graceful degradation if unavailable
+    if (modelGraderScoresArr.length > 0) {
+      for (const grader of modelGraderScoresArr) {
+        const weight = modelWeights[grader.graderName] || 0.02;
+        compositeScore += grader.score * weight;
+      }
+    } else {
+      // If model graders failed, redistribute their 20% proportionally to code graders
+      const codeTotal = Object.values(codeWeights).reduce((s, w) => s + w, 0);
+      for (const grader of codeGraderScores) {
+        const weight = codeWeights[grader.graderName] || 0.05;
+        compositeScore += grader.score * (weight / codeTotal) * 0.2;
+      }
     }
 
     // Find best/worst decisions
@@ -158,7 +284,7 @@ export async function runFullEvaluation(auctionId: string): Promise<EvaluationRe
       teamIndex: team.teamIndex,
       agentName: team.agent.name,
       codeGraderScores,
-      modelGraderScores: [], // Will be filled by model graders
+      modelGraderScores: modelGraderScoresArr,
       compositeScore: Math.round(compositeScore * 1000) / 1000,
       rank: 0, // Set after sorting
       highlights: { bestDecision, worstDecision },

@@ -47,13 +47,15 @@ export async function GET(
     }
 
     // Build results
+    const auctionConfig = JSON.parse(auction.config || "{}");
+    const pursePerTeam = auctionConfig.pursePerTeam || 100;
     const teams = auction.teams.map((t) => ({
       team_id: t.id,
       team_index: t.teamIndex,
       team_name: TEAMS[t.teamIndex].name,
       agent_name: t.agent.name,
       purse_remaining: t.purseRemaining,
-      purse_spent: 100 - t.purseRemaining,
+      purse_spent: pursePerTeam - t.purseRemaining,
       squad_size: t.squadSize,
       overseas_count: t.overseasCount,
       squad: t.wonPlayers.map((p) => ({
@@ -111,6 +113,9 @@ export async function GET(
         }
       : null;
 
+    // Extract cost tracking data from auction config
+    const costTracking = auctionConfig.costTracking || null;
+
     return NextResponse.json({
       auction_id: auction.id,
       status: auction.status,
@@ -120,6 +125,7 @@ export async function GET(
       all_players: allPlayers,
       transcript,
       evaluation,
+      cost_tracking: costTracking,
     });
   } catch (error: any) {
     return NextResponse.json(

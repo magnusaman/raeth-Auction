@@ -11,8 +11,13 @@ import {
 import { runFullEvaluation } from "./grading/scoring";
 import { DEFAULT_AUCTION_CONFIG, AuctionStateForAgent, BidAction } from "./types";
 import { TEAMS } from "@/data/team-config";
-
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+import {
+  callLLM,
+  parseAgentDecision,
+  createCostTracker,
+  recordUsage,
+  CostTracker,
+} from "./llm";
 
 interface AgentConfig {
   name: string;
@@ -33,6 +38,7 @@ export async function runFullAuction(
   agents?: AgentConfig[]
 ): Promise<{ auctionId: string; results: any }> {
   const agentConfigs = agents || DEFAULT_AGENTS;
+  const costTracker = createCostTracker();
 
   // 1. Create auction
   const auctionId = await createAuction();
@@ -172,7 +178,7 @@ export async function runFullAuction(
         if (!agentTeam) break;
 
         const state = await getAuctionState(auctionId, agentTeam.teamId);
-        const decision = await getAgentDecision(agentTeam.config, state, currentRound);
+        const decision = await getAgentDecision(agentTeam.config, state, currentRound, costTracker, agentTeam.teamIndex);
 
         const result = await processBid(auctionId, agentTeam.teamId, decision);
 
@@ -208,6 +214,12 @@ export async function runFullAuction(
   }
 
   console.log(`[Orchestrator] Auction complete! ${lotCount} lots processed.`);
+  console.log(
+    `[CostTracker] Total: ${costTracker.totalCalls} calls, ` +
+    `${costTracker.totalPromptTokens} prompt tokens, ` +
+    `${costTracker.totalCompletionTokens} completion tokens, ` +
+    `${costTracker.errors} errors, ${costTracker.retries} retries`
+  );
 
   // 5. Run evaluation
   console.log(`[Orchestrator] Running evaluation...`);
@@ -217,47 +229,83 @@ export async function runFullAuction(
   return { auctionId, results };
 }
 
-// ─── Get Agent Decision from LLM ────────────────────────────
+// ─── Get Agent Decision from LLM (with retry + Zod validation) ──
 
 async function getAgentDecision(
   agentConfig: AgentConfig,
   state: AuctionStateForAgent,
-  currentRound: number = 1
+  currentRound: number = 1,
+  costTracker?: CostTracker,
+  teamIndex?: number
 ): Promise<BidAction> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
-    return { action: "pass", reasoning: "No API key configured" };
-  }
-
   const systemPrompt = agentConfig.systemPrompt || buildSystemPrompt(state, currentRound);
   const userPrompt = buildStatePrompt(state, currentRound);
 
   try {
-    const res = await fetch(OPENROUTER_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
+    const result = await callLLM(
+      {
         model: agentConfig.model,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
-        max_tokens: 400,
+        maxTokens: 400,
         temperature: 0.3,
-      }),
-    });
+        jsonMode: true,
+      },
+      costTracker
+    );
 
-    const data = await res.json();
-    const content = data.choices?.[0]?.message?.content || "";
+    // Track usage per team
+    if (costTracker && teamIndex !== undefined) {
+      recordUsage(costTracker, String(teamIndex), result.usage, result.latencyMs);
+    }
 
-    return parseDecision(content, state);
+    // Parse with Zod validation (JSON → regex fallback)
+    const parsed = parseAgentDecision(result.content);
+
+    // Urgency override: force bid when squad is critically short
+    return applyUrgencyOverrides(parsed, state);
   } catch (error) {
-    console.error(`[Agent ${agentConfig.name}] Error:`, error);
-    return { action: "pass", reasoning: "LLM call failed" };
+    console.error(`[Agent ${agentConfig.name}] Error after retries:`, error);
+    if (costTracker) costTracker.errors++;
+    return { action: "pass", reasoning: "LLM call failed after retries" };
   }
+}
+
+function applyUrgencyOverrides(parsed: BidAction, state: AuctionStateForAgent): BidAction {
+  const team = state.yourTeam;
+  const minSquad = 15;
+  const slotsNeeded = Math.max(0, minSquad - team.squadSize);
+  const lotsLeft = state.auctionProgress.lotsRemaining;
+  const urgencyRatio = slotsNeeded > 0 ? lotsLeft / slotsNeeded : 999;
+  const isMustBuy = urgencyRatio <= 1.2 && slotsNeeded > 0;
+
+  if (parsed.action === "pass" && isMustBuy) {
+    const nextPrice = state.currentBid
+      ? Math.round((state.currentBid.amount + getNextIncrement(state.currentBid.amount)) * 10) / 10
+      : (state.currentLot?.basePrice || 0.5);
+    if (nextPrice <= 15) {
+      return { action: "bid", reasoning: `Forced bid: need ${slotsNeeded} more players, ${lotsLeft} lots remaining` };
+    }
+  }
+
+  // Force-bid for behind-pace teams
+  const totalPool = state.auctionProgress.lotsCompleted + lotsLeft;
+  const progressRatio = state.auctionProgress.lotsCompleted / totalPool;
+  const expectedByNow = Math.max(1, Math.round(progressRatio * minSquad));
+  const behindPace = progressRatio >= 0.2 && team.squadSize < expectedByNow * 0.5 && slotsNeeded > 3;
+
+  if (parsed.action === "pass" && behindPace && !isMustBuy) {
+    const pacingPrice = state.currentBid
+      ? Math.round((state.currentBid.amount + getNextIncrement(state.currentBid.amount)) * 10) / 10
+      : (state.currentLot?.basePrice || 0.5);
+    if (pacingPrice <= 8) {
+      return { action: "bid", reasoning: `Forced bid: severely behind buying pace (${team.squadSize} players, need ${slotsNeeded} more)` };
+    }
+  }
+
+  return parsed;
 }
 
 function buildSystemPrompt(state: AuctionStateForAgent, currentRound: number = 1): string {
@@ -274,14 +322,11 @@ function buildSystemPrompt(state: AuctionStateForAgent, currentRound: number = 1
 
   const totalPoolSize = state.auctionProgress.lotsCompleted + lotsLeft;
 
-  // Pacing check: is this team buying at a reasonable rate?
-  // Don't check pacing until at least 20% of lots are done — early lots are normal
   const auctionProgressRatio = state.auctionProgress.lotsCompleted / totalPoolSize;
   const expectedPlayersByNow = Math.max(1, Math.round(auctionProgressRatio * minSquad));
   const isBehindPace = auctionProgressRatio >= 0.2 && team.squadSize < expectedPlayersByNow * 0.5 && slotsNeeded > 3;
   const avgBudgetPerPlayer = team.purseRemaining / Math.max(1, slotsNeeded > 0 ? slotsNeeded : 3);
 
-  // Current bid info for decision context
   const currentBid = state.currentLot
     ? (state.currentBid?.amount || state.currentLot.basePrice)
     : 0;
@@ -326,37 +371,6 @@ ${avgBudgetPerPlayer < 3 ? "🚨 YOUR AVERAGE BUDGET PER REMAINING SLOT IS ONLY 
 - Budget: ₹100 Cr total. You cannot go negative.
 - Reserve Rule: Always keep ₹0.5 Cr × remaining_slots_to_${minSquad} in reserve.
 
-═══ HOW YOU ARE SCORED (10 graders) ═══
-1. Budget Efficiency — Did you use your purse wisely? (not hoarding, not overspending)
-2. Valuation Accuracy — Did you pay close to a player's TRUE hidden value?
-3. Squad Balance — Are all 4 roles adequately filled?
-4. Overseas Optimization — Are your overseas picks high-impact?
-5. Overbid Penalty — Heavy penalty for paying >> true value (watch for inflated visible stats)
-6. Pass Discipline — Did you wisely skip overpriced/trap players?
-7. Constraint Compliance — Squad size, overseas cap, purse compliance
-8. Purse Management — Smooth spending curve, not front-loaded or panic buys
-9. Trap Resistance — Did you avoid trap players (inflated stats, low true value)?
-10. Value Discovery — Did you find sleeper picks (low visible stats, high true value)?
-
-═══ PLAYER ASSESSMENT FRAMEWORK ═══
-BATSMEN: Look at batting avg (>30 is good), strike rate (>135 elite), recent form, hundreds/fifties count
-BOWLERS: Economy (<7.5 elite), wickets tally, bowling average, recent form wickets/match
-ALL-ROUNDERS: Dual contribution — both batting AND bowling stats must be decent
-WICKET-KEEPERS: Batting avg + strike rate matter most (keeping is assumed)
-
-⚠️ TRAPS TO WATCH:
-- Players with great career stats but POOR recent form → might be declining
-- Very high base price with moderate stats → overvalued
-- Batsmen with high average but LOW strike rate → anchors, less T20 impact
-- Bowlers with low economy but very few matches → small sample size
-
-═══ ROUND SYSTEM ═══
-- ROUND 1: All ${totalPoolSize} players auctioned. You MUST buy most of your squad in Round 1.
-- ROUND 2 (backup only): If any team has < ${minSquad} after Round 1, unsold players are re-auctioned.
-- Round 2 is a LAST RESORT — do NOT rely on it. Most good players sell in Round 1 and won't return.
-- You MUST actively buy players throughout Round 1. Waiting for Round 2 = guaranteed failure.
-${currentRound === 2 ? "🔄 ROUND 2: Fill your squad NOW with these remaining players!" : ""}
-
 ═══ STRATEGIC PHASES ═══
 - Lots 1–35 (Early): Be selective. Let bidding wars run — pass when price exceeds ₹6-7 Cr.
 - Lots 36–80 (Mid): Fill role gaps. Target players going for ₹2-5 Cr. You should have 5-10 players by lot 80.
@@ -368,17 +382,18 @@ ${currentRound === 2 ? "🔄 ROUND 2: Fill your squad NOW with these remaining p
 - For average players at base price, BID — they fill your squad cheaply.
 - Only PASS on overpriced mediocre players or when the bidding war goes beyond the player's value.
 - USE YOUR FULL ₹100 Cr BUDGET. Hoarding purse = wasted potential. Aim to spend ₹85-100 Cr total.
-- READ THE SITUATION: If opponents are low on purse, you have pricing power. If you're behind on squad size, buy now.
-- Winning auctions requires BALANCE: don't just be passive (passing everything) or just aggressive (overpaying for all).
 
 ═══ KEY RULE: WHEN TO STOP BIDDING ═══
 If the current bid exceeds ₹10 Cr, PASS unless this player has truly elite stats AND you have 60%+ purse left.
-Don't let moderate bidding wars scare you — a player at ₹4-5 Cr can still be great value.
 ${currentBid > 0 ? "\nCurrent asking price for this player: ₹" + currentBid.toFixed(2) + " Cr" : ""}
 
-${isMustBuy ? "🚨 EMERGENCY: You MUST BID on this player. You need " + slotsNeeded + " more players and only " + lotsLeft + " lots remain. PASSING = AUTOMATIC LOSS." : ""}${isCritical && !isMustBuy ? "⚠️ URGENT: You need " + slotsNeeded + " more players and only " + lotsLeft + " lots remain. Strongly prefer BIDDING unless the player is terrible AND there are clearly better options coming." : ""}${isBehindPace && !isCritical ? "\n🚨 BEHIND PACE: By lot " + (state.auctionProgress.lotsCompleted + 1) + " you should have ~" + expectedPlayersByNow + " players but you only have " + team.squadSize + "! START BUYING NOW. You are falling dangerously behind — bid on any decent player at reasonable price!" : ""}
+${currentRound === 2 ? "🔄 ROUND 2: Fill your squad NOW with these remaining players!" : ""}
+${isMustBuy ? "🚨 EMERGENCY: You MUST BID on this player. You need " + slotsNeeded + " more players and only " + lotsLeft + " lots remain. PASSING = AUTOMATIC LOSS." : ""}${isCritical && !isMustBuy ? "⚠️ URGENT: You need " + slotsNeeded + " more players and only " + lotsLeft + " lots remain. Strongly prefer BIDDING unless the player is terrible AND there are clearly better options coming." : ""}${isBehindPace && !isCritical ? "\n🚨 BEHIND PACE: By lot " + (state.auctionProgress.lotsCompleted + 1) + " you should have ~" + expectedPlayersByNow + " players but you only have " + team.squadSize + "! START BUYING NOW." : ""}
 
-RESPOND IN THIS EXACT FORMAT:
+RESPOND WITH VALID JSON:
+{"action": "bid" or "pass", "reasoning": "Your 1-2 sentence reasoning"}
+
+You may also respond in this format:
 ACTION: bid OR pass
 REASONING: Your 1-2 sentence reasoning`;
 }
@@ -414,24 +429,19 @@ function buildStatePrompt(state: AuctionStateForAgent, currentRound: number = 1)
   const reserveNeeded = Math.max(0, slotsNeeded * 0.5);
   const effectivePurse = team.purseRemaining - reserveNeeded;
 
-  // Anonymized player ID — LLM never sees real name
   const anonId = `PLAYER_${String(lot.lotNumber).padStart(3, "0")}`;
 
-  // Perturb stats x1.1 to prevent stat-fingerprinting
   const cs = lot.careerStats as any;
   const rf = lot.recentForm as any;
   const batLine = cs?.battingAvg ? `Avg: ${p(cs.battingAvg)} | SR: ${p(cs.strikeRate)} | Matches: ${p(cs.matches)} | 100s: ${p(cs.hundreds)} | 50s: ${p(cs.fifties)}` : "N/A (not a primary batsman)";
   const bowlLine = cs?.economy ? `Econ: ${p(cs.economy)} | Wickets: ${p(cs.wickets)} | Bowl Avg: ${p(cs.bowlingAvg)} | Matches: ${p(cs.matches)}` : "N/A (not a bowler)";
 
-  // Recent form with perturbed stats
   const formLines = Array.isArray(rf) && rf.length > 0
     ? rf.map((s: any, i: number) => `  Season ${i + 1}: ${p(s.matches)} matches, Runs: ${p(s.runs)}, Avg: ${p(s.avg)}, SR: ${p(s.sr)}, Wkts: ${p(s.wickets)}, Econ: ${p(s.economy)}`).join("\n")
     : "  No recent form data";
 
-  // Team aliases for LLM
   const teamAlias = TEAMS[team.teamIndex]?.promptShort || "?";
 
-  // Next bid amount if agent decides to bid
   const nextBidAmount = state.currentBid
     ? Math.round((state.currentBid.amount + getNextIncrement(state.currentBid.amount)) * 10) / 10
     : lot.basePrice;
@@ -465,55 +475,5 @@ ${slotsNeeded > 0 ? `⚠️ YOU NEED ${slotsNeeded} MORE PLAYERS. ${urgencyRatio
 ${lot.nationality !== "India" && team.overseasCount >= 8 ? "⛔ You CANNOT buy this player — overseas cap reached. PASS." : ""}
 ${isMustBuy ? "🚨🚨 MUST-BUY: " + slotsNeeded + " slots needed, " + lotsLeft + " lots left. YOU MUST BID OR YOU LOSE. 🚨🚨" : ""}
 
-Should you BID or PASS?`;
-}
-
-function parseDecision(content: string, state: AuctionStateForAgent): BidAction {
-  const actionMatch = content.match(/ACTION:\s*(bid|pass)/i);
-  const reasoningMatch = content.match(/REASONING:\s*(.+?)(?:\n|$)/i);
-
-  const action = actionMatch?.[1]?.toLowerCase() === "bid" ? "bid" : "pass";
-  const reasoning = reasoningMatch?.[1]?.trim() || content.slice(0, 200);
-
-  // Urgency override: force bid when squad is critically short
-  const team = state.yourTeam;
-  const minSquad = 15;
-  const slotsNeeded = Math.max(0, minSquad - team.squadSize);
-  const lotsLeft = state.auctionProgress.lotsRemaining;
-  const urgencyRatio = slotsNeeded > 0 ? lotsLeft / slotsNeeded : 999;
-  const isMustBuy = urgencyRatio <= 1.2 && slotsNeeded > 0;
-
-  if (action === "pass" && isMustBuy) {
-    // Force bid — but not at absurd prices (cap force-override at ₹15 Cr)
-    const nextPrice = state.currentBid
-      ? Math.round((state.currentBid.amount + getNextIncrement(state.currentBid.amount)) * 10) / 10
-      : (state.currentLot?.basePrice || 0.5);
-    if (nextPrice <= 15) {
-      return { action: "bid", reasoning: `Forced bid: need ${slotsNeeded} more players, ${lotsLeft} lots remaining` };
-    }
-    // Above ₹15 Cr, respect agent's pass even in must-buy
-  }
-
-  // Force-bid for behind-pace teams (earlier intervention than must-buy)
-  // Don't check pacing until at least 20% of lots are done
-  const totalPool = state.auctionProgress.lotsCompleted + lotsLeft;
-  const progressRatio = state.auctionProgress.lotsCompleted / totalPool;
-  const expectedByNow = Math.max(1, Math.round(progressRatio * minSquad));
-  const behindPace = progressRatio >= 0.2 && team.squadSize < expectedByNow * 0.5 && slotsNeeded > 3;
-
-  if (action === "pass" && behindPace && !isMustBuy) {
-    const pacingPrice = state.currentBid
-      ? Math.round((state.currentBid.amount + getNextIncrement(state.currentBid.amount)) * 10) / 10
-      : (state.currentLot?.basePrice || 0.5);
-    if (pacingPrice <= 8) {
-      return { action: "bid", reasoning: `Forced bid: severely behind buying pace (${team.squadSize} players, need ${slotsNeeded} more)` };
-    }
-  }
-
-  if (action === "pass") {
-    return { action: "pass", reasoning };
-  }
-
-  // Agent chose to bid — engine handles the amount (base price or current + increment)
-  return { action: "bid", reasoning };
+Should you BID or PASS? Respond with JSON: {"action": "...", "reasoning": "..."}`;
 }

@@ -1,32 +1,21 @@
 import { GraderResult } from "../types";
+import { callLLM as callLLMClient } from "../llm";
 
 // Model-based graders use LLM (via OpenRouter) to evaluate nuanced aspects
 // These are called post-auction during evaluation
-
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+// Now uses the unified LLM client with retry + exponential backoff
 
 async function callLLM(prompt: string): Promise<string> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) return "Model grader unavailable: no API key";
-
   try {
-    const res = await fetch(OPENROUTER_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "anthropic/claude-sonnet-4",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 500,
-        temperature: 0,
-      }),
+    const result = await callLLMClient({
+      model: "anthropic/claude-sonnet-4",
+      messages: [{ role: "user", content: prompt }],
+      maxTokens: 500,
+      temperature: 0,
     });
-
-    const data = await res.json();
-    return data.choices?.[0]?.message?.content || "No response";
-  } catch {
+    return result.content || "No response";
+  } catch (error) {
+    console.error("[ModelGrader] LLM call failed after retries:", error);
     return "Model grader failed";
   }
 }

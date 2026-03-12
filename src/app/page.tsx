@@ -506,9 +506,9 @@ export default function Home() {
       <footer style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
         <div className="mx-auto max-w-[1200px] px-6 py-12 md:py-16 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="Raeth" className="h-8 w-auto rounded-lg object-contain" style={{ mixBlendMode: "lighten" }} />
-            <span className="font-mono text-sm font-bold text-[#888]">Raeth Arena</span>
-            <span className="text-[#444] text-xs ml-1">Betting And Auction</span>
+            <span className="text-[15px] font-bold tracking-[0.25em] uppercase" style={{ color: "#7877C6" }}>Raeth</span>
+            <div className="h-[18px] w-px" style={{ background: "rgba(255,255,255,0.15)" }} />
+            <span className="text-[15px] font-bold tracking-[0.25em] uppercase" style={{ color: "#7877C6" }}>Arena</span>
           </div>
           <div className="flex items-center gap-8">
             <Link href="/tournaments" className="text-xs text-[#555] hover:text-[#EDEDED] transition-colors no-underline">Tournaments</Link>

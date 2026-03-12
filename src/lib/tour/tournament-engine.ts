@@ -40,10 +40,10 @@ function generateSchedule(teamIndices: number[]): { team1: number; team2: number
     matches.push({ team1: b, team2: a, matchType: "LEAGUE" });
   }
 
-  // Playoffs: filled after league simulation
-  // Qualifier: 1st vs 2nd
-  matches.push({ team1: -1, team2: -1, matchType: "QUALIFIER" });
-  // Final
+  // Playoffs: filled after league simulation (placeholders)
+  if (teamIndices.length >= 3) {
+    matches.push({ team1: -1, team2: -1, matchType: "QUALIFIER" });
+  }
   matches.push({ team1: -1, team2: -1, matchType: "FINAL" });
 
   return matches;
@@ -282,61 +282,93 @@ export async function createTournament(auctionId?: string, teamCount: number = 4
   // Sort standings: points (wins*2), then NRR
   leagueResults.sort((a, b) => (b.wins * 2 - a.wins * 2) || (b.nrr - a.nrr));
 
-  // Qualifier: 1st vs 2nd
-  const q1 = leagueResults[0].teamIndex;
-  const q2 = leagueResults[1].teamIndex;
-  const qualifierVenue = VENUES.find((v) => v.homeTeamIndex === null)!;
-  const qualifierResult = simulateMatch(
-    squads.find((s) => s.teamIndex === q1)!,
-    squads.find((s) => s.teamIndex === q2)!,
-    qualifierVenue.traits,
-    null
-  );
+  // Playoffs — adapt to team count
+  const playoffMatchNum = leagueMatches.length + 1;
+  const neutralVenue = VENUES.find((v) => v.homeTeamIndex === null) || VENUES[0];
 
-  await prisma.tournamentMatch.create({
-    data: {
-      tournamentId: tournament.id,
-      matchNumber: 13,
-      matchType: "QUALIFIER",
-      team1Index: q1,
-      team2Index: q2,
-      venue: qualifierVenue.name,
-      venueTraits: JSON.stringify(qualifierVenue.traits),
-      homeTeamIndex: null,
-      actualWinner: qualifierResult.winner,
-      actualMargin: qualifierResult.margin,
-      team1Strength: qualifierResult.t1Adjusted,
-      team2Strength: qualifierResult.t2Adjusted,
-    },
-  });
+  if (squads.length >= 3) {
+    // Qualifier: 1st vs 2nd
+    const q1 = leagueResults[0].teamIndex;
+    const q2 = leagueResults[1].teamIndex;
+    const qualifierResult = simulateMatch(
+      squads.find((s) => s.teamIndex === q1)!,
+      squads.find((s) => s.teamIndex === q2)!,
+      neutralVenue.traits,
+      null
+    );
 
-  // Final: qualifier winner vs 3rd place team
-  const finalTeam1 = qualifierResult.winner;
-  const finalTeam2 = leagueResults[2].teamIndex;
-  const finalVenue = VENUES[4]; // Ahmedabad (neutral)
-  const finalResult = simulateMatch(
-    squads.find((s) => s.teamIndex === finalTeam1)!,
-    squads.find((s) => s.teamIndex === finalTeam2)!,
-    finalVenue.traits,
-    null
-  );
+    await prisma.tournamentMatch.create({
+      data: {
+        tournamentId: tournament.id,
+        matchNumber: playoffMatchNum,
+        matchType: "QUALIFIER",
+        team1Index: q1,
+        team2Index: q2,
+        venue: neutralVenue.name,
+        venueTraits: JSON.stringify(neutralVenue.traits),
+        homeTeamIndex: null,
+        actualWinner: qualifierResult.winner,
+        actualMargin: qualifierResult.margin,
+        team1Strength: qualifierResult.t1Adjusted,
+        team2Strength: qualifierResult.t2Adjusted,
+      },
+    });
 
-  await prisma.tournamentMatch.create({
-    data: {
-      tournamentId: tournament.id,
-      matchNumber: 14,
-      matchType: "FINAL",
-      team1Index: finalTeam1,
-      team2Index: finalTeam2,
-      venue: finalVenue.name,
-      venueTraits: JSON.stringify(finalVenue.traits),
-      homeTeamIndex: null,
-      actualWinner: finalResult.winner,
-      actualMargin: finalResult.margin,
-      team1Strength: finalResult.t1Adjusted,
-      team2Strength: finalResult.t2Adjusted,
-    },
-  });
+    // Final: qualifier winner vs 3rd place team
+    const finalTeam1 = qualifierResult.winner;
+    const finalTeam2 = leagueResults[2].teamIndex;
+    const finalVenue = VENUES[4] || neutralVenue;
+    const finalResult = simulateMatch(
+      squads.find((s) => s.teamIndex === finalTeam1)!,
+      squads.find((s) => s.teamIndex === finalTeam2)!,
+      finalVenue.traits,
+      null
+    );
+
+    await prisma.tournamentMatch.create({
+      data: {
+        tournamentId: tournament.id,
+        matchNumber: playoffMatchNum + 1,
+        matchType: "FINAL",
+        team1Index: finalTeam1,
+        team2Index: finalTeam2,
+        venue: finalVenue.name,
+        venueTraits: JSON.stringify(finalVenue.traits),
+        homeTeamIndex: null,
+        actualWinner: finalResult.winner,
+        actualMargin: finalResult.margin,
+        team1Strength: finalResult.t1Adjusted,
+        team2Strength: finalResult.t2Adjusted,
+      },
+    });
+  } else {
+    // 2 teams: league winner IS the champion — just add a final (1st vs 2nd)
+    const f1 = leagueResults[0].teamIndex;
+    const f2 = leagueResults[1].teamIndex;
+    const finalResult = simulateMatch(
+      squads.find((s) => s.teamIndex === f1)!,
+      squads.find((s) => s.teamIndex === f2)!,
+      neutralVenue.traits,
+      null
+    );
+
+    await prisma.tournamentMatch.create({
+      data: {
+        tournamentId: tournament.id,
+        matchNumber: playoffMatchNum,
+        matchType: "FINAL",
+        team1Index: f1,
+        team2Index: f2,
+        venue: neutralVenue.name,
+        venueTraits: JSON.stringify(neutralVenue.traits),
+        homeTeamIndex: null,
+        actualWinner: finalResult.winner,
+        actualMargin: finalResult.margin,
+        team1Strength: finalResult.t1Adjusted,
+        team2Strength: finalResult.t2Adjusted,
+      },
+    });
+  }
 
   await prisma.tournament.update({
     where: { id: tournament.id },

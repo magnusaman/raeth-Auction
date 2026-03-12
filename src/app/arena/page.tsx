@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import ReplayViewer from "@/components/ReplayViewer";
 
 const TEAM_SHORT = ["MI", "CSK", "RCB", "KKR", "SRH", "RR", "DC", "PBKS", "GT", "LSG"];
 const TEAM_COLORS = ["#004BA0", "#FDB913", "#EC1C24", "#3A225D", "#FF822A", "#EA1A85", "#004C93", "#DD1F2D", "#1C1C2B", "#A72056"];
@@ -28,6 +29,7 @@ export default function ArenaPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "evaluated">("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [replayOpen, setReplayOpen] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -162,95 +164,137 @@ export default function ArenaPage() {
                 });
 
             return (
-              <button
+              <div
                 key={a.auction_id}
-                onClick={() =>
-                  router.push(
-                    a.has_evaluation
-                      ? `/results/${a.auction_id}`
-                      : `/auction/${a.auction_id}`
-                  )
-                }
-                className="bg-bg-surface border border-border-default rounded-xl p-5 text-left hover:border-border-hover hover:bg-bg-elevated/30 transition-all duration-200 cursor-pointer group"
+                className="bg-bg-surface border border-border-default rounded-xl overflow-hidden hover:border-border-hover transition-all duration-200 group"
               >
-                {/* Top row: ID + status */}
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-mono text-xs text-text-muted group-hover:text-accent-cyan transition-colors">
-                    {a.auction_id.slice(0, 16)}...
-                  </span>
-                  <div className="flex items-center gap-2">
-                    {a.has_evaluation && (
-                      <span className="text-xs font-bold font-mono tracking-wider text-accent-cyan bg-accent-cyan/10 border border-accent-cyan/20 px-2 py-0.5 rounded">
-                        EVALUATED
+                <div
+                  className="p-5 cursor-pointer"
+                  onClick={() =>
+                    router.push(
+                      a.has_evaluation
+                        ? `/results/${a.auction_id}`
+                        : `/auction/${a.auction_id}`
+                    )
+                  }
+                >
+                  {/* Top row: ID + status */}
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-mono text-xs text-text-muted group-hover:text-accent-cyan transition-colors">
+                      {a.auction_id.slice(0, 16)}...
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {a.has_evaluation && (
+                        <span className="text-xs font-bold font-mono tracking-wider text-accent-cyan bg-accent-cyan/10 border border-accent-cyan/20 px-2 py-0.5 rounded">
+                          EVALUATED
+                        </span>
+                      )}
+                      <span className="text-xs font-bold font-mono tracking-wider text-neon-green bg-neon-green/10 border border-neon-green/20 px-2 py-0.5 rounded">
+                        COMPLETED
                       </span>
-                    )}
-                    <span className="text-xs font-bold font-mono tracking-wider text-neon-green bg-neon-green/10 border border-neon-green/20 px-2 py-0.5 rounded">
-                      COMPLETED
+                    </div>
+                  </div>
+
+                  {/* Teams row */}
+                  <div className="flex gap-2 mb-4">
+                    {a.teams.map((t) => (
+                      <div
+                        key={t.team_index}
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
+                        style={{
+                          background: `${TEAM_COLORS[t.team_index]}12`,
+                          border: `1px solid ${TEAM_COLORS[t.team_index]}30`,
+                        }}
+                      >
+                        <span className="text-sm">
+                          {TEAM_ICONS[t.team_index]}
+                        </span>
+                        <span
+                          className="text-xs font-bold font-mono"
+                          style={{ color: TEAM_COLORS[t.team_index] }}
+                        >
+                          {TEAM_SHORT[t.team_index]}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Models used */}
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 mb-3">
+                    {a.teams.map((t) => (
+                      <span
+                        key={t.team_index}
+                        className="text-sm text-text-muted"
+                      >
+                        <span
+                          className="font-semibold"
+                          style={{ color: TEAM_COLORS[t.team_index] }}
+                        >
+                          {TEAM_SHORT[t.team_index]}
+                        </span>{" "}
+                        {t.agent_name}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Stats row */}
+                  <div className="flex items-center gap-4 pt-3 border-t border-border-subtle">
+                    <span className="text-sm text-text-muted">
+                      <span className="font-mono font-semibold text-text-secondary">
+                        {totalPlayers}
+                      </span>{" "}
+                      players sold
+                    </span>
+                    <span className="text-sm text-text-muted">
+                      <span className="font-mono font-semibold text-text-secondary">
+                        ₹{totalSpent.toFixed(0)}
+                      </span>{" "}
+                      Cr spent
+                    </span>
+                    <span className="text-sm text-text-muted ml-auto">
+                      {dateStr}
                     </span>
                   </div>
                 </div>
 
-                {/* Teams row */}
-                <div className="flex gap-2 mb-4">
-                  {a.teams.map((t) => (
-                    <div
-                      key={t.team_index}
-                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
-                      style={{
-                        background: `${TEAM_COLORS[t.team_index]}12`,
-                        border: `1px solid ${TEAM_COLORS[t.team_index]}30`,
-                      }}
-                    >
-                      <span className="text-sm">
-                        {TEAM_ICONS[t.team_index]}
-                      </span>
-                      <span
-                        className="text-xs font-bold font-mono"
-                        style={{ color: TEAM_COLORS[t.team_index] }}
-                      >
-                        {TEAM_SHORT[t.team_index]}
-                      </span>
-                    </div>
-                  ))}
+                {/* Replay toggle */}
+                <div className="flex border-t border-border-subtle">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setReplayOpen(replayOpen === a.auction_id ? null : a.auction_id);
+                    }}
+                    className="flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-semibold text-text-muted hover:text-accent-cyan hover:bg-bg-elevated/30 transition-colors"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                      {replayOpen === a.auction_id ? (
+                        <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                      ) : (
+                        <path d="M8 5v14l11-7z" />
+                      )}
+                    </svg>
+                    {replayOpen === a.auction_id ? "Close Replay" : "Replay Bids"}
+                  </button>
+                  <div className="w-px bg-border-subtle" />
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(a.has_evaluation ? `/results/${a.auction_id}` : `/auction/${a.auction_id}`);
+                    }}
+                    className="flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-semibold text-text-muted hover:text-text-primary hover:bg-bg-elevated/30 transition-colors"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                    </svg>
+                    {a.has_evaluation ? "View Results" : "View Auction"}
+                  </button>
                 </div>
 
-                {/* Models used */}
-                <div className="flex flex-wrap gap-x-3 gap-y-1 mb-3">
-                  {a.teams.map((t) => (
-                    <span
-                      key={t.team_index}
-                      className="text-sm text-text-muted"
-                    >
-                      <span
-                        className="font-semibold"
-                        style={{ color: TEAM_COLORS[t.team_index] }}
-                      >
-                        {TEAM_SHORT[t.team_index]}
-                      </span>{" "}
-                      {t.agent_name}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Stats row */}
-                <div className="flex items-center gap-4 pt-3 border-t border-border-subtle">
-                  <span className="text-sm text-text-muted">
-                    <span className="font-mono font-semibold text-text-secondary">
-                      {totalPlayers}
-                    </span>{" "}
-                    players sold
-                  </span>
-                  <span className="text-sm text-text-muted">
-                    <span className="font-mono font-semibold text-text-secondary">
-                      ₹{totalSpent.toFixed(0)}
-                    </span>{" "}
-                    Cr spent
-                  </span>
-                  <span className="text-sm text-text-muted ml-auto">
-                    {dateStr}
-                  </span>
-                </div>
-              </button>
+                {/* Replay viewer */}
+                {replayOpen === a.auction_id && (
+                  <ReplayViewer auctionId={a.auction_id} />
+                )}
+              </div>
             );
           })}
         </div>
