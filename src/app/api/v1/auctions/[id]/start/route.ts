@@ -16,6 +16,7 @@ import {
   recordUsage,
   CostTracker,
 } from "@/lib/llm";
+import { emitAuctionUpdate } from "@/lib/emit";
 
 interface AgentConfig {
   name: string;
@@ -258,14 +259,36 @@ async function runBiddingLoop(
 
         if (result.success) {
           console.log(`  ${TEAMS[agentTeam.teamIndex].shortName}: ${decision.action}${result.newBidAmount ? ` ₹${result.newBidAmount}Cr` : ""}`);
+          emitAuctionUpdate(auctionId, {
+            type: "bid",
+            teamIndex: agentTeam.teamIndex,
+            action: decision.action,
+            amount: result.newBidAmount || null,
+            lotNumber: currentLot.lotNumber,
+            playerName: currentLot.player.name,
+          });
         } else {
           console.log(`  ${TEAMS[agentTeam.teamIndex].shortName}: auto-pass (${result.message})`);
           await processBid(auctionId, agentTeam.teamId, { action: "pass", reasoning: `Auto-pass: ${result.message}` });
+          emitAuctionUpdate(auctionId, {
+            type: "bid",
+            teamIndex: agentTeam.teamIndex,
+            action: "pass",
+            amount: null,
+            lotNumber: currentLot.lotNumber,
+            playerName: currentLot.player.name,
+          });
         }
 
         const completion = await checkLotCompletion(auctionId, currentLot.id, DEFAULT_AUCTION_CONFIG);
         if (completion.completed) {
           console.log(`  -> ${completion.status}`);
+          emitAuctionUpdate(auctionId, {
+            type: "lot_complete",
+            lotNumber: currentLot.lotNumber,
+            playerName: currentLot.player.name,
+            status: completion.status,
+          });
           lotActive = false;
         }
       }
@@ -286,6 +309,7 @@ async function runBiddingLoop(
             where: { id: auctionId },
             data: { status: "COMPLETED", completedAt: new Date() },
           });
+          emitAuctionUpdate(auctionId, { type: "auction_complete" });
           isRunning = false;
         }
       }
@@ -300,6 +324,9 @@ async function runBiddingLoop(
     `${costTracker.totalCompletionTokens} completion tokens, ` +
     `${costTracker.errors} errors, ${costTracker.retries} retries`
   );
+
+  // Emit auction complete (end of all rounds)
+  emitAuctionUpdate(auctionId, { type: "auction_complete" });
 
   // Run evaluation
   console.log(`[Start] Auction complete, running evaluation...`);

@@ -18,8 +18,9 @@ RUN npx prisma generate
 RUN npm run build
 
 ENV NODE_ENV=production
+ENV PORT=10000
 
-EXPOSE 3000
+EXPOSE 10000
 
-# On startup: push schema to DB, then start the server
-CMD ["sh", "-c", "npx prisma db push && npm start"]
+# On startup: push schema to DB, then start the server on the correct port
+CMD ["sh", "-c", "npx prisma db push --skip-generate && npm start -- -p ${PORT:-10000}"]

@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: raeth-arena
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: NODE_ENV
+        value: production

@@ -1,6 +1,5 @@
 import { z } from "zod/v4";
-
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+import { resolveProvider, buildAnthropicBody } from "./llm-providers";
 
 // ─── Zod Schema for LLM Bid Decision ────────────────────────
 
@@ -86,29 +85,41 @@ export async function callLLM(
   options: LLMCallOptions,
   costTracker?: CostTracker
 ): Promise<LLMCallResult> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) throw new Error("No OPENROUTER_API_KEY configured");
+  // Resolve which provider and model to use
+  const { provider, resolvedModel } = resolveProvider(options.model);
+  const providerApiKey = process.env[provider.apiKeyEnvVar];
+  if (!providerApiKey) {
+    throw new Error(`No ${provider.apiKeyEnvVar} configured`);
+  }
 
+  // Build the base request body (OpenAI-compatible format)
   const body: Record<string, unknown> = {
-    model: options.model,
+    model: resolvedModel,
     messages: options.messages,
     max_tokens: options.maxTokens || 400,
     temperature: options.temperature ?? 0.3,
   };
 
-  // JSON mode for structured output
-  if (options.jsonMode) {
+  // JSON mode for structured output (only if provider supports it)
+  if (options.jsonMode && provider.supportsJsonMode) {
     body.response_format = { type: "json_object" };
   }
 
   // Prompt caching: mark system prompt for cache (OpenRouter → Anthropic/Google)
-  const messagesWithCache = options.messages.map((msg, idx) => {
-    if (idx === 0 && msg.role === "system") {
-      return { ...msg, cache_control: { type: "ephemeral" } };
-    }
-    return msg;
-  });
-  body.messages = messagesWithCache;
+  if (!provider.isCustomFormat) {
+    const messagesWithCache = options.messages.map((msg, idx) => {
+      if (idx === 0 && msg.role === "system") {
+        return { ...msg, cache_control: { type: "ephemeral" } };
+      }
+      return msg;
+    });
+    body.messages = messagesWithCache;
+  }
+
+  // For Anthropic direct API, transform the body to their Messages format
+  const requestBody = provider.isCustomFormat
+    ? buildAnthropicBody(body)
+    : body;
 
   let lastError: Error | null = null;
 
@@ -116,15 +127,13 @@ export async function callLLM(
     try {
       const startTime = Date.now();
 
-      const res = await fetch(OPENROUTER_URL, {
+      const res = await fetch(provider.baseUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-          "HTTP-Referer": "https://raeth.ai",
-          "X-Title": "Raeth Arena",
+          ...provider.headers(providerApiKey),
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify(requestBody),
       });
 
       const latencyMs = Date.now() - startTime;
@@ -136,7 +145,7 @@ export async function callLLM(
           ? parseInt(retryAfter) * 1000
           : BASE_DELAY_MS * Math.pow(2, attempt);
         console.warn(
-          `[LLM] Rate limited (${options.model}), retry in ${delay}ms (attempt ${attempt + 1}/${MAX_RETRIES})`
+          `[LLM] Rate limited on ${provider.name} (${resolvedModel}), retry in ${delay}ms (attempt ${attempt + 1}/${MAX_RETRIES})`
         );
         if (costTracker) costTracker.retries++;
         await sleep(delay);
@@ -147,7 +156,7 @@ export async function callLLM(
       if (res.status >= 500) {
         const delay = BASE_DELAY_MS * Math.pow(2, attempt);
         console.warn(
-          `[LLM] Server error ${res.status} (${options.model}), retry in ${delay}ms (attempt ${attempt + 1}/${MAX_RETRIES})`
+          `[LLM] Server error ${res.status} on ${provider.name} (${resolvedModel}), retry in ${delay}ms (attempt ${attempt + 1}/${MAX_RETRIES})`
         );
         if (costTracker) costTracker.retries++;
         await sleep(delay);
@@ -157,24 +166,27 @@ export async function callLLM(
       // Client error — don't retry
       if (!res.ok) {
         const errBody = await res.text().catch(() => "");
-        throw new Error(`LLM API error ${res.status}: ${errBody.slice(0, 200)}`);
+        throw new Error(
+          `LLM API error ${res.status} (${provider.name}): ${errBody.slice(0, 200)}`
+        );
       }
 
       const data = await res.json();
-      const content = data.choices?.[0]?.message?.content || "";
-      const usage = {
-        promptTokens: data.usage?.prompt_tokens || 0,
-        completionTokens: data.usage?.completion_tokens || 0,
-        totalTokens: data.usage?.total_tokens || 0,
-      };
 
-      return { content, usage, latencyMs };
+      // Use the provider's response parser to normalize the result
+      const parsed = provider.parseResponse(data);
+
+      return {
+        content: parsed.content,
+        usage: parsed.usage,
+        latencyMs,
+      };
     } catch (error: unknown) {
       lastError = error instanceof Error ? error : new Error(String(error));
       if (attempt < MAX_RETRIES) {
         const delay = BASE_DELAY_MS * Math.pow(2, attempt);
         console.warn(
-          `[LLM] Error (${options.model}): ${lastError.message}, retry in ${delay}ms (attempt ${attempt + 1}/${MAX_RETRIES})`
+          `[LLM] Error on ${provider.name} (${resolvedModel}): ${lastError.message}, retry in ${delay}ms (attempt ${attempt + 1}/${MAX_RETRIES})`
         );
         if (costTracker) costTracker.retries++;
         await sleep(delay);

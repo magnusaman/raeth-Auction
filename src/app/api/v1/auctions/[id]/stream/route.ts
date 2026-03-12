@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { TEAMS } from "@/data/team-config";
+import { onAuctionUpdate } from "@/lib/emit";
 
 export const dynamic = "force-dynamic";
 
@@ -211,12 +212,20 @@ export async function GET(
       // Initial send
       await poll();
 
-      // Poll every 1.5 seconds
-      const interval = setInterval(poll, 1500);
+      // Listen for real-time events from the in-process emitter.
+      // When a bid/lot/auction event fires, immediately refresh
+      // and push the full state to the SSE client.
+      const unsubscribe = onAuctionUpdate(auctionId, () => {
+        poll();
+      });
+
+      // Fallback poll every 5 seconds for state sync
+      const interval = setInterval(poll, 5000);
 
       // Cleanup on abort
       req.signal.addEventListener("abort", () => {
         closed = true;
+        unsubscribe();
         clearInterval(interval);
         try {
           controller.close();

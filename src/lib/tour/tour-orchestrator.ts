@@ -6,6 +6,7 @@ import { TEAMS_FULL } from "@/data/team-config-full";
 import { SEASON_CONFIG, MATCHES_BY_YEAR, type SeasonId } from "@/data/ipl-seasons";
 import type { IPLMatchResult } from "@/data/ipl-matches";
 import type { TeamConfig } from "@/lib/types";
+import { emitTournamentUpdate } from "@/lib/emit";
 
 const DEFAULT_PREDICTORS = [
   { name: "Claude-Oracle", model: "anthropic/claude-sonnet-4.6" },
@@ -481,6 +482,14 @@ export async function runPredictionsAndEvaluate(
             reasoning: parsed.reasoning,
           },
         });
+
+        emitTournamentUpdate(tournamentId, {
+          type: "prediction",
+          agentName: predictor.name,
+          matchNumber: match.matchNumber,
+          predictedWinner: parsed.predictedWinner,
+          confidence: parsed.confidence,
+        });
       } catch (err) {
         console.error(`[TourBench] ${predictor.name} failed on match ${match.matchNumber}:`, err);
 
@@ -496,6 +505,15 @@ export async function runPredictionsAndEvaluate(
             reasoning: "API call failed, random prediction used.",
           },
         });
+
+        emitTournamentUpdate(tournamentId, {
+          type: "prediction",
+          agentName: predictor.name,
+          matchNumber: match.matchNumber,
+          predictedWinner: null,
+          confidence: 0.55,
+          error: true,
+        });
       }
     }
   }
@@ -506,6 +524,8 @@ export async function runPredictionsAndEvaluate(
     where: { id: tournamentId },
     data: { status: "COMPLETED", completedAt: new Date() },
   });
+
+  emitTournamentUpdate(tournamentId, { type: "tournament_complete" });
 
   console.log(`[TourBench] Tournament ${tournamentId} complete!`);
 }
