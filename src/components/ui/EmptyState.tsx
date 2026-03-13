@@ -1,4 +1,7 @@
+"use client";
+
 import { ReactNode } from "react";
+import { motion } from "framer-motion";
 
 interface EmptyStateProps {
   icon?: ReactNode;
@@ -9,15 +12,26 @@ interface EmptyStateProps {
 
 export default function EmptyState({ icon, title, description, action }: EmptyStateProps) {
   return (
-    <div className="py-24 flex flex-col items-center justify-center text-center">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      className="py-24 flex flex-col items-center justify-center text-center"
+    >
       {icon && (
-        <div className="mb-4 text-[#6B6560]">{icon}</div>
+        <motion.div
+          className="mb-5 text-[#4a4540]"
+          animate={{ y: [0, -6, 0] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        >
+          {icon}
+        </motion.div>
       )}
-      <p className="text-lg font-semibold text-[#F5F0E8] mb-2">{title}</p>
+      <p className="text-lg font-bold text-[#F5F0E8] mb-2 font-display">{title}</p>
       {description && (
-        <p className="text-sm text-[#A09888] mb-6 max-w-sm">{description}</p>
+        <p className="text-sm text-[#6B6560] mb-8 max-w-sm leading-relaxed">{description}</p>
       )}
       {action && <div>{action}</div>}
-    </div>
+    </motion.div>
   );
 }

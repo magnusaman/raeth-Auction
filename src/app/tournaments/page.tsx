@@ -5,55 +5,10 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import StatusBadge from "@/components/ui/StatusBadge";
+import AgentAvatar from "@/components/ui/AgentAvatar";
+import { AVAILABLE_MODELS, PROVIDER_META, PROVIDER_GROUPS, DEFAULT_SELECTIONS, TEAM_COLORS } from "@/lib/constants";
 
-const TEAM_COLORS: Record<string, string> = {
-  MI: "#004BA0", CSK: "#FDB913", RCB: "#EC1C24", KKR: "#3A225D",
-  SRH: "#FF822A", RR: "#EA1A85", DC: "#004C93", PBKS: "#DD1F2D",
-  GT: "#1C1C2B", LSG: "#A72056",
-};
-
-const AVAILABLE_MODELS = [
-  { id: "anthropic/claude-opus-4.6", label: "Claude Opus 4.6", provider: "Anthropic" },
-  { id: "anthropic/claude-sonnet-4.6", label: "Claude Sonnet 4.6", provider: "Anthropic" },
-  { id: "openai/gpt-5.4", label: "GPT-5.4", provider: "OpenAI" },
-  { id: "openai/gpt-5.4-pro", label: "GPT-5.4 Pro", provider: "OpenAI" },
-  { id: "google/gemini-3.0-pro", label: "Gemini 3.0 Pro", provider: "Google" },
-  { id: "google/gemini-2.5-pro", label: "Gemini 2.5 Pro", provider: "Google" },
-  { id: "deepseek/deepseek-chat-v3-0324", label: "DeepSeek V3", provider: "DeepSeek" },
-  { id: "deepseek/deepseek-r1", label: "DeepSeek R1", provider: "DeepSeek" },
-  { id: "meta-llama/llama-4-scout", label: "Llama 4 Scout", provider: "Meta" },
-  { id: "meta-llama/llama-4-maverick", label: "Llama 4 Maverick", provider: "Meta" },
-  { id: "mistralai/mistral-medium", label: "Mistral Medium", provider: "Mistral" },
-  { id: "mistralai/mistral-small", label: "Mistral Small", provider: "Mistral" },
-];
-
-const PROVIDER_META: Record<string, { icon: string; color: string }> = {
-  Anthropic: { icon: "\uD83D\uDFE3", color: "#A855F7" },
-  OpenAI: { icon: "\uD83D\uDFE2", color: "#10B981" },
-  Google: { icon: "\uD83D\uDD35", color: "#4285F4" },
-  DeepSeek: { icon: "\u26AB", color: "#94A3B8" },
-  Meta: { icon: "\uD83D\uDD37", color: "#0668E1" },
-  Mistral: { icon: "\uD83D\uDFE0", color: "#F97316" },
-};
-
-const PROVIDER_GROUPS = (() => {
-  const groups: { provider: string; models: typeof AVAILABLE_MODELS }[] = [];
-  const seen = new Set<string>();
-  for (const m of AVAILABLE_MODELS) {
-    if (!seen.has(m.provider)) {
-      seen.add(m.provider);
-      groups.push({ provider: m.provider, models: AVAILABLE_MODELS.filter((x) => x.provider === m.provider) });
-    }
-  }
-  return groups;
-})();
-
-const DEFAULT_PREDICTOR_MODELS = [
-  "anthropic/claude-sonnet-4.6",
-  "openai/gpt-5.4",
-  "google/gemini-2.5-pro",
-  "deepseek/deepseek-chat-v3-0324",
-];
+const DEFAULT_PREDICTOR_MODELS = DEFAULT_SELECTIONS;
 
 const SEASONS = [
   { id: "S1", label: "S1", desc: "Season 1 — 59 matches", matches: 59 },
@@ -613,7 +568,7 @@ export default function TournamentsPage() {
                   <td className="px-5 py-4">
                     <div className="flex gap-2.5 flex-wrap">
                       {t.standings.slice(0, 4).map((s) => (
-                        <span key={s.team_index} className="font-mono text-base font-semibold" style={{ color: TEAM_COLORS[s.team_name] || "#888" }}>
+                        <span key={s.team_index} className="font-mono text-base font-semibold" style={{ color: TEAM_COLORS[s.team_index] || "#888" }}>
                           {s.team_name}:{s.points}
                         </span>
                       ))}

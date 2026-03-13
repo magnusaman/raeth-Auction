@@ -5,52 +5,9 @@ import { createPortal } from "react-dom";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { TEAMS, MIN_TEAMS, MAX_TEAMS } from "@/data/team-config";
-
-const PROVIDER_META: Record<string, { icon: string; color: string }> = {
-  Anthropic: { icon: "\uD83D\uDFE3", color: "#A855F7" },
-  OpenAI: { icon: "\uD83D\uDFE2", color: "#10B981" },
-  Google: { icon: "\uD83D\uDD35", color: "#4285F4" },
-  DeepSeek: { icon: "\u26AB", color: "#94A3B8" },
-  Meta: { icon: "\uD83D\uDD37", color: "#0668E1" },
-  Mistral: { icon: "\uD83D\uDFE0", color: "#F97316" },
-};
-
-const AVAILABLE_MODELS = [
-  { id: "anthropic/claude-opus-4.6", label: "Claude Opus 4.6", provider: "Anthropic" },
-  { id: "anthropic/claude-sonnet-4.6", label: "Claude Sonnet 4.6", provider: "Anthropic" },
-  { id: "openai/gpt-5.4", label: "GPT-5.4", provider: "OpenAI" },
-  { id: "openai/gpt-5.4-pro", label: "GPT-5.4 Pro", provider: "OpenAI" },
-  { id: "google/gemini-3.0-pro", label: "Gemini 3.0 Pro", provider: "Google" },
-  { id: "google/gemini-2.5-pro", label: "Gemini 2.5 Pro", provider: "Google" },
-  { id: "deepseek/deepseek-chat-v3-0324", label: "DeepSeek V3", provider: "DeepSeek" },
-  { id: "deepseek/deepseek-r1", label: "DeepSeek R1", provider: "DeepSeek" },
-  { id: "meta-llama/llama-4-scout", label: "Llama 4 Scout", provider: "Meta" },
-  { id: "meta-llama/llama-4-maverick", label: "Llama 4 Maverick", provider: "Meta" },
-  { id: "mistralai/mistral-medium", label: "Mistral Medium", provider: "Mistral" },
-  { id: "mistralai/mistral-small", label: "Mistral Small", provider: "Mistral" },
-];
-
-const PROVIDER_GROUPS = (() => {
-  const groups: { provider: string; models: typeof AVAILABLE_MODELS }[] = [];
-  const seen = new Set<string>();
-  for (const m of AVAILABLE_MODELS) {
-    if (!seen.has(m.provider)) {
-      seen.add(m.provider);
-      groups.push({
-        provider: m.provider,
-        models: AVAILABLE_MODELS.filter((x) => x.provider === m.provider),
-      });
-    }
-  }
-  return groups;
-})();
-
-const DEFAULT_SELECTIONS = [
-  "anthropic/claude-sonnet-4.6",
-  "openai/gpt-5.4",
-  "google/gemini-2.5-pro",
-  "deepseek/deepseek-chat-v3-0324",
-];
+import { PROVIDER_META, AVAILABLE_MODELS, PROVIDER_GROUPS, DEFAULT_SELECTIONS } from "@/lib/constants";
+import AgentAvatar from "@/components/ui/AgentAvatar";
+import TeamHealthBar from "@/components/ui/TeamHealthBar";
 
 function Badge({ text, color }: { text: string; color: string }) {
   return (
@@ -673,7 +630,7 @@ export default function AuctionPage() {
 
       {/* === RUNNING / COMPLETED PHASE === */}
       {(phase === "running" || phase === "completed") && liveData && (
-        <div className="grid gap-5" style={{ gridTemplateColumns: "300px 1fr 320px" }}>
+        <div className="grid gap-5 lg:grid-cols-[300px_1fr_320px] grid-cols-1">
           {/* LEFT: Team Cards */}
           <div className="flex flex-col gap-3">
             {liveData.teams.map((team) => {
@@ -682,20 +639,20 @@ export default function AuctionPage() {
               return (
               <div key={team.team_index} className="rounded-xl py-4 px-5" style={{ background: `linear-gradient(135deg, #0a0a0a, ${tColor}08)`, borderTop: `1px solid ${tColor}30`, borderRight: `1px solid ${tColor}30`, borderBottom: `1px solid ${tColor}30`, borderLeft: `4px solid ${tColor}`, boxShadow: `0 2px 12px ${tColor}10` }}>
                 <div className="flex items-center gap-2.5 mb-3">
-                  <span className="text-[26px]">{tLogo}</span>
+                  <AgentAvatar name={team.agent_name} size="sm" />
                   <div>
-                    <div className="text-base font-extrabold" style={{ color: tColor }}>{team.short_name}</div>
-                    <div className="text-sm text-[#A09888]">{team.agent_name}</div>
+                    <div className="text-base font-extrabold font-display" style={{ color: tColor }}>{team.short_name}</div>
+                    <div className="text-[12px] text-[#A09888] truncate max-w-[160px]">{team.agent_name}</div>
                   </div>
                 </div>
                 <div className="flex gap-4">
                   <div>
                     <div className="text-xl font-extrabold font-mono" style={{ color: team.purse_remaining > 50 ? "#22C55E" : team.purse_remaining >= 20 ? "#F59E0B" : "#EF4444" }}>{team.purse_remaining.toFixed(1)}</div>
-                    <div className="text-sm text-[#6B6560] uppercase tracking-wide">Purse (Cr)</div>
+                    <div className="text-[11px] text-[#6B6560] uppercase tracking-wide">Purse (Cr)</div>
                   </div>
                   <div>
                     <div className="text-xl font-extrabold font-mono text-[#F5F0E8]">{team.squad_size}</div>
-                    <div className="text-sm text-[#6B6560] uppercase tracking-wide">Players</div>
+                    <div className="text-[11px] text-[#6B6560] uppercase tracking-wide">Players</div>
                   </div>
                   <div>
                     <div className="text-xl font-extrabold font-mono" style={{ color: "#D4A853" }}>{team.overseas_count}</div>
@@ -703,13 +660,7 @@ export default function AuctionPage() {
                   </div>
                 </div>
                 <div className="mt-3">
-                  <div className="flex justify-between mb-1">
-                    <span className="text-sm text-[#6B6560] uppercase tracking-wide">Squad</span>
-                    <span className="text-sm text-[#A09888] font-mono">{team.squad_size}/20</span>
-                  </div>
-                  <div className="purse-bar h-2 rounded-full">
-                    <div className="purse-bar-fill rounded-full" style={{ width: `${Math.min((team.squad_size / 20) * 100, 100)}%`, background: `linear-gradient(90deg, ${tColor}CC, ${tColor})`, boxShadow: `0 0 6px ${tColor}40` }} />
-                  </div>
+                  <TeamHealthBar current={team.purse_remaining} max={100} label={`₹${team.purse_remaining.toFixed(0)} Cr`} />
                 </div>
               </div>
               );

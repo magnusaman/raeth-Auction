@@ -2,23 +2,12 @@
 
 import { useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link";
+import { TEAMS, TEAM_COLORS, TEAM_SHORT } from "@/lib/constants";
+import AgentAvatar from "@/components/ui/AgentAvatar";
 
 /* ── Constants ── */
-const TEAM_SHORT = ["MI", "CSK", "RCB", "KKR", "SRH", "RR", "DC", "PBKS", "GT", "LSG"];
-const TEAM_COLORS = ["#004BA0", "#FDB913", "#EC1C24", "#3A225D", "#FF822A", "#EA1A85", "#004C93", "#DD1F2D", "#1C1C2B", "#A72056"];
-const TEAM_ICONS = ["🏏", "🦁", "👑", "⚡", "🌅", "🏰", "🦅", "🗡️", "🛡️", "🦁"];
-const TEAM_NAMES = [
-  "Mumbai Indians",
-  "Chennai Super Kings",
-  "Royal Challengers",
-  "Kolkata Knight Riders",
-  "Sunrisers Hyderabad",
-  "Rajasthan Royals",
-  "Delhi Capitals",
-  "Punjab Kings",
-  "Gujarat Titans",
-  "Lucknow Super Giants",
-];
+const TEAM_ICONS = TEAMS.map((t) => t.logo);
+const TEAM_NAMES = TEAMS.map((t) => t.name);
 
 const ACCENT = {
   cyan: "#D4A853",
@@ -498,7 +487,7 @@ export default function ComparePage() {
 
       {/* No auctions */}
       {!loading && auctions.length === 0 && (
-        <div className="glass rounded-2xl py-20 text-center animate-fade-up">
+        <div className="broadcast-card rounded-2xl py-20 text-center animate-fade-up">
           <div className="text-4xl mb-4">📊</div>
           <p className="text-text-secondary mb-2">
             No evaluated auctions available for comparison
@@ -705,7 +694,7 @@ export default function ComparePage() {
 
       {/* Comparison failed — not enough evaluated data */}
       {comparing && !comparisonData && !loadingResults && (
-        <div className="glass rounded-2xl py-16 text-center animate-fade-up">
+        <div className="broadcast-card rounded-2xl py-16 text-center animate-fade-up">
           <div className="w-14 h-14 mx-auto mb-5 rounded-2xl flex items-center justify-center"
             style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.15)" }}>
             <svg className="w-6 h-6 text-[#EF4444]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -850,7 +839,7 @@ function ComparisonView({
         {data.map((res, i) => (
           <div
             key={res.auction_id}
-            className="glass rounded-xl px-4 py-2.5 flex items-center gap-3"
+            className="broadcast-card rounded-xl px-4 py-2.5 flex items-center gap-3"
           >
             <div
               className="w-2.5 h-2.5 rounded-full"
@@ -893,7 +882,7 @@ function ComparisonView({
         color={ACCENT.cyan}
         description="Overall performance scores per team across runs"
       />
-      <div className="glass rounded-2xl p-5 mb-6">
+      <div className="broadcast-card rounded-2xl p-5 mb-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {teamComparisons.map((tc) => (
             <div key={tc.teamIndex}>
@@ -927,7 +916,7 @@ function ComparisonView({
         color={ACCENT.purple}
         description="Key metrics side by side"
       />
-      <div className="glass rounded-2xl overflow-hidden mb-6">
+      <div className="broadcast-card rounded-2xl overflow-hidden mb-6">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-sm">
             <thead>
@@ -1054,7 +1043,7 @@ function ComparisonView({
               }));
 
               return (
-                <div key={tc.teamIndex} className="glass rounded-2xl p-5">
+                <div key={tc.teamIndex} className="broadcast-card rounded-2xl p-5">
                   <div className="flex items-center gap-2 mb-4">
                     <span className="text-lg">
                       {TEAM_ICONS[tc.teamIndex]}
@@ -1114,7 +1103,7 @@ function ComparisonView({
           />
           <div className="space-y-4 mb-6">
             {graderNames.map((gName) => (
-              <div key={gName} className="glass rounded-2xl p-5">
+              <div key={gName} className="broadcast-card rounded-2xl p-5">
                 <div className="text-xs font-bold font-mono uppercase tracking-wider text-text-secondary mb-4">
                   {gName.replace(/_/g, " ")}
                 </div>
@@ -1185,7 +1174,7 @@ function ComparisonView({
         color={ACCENT.orange}
         description="Total spend per team across runs"
       />
-      <div className="glass rounded-2xl p-5 mb-6">
+      <div className="broadcast-card rounded-2xl p-5 mb-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {teamComparisons.map((tc) => (
             <div key={tc.teamIndex}>
@@ -1217,7 +1206,7 @@ function ComparisonView({
         color={ACCENT.cyan}
         description="Squad sizes and overseas count per team"
       />
-      <div className="glass rounded-2xl p-5 mb-6">
+      <div className="broadcast-card rounded-2xl p-5 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           {teamComparisons.map((tc) => (
             <div key={tc.teamIndex}>
@@ -1277,7 +1266,7 @@ function ComparisonView({
         color={ACCENT.gold}
         description="Which team won across each auction run"
       />
-      <div className="glass rounded-2xl p-5 mb-8">
+      <div className="broadcast-card rounded-2xl p-5 mb-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {data.map((res, ai) => {
             const winner = res.evaluation?.results?.winner;

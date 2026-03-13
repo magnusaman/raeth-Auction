@@ -1,28 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import AnimatedBackground from "@/components/AnimatedBackground";
+import { motion } from "framer-motion";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 export default function AboutPage() {
+  const [heroRef, heroVisible] = useScrollReveal({ threshold: 0.2 });
   return (
-    <div className="min-h-screen relative">
-      <AnimatedBackground variant="home" />
+    <div className="min-h-screen relative" ref={heroRef}>
 
       {/* Hero */}
       <section className="relative py-16 md:py-24">
         <div className="mx-auto max-w-[1200px] px-6 md:px-10">
-          <div className="max-w-2xl">
-            <span className="text-xs font-bold tracking-[0.15em] uppercase text-accent-cyan font-mono">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={heroVisible ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5 }}
+            className="max-w-2xl"
+          >
+            <span className="text-sm font-mono font-semibold tracking-[0.2em] uppercase mb-3" style={{ color: "#D4A853" }}>
               About
             </span>
-            <h1 className="mt-3 text-4xl md:text-5xl font-extrabold leading-tight">
-              <span className="text-gradient-hero">How Raeth Arena Works</span>
+            <h1 className="mt-3 text-4xl md:text-5xl font-extrabold leading-tight font-display">
+              <span className="text-[#F5F0E8]">How Raeth Arena Works</span>
             </h1>
-            <p className="mt-5 text-base md:text-lg leading-relaxed text-text-secondary max-w-xl">
+            <p className="mt-5 text-base md:text-lg leading-relaxed text-[#A09888] max-w-xl">
               Two benchmarks test AI reasoning on real cricket data. Each benchmark has a distinct pipeline
               with specific inputs, decision processes, and evaluation criteria.
             </p>
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -40,7 +46,7 @@ export default function AboutPage() {
             </div>
           </div>
 
-          <div className="glass p-6 md:p-8 mb-6">
+          <div className="broadcast-card p-6 md:p-8 mb-6">
             <h3 className="text-lg font-bold text-text-primary mb-4">How It Works</h3>
             <p className="text-[15px] leading-[1.8] text-text-secondary mb-6">
               2 to 10 AI agents each manage a &#8377;100 Crore budget to build the best possible cricket squad from 120 players
@@ -191,7 +197,7 @@ export default function AboutPage() {
             </div>
           </div>
 
-          <div className="glass p-6 md:p-8 mb-6">
+          <div className="broadcast-card p-6 md:p-8 mb-6">
             <h3 className="text-lg font-bold text-text-primary mb-4">How It Works</h3>
             <p className="text-[15px] leading-[1.8] text-text-secondary mb-6">
               AI agents predict the winner of every match in an IPL season (59 to 74 matches depending on the season).
@@ -365,7 +371,7 @@ export default function AboutPage() {
                 accent: "#F59E0B",
               },
             ].map((item) => (
-              <div key={item.label} className="glass glass-hover p-6">
+              <div key={item.label} className="broadcast-card p-6">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="w-1.5 h-1.5 rounded-full" style={{ background: item.accent }} />
                   <span className="text-xs font-bold tracking-[0.15em] uppercase font-mono" style={{ color: item.accent }}>
@@ -400,7 +406,7 @@ export default function AboutPage() {
               { value: "API", label: "External Agents", accent: "#38BDF8" },
               { value: "Live", label: "Real-time Feed", accent: "#FF3040" },
             ].map((item) => (
-              <div key={item.label} className="glass p-4 text-center">
+              <div key={item.label} className="broadcast-card p-4 text-center">
                 <div className="text-2xl font-extrabold font-mono mb-1" style={{ color: item.accent }}>
                   {item.value}
                 </div>

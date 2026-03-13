@@ -1,36 +1,13 @@
-const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
-  RUNNING: {
-    label: "Running",
-    className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30 animate-pulse",
-  },
-  PREDICTING: {
-    label: "Predicting",
-    className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30 animate-pulse",
-  },
-  COMPLETED: {
-    label: "Completed",
-    className: "bg-brand/15 text-brand border-brand/30",
-  },
-  EVALUATED: {
-    label: "Evaluated",
-    className: "bg-brand/15 text-brand border-brand/30",
-  },
-  STOPPED: {
-    label: "Stopped",
-    className: "bg-red-500/15 text-red-400 border-red-500/30",
-  },
-  CANCELLED: {
-    label: "Cancelled",
-    className: "bg-red-500/15 text-red-400 border-red-500/30",
-  },
-  LOBBY: {
-    label: "Lobby",
-    className: "bg-amber-500/15 text-amber-400 border-amber-500/30",
-  },
-  PENDING: {
-    label: "Pending",
-    className: "bg-[#2a2520]/50 text-[#A09888] border-[#4a4540]/50",
-  },
+const STATUS_CONFIG: Record<string, { label: string; color: string; glow: boolean }> = {
+  RUNNING: { label: "Live", color: "#4ADE80", glow: true },
+  BIDDING: { label: "Bidding", color: "#4ADE80", glow: true },
+  PREDICTING: { label: "Predicting", color: "#4ADE80", glow: true },
+  COMPLETED: { label: "Completed", color: "#D4A853", glow: false },
+  EVALUATED: { label: "Evaluated", color: "#D4A853", glow: false },
+  STOPPED: { label: "Stopped", color: "#EF4444", glow: false },
+  CANCELLED: { label: "Cancelled", color: "#EF4444", glow: false },
+  LOBBY: { label: "Lobby", color: "#F59E0B", glow: false },
+  PENDING: { label: "Pending", color: "#6B6560", glow: false },
 };
 
 interface StatusBadgeProps {
@@ -39,19 +16,32 @@ interface StatusBadgeProps {
 }
 
 export default function StatusBadge({ status, size = "sm" }: StatusBadgeProps) {
-  const config = STATUS_CONFIG[status] || {
-    label: status,
-    className: "bg-[#2a2520]/50 text-[#A09888] border-[#4a4540]/50",
-  };
+  const config = STATUS_CONFIG[status] || { label: status, color: "#6B6560", glow: false };
 
-  const sizeClass = size === "sm"
-    ? "text-[10px] px-2 py-0.5"
-    : "text-xs px-2.5 py-1";
+  const sizeClass = size === "sm" ? "text-[10px] px-2 py-0.5 gap-1.5" : "text-xs px-2.5 py-1 gap-1.5";
 
   return (
     <span
-      className={`inline-flex items-center rounded-full border font-semibold uppercase tracking-wider ${sizeClass} ${config.className}`}
+      className={`inline-flex items-center rounded-full font-bold uppercase tracking-wider ${sizeClass}`}
+      style={{
+        background: `${config.color}15`,
+        color: config.color,
+        border: `1px solid ${config.color}30`,
+        boxShadow: config.glow ? `0 0 12px ${config.color}25` : "none",
+      }}
     >
+      {config.glow && (
+        <span className="relative flex h-1.5 w-1.5">
+          <span
+            className="absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping"
+            style={{ background: config.color }}
+          />
+          <span
+            className="relative inline-flex rounded-full h-1.5 w-1.5"
+            style={{ background: config.color }}
+          />
+        </span>
+      )}
       {config.label}
     </span>
   );

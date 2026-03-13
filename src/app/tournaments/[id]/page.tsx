@@ -2,11 +2,10 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
+import AgentAvatar from "@/components/ui/AgentAvatar";
+import { TEAMS } from "@/lib/constants";
 
-const TEAM_COLORS: Record<number, string> = {
-  0: "#004BA0", 1: "#FDB913", 2: "#EC1C24", 3: "#3A225D", 4: "#FF822A",
-  5: "#EA1A85", 6: "#004C93", 7: "#DD1F2D", 8: "#1C1C2B", 9: "#A72056",
-};
+const TEAM_COLORS: Record<number, string> = Object.fromEntries(TEAMS.map((t, i) => [i, t.color]));
 
 interface TeamInfo { index: number; name: string; shortName: string; logo: string; color: string; strength: number; }
 interface Prediction {

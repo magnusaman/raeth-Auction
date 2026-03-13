@@ -2,10 +2,19 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import {
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, Cell,
 } from "recharts";
+
+import AgentAvatar from "@/components/ui/AgentAvatar";
+import ConfettiTrigger from "@/components/ui/ConfettiTrigger";
+import ScoreReveal from "@/components/ui/ScoreReveal";
+import { TEAMS, TEAM_NAMES, TEAM_COLORS } from "@/lib/constants";
+
+/* ── Derived lookups from centralized TEAMS config ── */
+const TEAM_LOGOS = TEAMS.map((t) => t.logo);
 
 /* ── Export helpers ── */
 function downloadFile(content: string, filename: string, type: string) {
@@ -70,9 +79,22 @@ const COLORS = {
   surface: "#111111", border: "#2a2520", textDim: "#A09888", textMuted: "#6B6560",
 };
 
-const TEAM_COLORS = ["#004BA0", "#FDB913", "#EC1C24", "#3A225D", "#FF822A", "#EA1A85", "#004C93", "#DD1F2D", "#1C1C2B", "#A72056"];
-const TEAM_NAMES = ["Mumbai Indians", "Chennai Super Kings", "Royal Challengers", "Kolkata Knight Riders", "Sunrisers Hyderabad", "Rajasthan Royals", "Delhi Capitals", "Punjab Kings", "Gujarat Titans", "Lucknow Super Giants"];
-const TEAM_LOGOS = ["🏏", "🦁", "👑", "⚡", "🌅", "🏰", "🦅", "🗡️", "🛡️", "🦁"];
+/* ── Motion presets ── */
+const fadeUp = {
+  initial: { opacity: 0, y: 24 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
+};
+
+const stagger = {
+  animate: { transition: { staggerChildren: 0.08 } },
+};
+
+const cardReveal = {
+  initial: { opacity: 0, y: 20, scale: 0.97 },
+  animate: { opacity: 1, y: 0, scale: 1 },
+  transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
+};
 
 function Badge({ text, color }: { text: string; color: string }) {
   return (
@@ -92,10 +114,6 @@ function SectionLabel({ color, label }: { color: string; label: string }) {
       <span className="text-sm font-bold uppercase tracking-wider font-mono" style={{ color }}>{label}</span>
     </div>
   );
-}
-
-function Card({ children, className, style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
-  return <div className={`bg-bg-surface border border-border-default rounded-[10px] overflow-hidden ${className || ""}`} style={style}>{children}</div>;
 }
 
 export default function ResultsPage() {
@@ -129,11 +147,35 @@ export default function ResultsPage() {
     fetch(`/api/v1/auctions/${params.id}/results`).then((r) => r.json()).then(setData).catch(console.error).finally(() => setLoading(false));
   }, [params.id]);
 
-  if (loading) return <div className="flex items-center justify-center min-h-[60vh] text-text-muted">Loading evaluation...</div>;
-  if (!data || data.error) return <div className="flex items-center justify-center min-h-[60vh]"><Card className="p-8 text-center"><p className="text-neon-red">{data?.error || "Failed"}</p></Card></div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-[#A09888] font-display text-lg"
+        >
+          Loading evaluation...
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (!data || data.error) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="broadcast-card p-8 text-center">
+          <p className="text-[#EF4444] font-display">{data?.error || "Failed"}</p>
+        </div>
+      </div>
+    );
+  }
 
   const evaluation = data.evaluation?.results;
   const seasonSim = data.evaluation?.season_sim;
+  const hasWinner = !!evaluation?.winner;
+  const winnerTeamIndex = evaluation?.winner?.teamIndex;
+
   const tabs = [
     { id: "overview", label: "Overview", color: COLORS.cyan },
     { id: "squads", label: "Squads", color: COLORS.green },
@@ -144,31 +186,54 @@ export default function ResultsPage() {
 
   return (
     <div className="max-w-[1200px] mx-auto p-6">
+      {/* Gold confetti on page load for winner */}
+      <ConfettiTrigger
+        fire={hasWinner}
+        teamColor={hasWinner ? TEAM_COLORS[winnerTeamIndex] : "#D4A853"}
+        variant="shower"
+      />
+
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <motion.div
+        className="flex items-center justify-between mb-8"
+        initial={{ opacity: 0, y: -16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
+      >
         <div className="flex items-center gap-4">
-          <button onClick={() => router.push("/")} className="text-xs text-text-muted bg-transparent border-none cursor-pointer">← Back</button>
+          <button
+            onClick={() => router.push("/")}
+            className="text-xs text-[#6B6560] bg-transparent border-none cursor-pointer hover:text-[#A09888] transition-colors"
+          >
+            ← Back
+          </button>
           <div>
-            <h1 className="text-2xl font-bold text-text-primary m-0">Auction Results</h1>
-            <span className="font-mono text-sm text-text-muted">{data.auction_id?.slice(0, 14)}</span>
+            <h1 className="text-2xl font-bold text-[#F5F0E8] m-0 font-display">Auction Results</h1>
+            <span className="font-mono text-sm text-[#6B6560]">{data.auction_id?.slice(0, 14)}</span>
           </div>
         </div>
         <div className="flex items-center gap-3">
           {evaluation?.winner && (
             <>
-              <span className="text-xs text-text-muted">Winner:</span>
-              <span className="text-sm font-bold" style={{ color: TEAM_COLORS[evaluation.winner.teamIndex] }}>
-                {TEAM_LOGOS[evaluation.winner.teamIndex]} {TEAM_NAMES[evaluation.winner.teamIndex]}
+              <span className="text-xs text-[#A09888]">Winner:</span>
+              <AgentAvatar name={evaluation.winner.agentName || TEAM_NAMES[winnerTeamIndex]} size="sm" />
+              <span className="text-sm font-bold font-display" style={{ color: TEAM_COLORS[winnerTeamIndex] }}>
+                {TEAM_LOGOS[winnerTeamIndex]} {TEAM_NAMES[winnerTeamIndex]}
               </span>
               <Badge text={`${(evaluation.winner.score * 100).toFixed(1)}%`} color={COLORS.gold} />
             </>
           )}
-          <button onClick={() => router.push(`/auction/${params.id}`)} className="py-1.5 px-3.5 text-xs rounded-md border border-neon-cyan/20 bg-neon-cyan/5 text-neon-cyan cursor-pointer">Watch Replay →</button>
+          <button
+            onClick={() => router.push(`/auction/${params.id}`)}
+            className="btn-primary py-1.5 px-3.5 text-xs"
+          >
+            Watch Replay →
+          </button>
           {/* Share & Export */}
           <div className="relative flex items-center gap-1.5">
             <button
               onClick={handleShare}
-              className="py-1.5 px-3 text-xs rounded-md border border-border-default bg-bg-surface text-text-secondary hover:text-text-primary cursor-pointer transition-colors"
+              className="py-1.5 px-3 text-xs rounded-md border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] text-[#A09888] hover:text-[#F5F0E8] hover:border-[rgba(212,168,83,0.15)] cursor-pointer transition-colors"
               title="Share results"
             >
               <svg className="w-3.5 h-3.5 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -178,35 +243,47 @@ export default function ResultsPage() {
             </button>
             <button
               onClick={() => exportCSV(data)}
-              className="py-1.5 px-3 text-xs rounded-md border border-border-default bg-bg-surface text-text-secondary hover:text-text-primary cursor-pointer transition-colors"
+              className="py-1.5 px-3 text-xs rounded-md border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] text-[#A09888] hover:text-[#F5F0E8] hover:border-[rgba(212,168,83,0.15)] cursor-pointer transition-colors"
               title="Export CSV"
             >
               CSV
             </button>
             <button
               onClick={() => exportJSON(data)}
-              className="py-1.5 px-3 text-xs rounded-md border border-border-default bg-bg-surface text-text-secondary hover:text-text-primary cursor-pointer transition-colors"
+              className="py-1.5 px-3 text-xs rounded-md border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] text-[#A09888] hover:text-[#F5F0E8] hover:border-[rgba(212,168,83,0.15)] cursor-pointer transition-colors"
               title="Export JSON"
             >
               JSON
             </button>
             {shareMsg && (
-              <span className="absolute -bottom-7 right-0 text-xs text-neon-green whitespace-nowrap bg-bg-elevated px-2 py-1 rounded">
+              <motion.span
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="absolute -bottom-7 right-0 text-xs text-[#4ADE80] whitespace-nowrap bg-[rgba(255,255,255,0.04)] px-2 py-1 rounded border border-[rgba(74,222,128,0.15)]"
+              >
                 {shareMsg}
-              </span>
+              </motion.span>
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Tabs */}
-      <div className="inline-flex gap-0.5 p-[3px] rounded-lg bg-bg-surface border border-border-default mb-6">
+      <motion.div
+        className="broadcast-card inline-flex gap-0.5 p-[3px] mb-8"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.15 }}
+      >
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`py-2 px-5 text-sm font-semibold rounded-md border-none cursor-pointer ${
-              activeTab === tab.id ? "bg-bg-elevated" : "bg-transparent"
+            className={`py-2 px-5 text-sm font-semibold rounded-md border-none cursor-pointer transition-all duration-300 font-display ${
+              activeTab === tab.id
+                ? "bg-[rgba(255,255,255,0.04)]"
+                : "bg-transparent hover:bg-[rgba(255,255,255,0.02)]"
             }`}
             style={{
               color: activeTab === tab.id ? tab.color : COLORS.textMuted,
@@ -216,7 +293,7 @@ export default function ResultsPage() {
             {tab.label}
           </button>
         ))}
-      </div>
+      </motion.div>
 
       {activeTab === "overview" && <OverviewTab data={data} evaluation={evaluation} />}
       {activeTab === "squads" && <SquadsTab data={data} />}
@@ -228,59 +305,85 @@ export default function ResultsPage() {
 }
 
 function OverviewTab({ data, evaluation }: { data: any; evaluation: any }) {
-  if (!evaluation) return <p className="text-text-muted">No evaluation data</p>;
+  if (!evaluation) return <p className="text-[#6B6560]">No evaluation data</p>;
   const teamEvals = evaluation.teamEvaluations || [];
 
   return (
-    <div>
+    <motion.div initial="initial" animate="animate" variants={stagger}>
       {/* Rankings */}
-      <div className="grid grid-cols-4 gap-3.5 mb-6">
-        {teamEvals.sort((a: any, b: any) => a.rank - b.rank).map((team: any) => {
+      <div className="grid grid-cols-4 gap-4 mb-8">
+        {teamEvals.sort((a: any, b: any) => a.rank - b.rank).map((team: any, idx: number) => {
           const tc = TEAM_COLORS[team.teamIndex];
+          const isWinner = team.rank === 1;
           return (
-            <Card
+            <motion.div
               key={team.teamId}
-              className="p-6 text-center"
-              style={team.rank === 1 ? { borderColor: tc, borderWidth: 2 } : undefined}
+              variants={cardReveal}
+              transition={{ ...cardReveal.transition, delay: idx * 0.1 }}
+              className={`broadcast-card p-6 text-center ${isWinner ? "ring-1 ring-[#D4A853]/30" : ""}`}
+              style={isWinner ? { borderColor: `${tc}60`, boxShadow: `0 0 40px ${tc}15` } : undefined}
             >
-              <div className="text-[28px] mb-1">{TEAM_LOGOS[team.teamIndex]}</div>
-              <div className="text-sm font-bold mb-0.5" style={{ color: tc }}>{TEAM_NAMES[team.teamIndex]}</div>
-              <div className="text-xs font-mono text-text-muted mb-3">{team.agentName}</div>
-              <div className={`text-4xl font-extrabold font-mono mb-2 ${team.rank === 1 ? "text-brand" : "text-text-primary"}`}>
-                {(team.compositeScore * 100).toFixed(1)}%
+              <div className="flex justify-center mb-3">
+                <AgentAvatar name={team.agentName || TEAM_NAMES[team.teamIndex]} size="lg" />
               </div>
-              <Badge text={`#${team.rank}`} color={team.rank === 1 ? COLORS.gold : COLORS.textMuted} />
-            </Card>
+              <div className="text-sm font-bold mb-0.5 font-display" style={{ color: tc }}>
+                {TEAM_LOGOS[team.teamIndex]} {TEAM_NAMES[team.teamIndex]}
+              </div>
+              <div className="text-xs font-mono text-[#6B6560] mb-4">{team.agentName}</div>
+              <div className={`text-4xl font-extrabold font-mono mb-2 ${isWinner ? "text-gradient-brand" : "text-[#F5F0E8]"}`}>
+                <ScoreReveal
+                  value={team.compositeScore * 100}
+                  suffix="%"
+                  decimals={1}
+                  duration={1400}
+                  className={isWinner ? "text-gradient-brand text-4xl font-extrabold" : "text-4xl font-extrabold"}
+                />
+              </div>
+              <Badge text={`#${team.rank}`} color={isWinner ? COLORS.gold : COLORS.textMuted} />
+            </motion.div>
           );
         })}
       </div>
 
       {/* Best/Worst */}
-      <div className="grid grid-cols-2 gap-3.5 mb-6">
-        {teamEvals.map((team: any) => (
-          <Card key={team.teamId} className="p-[18px]">
-            <div className="flex items-center gap-2 mb-3.5">
-              <span className="text-lg">{TEAM_LOGOS[team.teamIndex]}</span>
-              <span className="text-sm font-bold" style={{ color: TEAM_COLORS[team.teamIndex] }}>{TEAM_NAMES[team.teamIndex]}</span>
+      <div className="grid grid-cols-2 gap-4 mb-8">
+        {teamEvals.map((team: any, idx: number) => (
+          <motion.div
+            key={team.teamId}
+            variants={cardReveal}
+            transition={{ ...cardReveal.transition, delay: 0.3 + idx * 0.08 }}
+            className="broadcast-card p-5"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <AgentAvatar name={team.agentName || TEAM_NAMES[team.teamIndex]} size="sm" />
+              <span className="text-sm font-bold font-display" style={{ color: TEAM_COLORS[team.teamIndex] }}>
+                {TEAM_LOGOS[team.teamIndex]} {TEAM_NAMES[team.teamIndex]}
+              </span>
             </div>
-            <div className="border-l-[3px] border-neon-green py-2 px-3.5 bg-neon-green/[0.03] rounded-r-md mb-2">
+            <div className="border-l-[3px] border-[#4ADE80] py-2 px-3.5 bg-[rgba(74,222,128,0.03)] rounded-r-md mb-2">
               <SectionLabel color={COLORS.green} label="Best" />
-              <p className="text-xs text-text-secondary mt-1">{team.highlights.bestDecision.description}</p>
+              <p className="text-xs text-[#A09888] mt-1">{team.highlights.bestDecision.description}</p>
             </div>
-            <div className="border-l-[3px] border-neon-red py-2 px-3.5 bg-neon-red/[0.03] rounded-r-md">
+            <div className="border-l-[3px] border-[#EF4444] py-2 px-3.5 bg-[rgba(239,68,68,0.03)] rounded-r-md">
               <SectionLabel color={COLORS.red} label="Worst" />
-              <p className="text-xs text-text-secondary mt-1">{team.highlights.worstDecision.description}</p>
+              <p className="text-xs text-[#A09888] mt-1">{team.highlights.worstDecision.description}</p>
             </div>
-          </Card>
+          </motion.div>
         ))}
       </div>
 
       {/* Value Heatmap */}
-      <Card className="p-[18px]">
+      <motion.div
+        className="broadcast-card p-5"
+        variants={cardReveal}
+        transition={{ ...cardReveal.transition, delay: 0.5 }}
+      >
         <div className="mb-4"><SectionLabel color={COLORS.gold} label="Value Heatmap — Price vs True Value" /></div>
         {data.teams?.map((team: any) => (
           <div key={team.team_id} className="mb-4">
-            <p className="text-xs font-semibold mb-2" style={{ color: TEAM_COLORS[team.team_index] }}>{TEAM_LOGOS[team.team_index]} {team.team_name}</p>
+            <p className="text-xs font-semibold mb-2 font-display" style={{ color: TEAM_COLORS[team.team_index] }}>
+              {TEAM_LOGOS[team.team_index]} {team.team_name}
+            </p>
             <div className="flex flex-wrap gap-1.5">
               {team.squad?.map((p: any) => {
                 const diff = p.hidden_true_value - p.price_paid;
@@ -299,44 +402,58 @@ function OverviewTab({ data, evaluation }: { data: any; evaluation: any }) {
             </div>
           </div>
         ))}
-      </Card>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
 function SquadsTab({ data }: { data: any }) {
   return (
-    <div className="grid grid-cols-2 gap-3.5">
-      {data.teams?.map((team: any) => {
+    <motion.div
+      className="grid grid-cols-2 gap-4"
+      initial="initial"
+      animate="animate"
+      variants={stagger}
+    >
+      {data.teams?.map((team: any, idx: number) => {
         const tc = TEAM_COLORS[team.team_index];
         return (
-          <Card key={team.team_id}>
-            <div className="py-3.5 px-[18px] border-b border-border-default flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <span className="text-xl">{TEAM_LOGOS[team.team_index]}</span>
+          <motion.div
+            key={team.team_id}
+            className="broadcast-card"
+            variants={cardReveal}
+            transition={{ ...cardReveal.transition, delay: idx * 0.1 }}
+          >
+            <div className="py-3.5 px-5 border-b border-[rgba(255,255,255,0.05)] flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <AgentAvatar name={team.agent_name || team.team_name} size="md" />
                 <div>
-                  <div className="text-sm font-bold" style={{ color: tc }}>{team.team_name}</div>
-                  <div className="text-xs font-mono text-text-muted">{team.agent_name}</div>
+                  <div className="text-sm font-bold font-display" style={{ color: tc }}>
+                    {TEAM_LOGOS[team.team_index]} {team.team_name}
+                  </div>
+                  <div className="text-xs font-mono text-[#6B6560]">{team.agent_name}</div>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-[15px] font-mono font-bold text-neon-cyan">₹{team.purse_spent?.toFixed(1)} Cr</div>
-                <div className="text-xs text-text-muted">spent</div>
+                <div className="text-[15px] font-mono font-bold text-[#D4A853]">
+                  <ScoreReveal value={team.purse_spent || 0} prefix="₹" suffix=" Cr" decimals={1} duration={1000} />
+                </div>
+                <div className="text-xs text-[#6B6560]">spent</div>
               </div>
             </div>
             {team.squad?.map((p: any) => {
               const rc = p.role === "BATSMAN" ? COLORS.cyan : p.role === "BOWLER" ? COLORS.red : p.role === "ALL_ROUNDER" ? COLORS.purple : COLORS.gold;
               return (
-                <div key={p.player_id} className="py-2.5 px-[18px] border-b border-border-default flex items-center justify-between">
+                <div key={p.player_id} className="py-2.5 px-5 border-b border-[rgba(255,255,255,0.05)] flex items-center justify-between hover:bg-[rgba(255,255,255,0.01)] transition-colors">
                   <div className="flex items-center gap-2.5">
                     <Badge text={p.role.replace("_", " ").slice(0, 3)} color={rc} />
                     <div>
-                      <div className="text-xs font-medium text-text-primary">{p.name}{p.nationality !== "India" && " 🌍"}</div>
-                      <div className="text-xs text-text-muted">{p.sub_type?.replace(/_/g, " ")}</div>
+                      <div className="text-xs font-medium text-[#F5F0E8]">{p.name}{p.nationality !== "India" && " 🌍"}</div>
+                      <div className="text-xs text-[#6B6560]">{p.sub_type?.replace(/_/g, " ")}</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-xs font-mono text-text-primary">₹{p.price_paid} Cr</div>
+                    <div className="text-xs font-mono text-[#F5F0E8]">₹{p.price_paid} Cr</div>
                     <div className="text-xs font-mono" style={{ color: p.hidden_true_value >= p.price_paid ? COLORS.green : COLORS.red }}>
                       True: ₹{p.hidden_true_value.toFixed(1)}{p.is_trap && " 🪤"}{p.is_sleeper && " 💎"}
                     </div>
@@ -344,20 +461,20 @@ function SquadsTab({ data }: { data: any }) {
                 </div>
               );
             })}
-            <div className="py-2.5 px-[18px] text-xs text-text-muted flex gap-4">
+            <div className="py-2.5 px-5 text-xs text-[#6B6560] flex gap-4">
               <span>Squad: {team.squad_size}</span>
               <span>Overseas: {team.overseas_count}</span>
               <span>Remaining: ₹{team.purse_remaining?.toFixed(1)} Cr</span>
             </div>
-          </Card>
+          </motion.div>
         );
       })}
-    </div>
+    </motion.div>
   );
 }
 
 function GradersTab({ evaluation }: { evaluation: any }) {
-  if (!evaluation) return <p className="text-text-muted">No evaluation data</p>;
+  if (!evaluation) return <p className="text-[#6B6560]">No evaluation data</p>;
   const teamEvals = evaluation.teamEvaluations || [];
   const graderNames = teamEvals[0]?.codeGraderScores?.map((g: any) => g.graderName) || [];
 
@@ -370,8 +487,8 @@ function GradersTab({ evaluation }: { evaluation: any }) {
   const barData = teamEvals.map((t: any) => ({ name: TEAM_NAMES[t.teamIndex].split(" ")[1], score: t.compositeScore * 100, fill: TEAM_COLORS[t.teamIndex] }));
 
   return (
-    <div>
-      <Card className="p-5 mb-4">
+    <motion.div initial="initial" animate="animate" variants={stagger}>
+      <motion.div className="broadcast-card p-5 mb-4" variants={cardReveal}>
         <div className="mb-4"><SectionLabel color={COLORS.purple} label="Composite Scores" /></div>
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={barData}>
@@ -381,9 +498,9 @@ function GradersTab({ evaluation }: { evaluation: any }) {
             <Bar dataKey="score" radius={[6, 6, 0, 0]}>{barData.map((e: any, i: number) => <Cell key={i} fill={e.fill} />)}</Bar>
           </BarChart>
         </ResponsiveContainer>
-      </Card>
+      </motion.div>
 
-      <Card className="p-5 mb-4">
+      <motion.div className="broadcast-card p-5 mb-4" variants={cardReveal}>
         <div className="mb-4"><SectionLabel color={COLORS.cyan} label="Grader Radar" /></div>
         <ResponsiveContainer width="100%" height={380}>
           <RadarChart data={radarData}>
@@ -394,32 +511,41 @@ function GradersTab({ evaluation }: { evaluation: any }) {
             <Legend wrapperStyle={{ color: COLORS.textDim, fontSize: 11 }} />
           </RadarChart>
         </ResponsiveContainer>
-      </Card>
+      </motion.div>
 
-      {teamEvals.map((team: any) => (
-        <Card key={team.teamId} className="p-[18px] mb-3.5">
-          <div className="flex items-center gap-2 mb-3.5">
-            <span className="text-lg">{TEAM_LOGOS[team.teamIndex]}</span>
-            <span className="text-sm font-bold" style={{ color: TEAM_COLORS[team.teamIndex] }}>{TEAM_NAMES[team.teamIndex]}</span>
+      {teamEvals.map((team: any, idx: number) => (
+        <motion.div
+          key={team.teamId}
+          className="broadcast-card p-5 mb-4"
+          variants={cardReveal}
+          transition={{ ...cardReveal.transition, delay: 0.2 + idx * 0.08 }}
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <AgentAvatar name={team.agentName || TEAM_NAMES[team.teamIndex]} size="sm" />
+            <span className="text-sm font-bold font-display" style={{ color: TEAM_COLORS[team.teamIndex] }}>
+              {TEAM_LOGOS[team.teamIndex]} {TEAM_NAMES[team.teamIndex]}
+            </span>
           </div>
           {team.codeGraderScores.map((g: any) => (
             <div key={g.graderName} className="flex items-center gap-2.5 mb-1.5">
-              <span className="text-xs w-[110px] text-right font-mono text-text-secondary">{g.graderName.replace(/_/g, " ")}</span>
-              <div className="flex-1 h-1.5 rounded-sm bg-bg-primary overflow-hidden">
-                <div
-                  className="h-full rounded-sm transition-[width] duration-[600ms]"
+              <span className="text-xs w-[110px] text-right font-mono text-[#A09888]">{g.graderName.replace(/_/g, " ")}</span>
+              <div className="flex-1 h-1.5 rounded-sm bg-[rgba(255,255,255,0.03)] overflow-hidden">
+                <motion.div
+                  className="h-full rounded-sm"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.max(0, g.score * 100)}%` }}
+                  transition={{ duration: 0.8, delay: 0.3 + idx * 0.05, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
                   style={{
-                    width: `${Math.max(0, g.score * 100)}%`,
                     background: g.score >= 0.7 ? COLORS.green : g.score >= 0.4 ? COLORS.gold : COLORS.red,
                   }}
                 />
               </div>
-              <span className="text-xs w-9 text-right font-mono text-text-primary">{(g.score * 100).toFixed(0)}%</span>
+              <span className="text-xs w-9 text-right font-mono text-[#F5F0E8]">{(g.score * 100).toFixed(0)}%</span>
             </div>
           ))}
-        </Card>
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 }
 
@@ -429,14 +555,14 @@ function TranscriptTab({ data }: { data: any }) {
   const filtered = filter === "all" ? lots : lots.filter((l: any) => l.status === filter);
 
   return (
-    <div>
+    <motion.div {...fadeUp}>
       <div className="flex gap-1.5 mb-4">
         {(["all", "SOLD", "UNSOLD"] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`py-1.5 px-4 text-sm font-semibold rounded-[5px] border-none cursor-pointer font-mono ${
-              filter === f ? "" : "bg-transparent text-text-muted"
+            className={`py-1.5 px-4 text-sm font-semibold rounded-[5px] border-none cursor-pointer font-mono transition-colors ${
+              filter === f ? "" : "bg-transparent text-[#6B6560] hover:text-[#A09888]"
             }`}
             style={filter === f ? {
               background: f === "SOLD" ? `${COLORS.green}18` : f === "UNSOLD" ? `${COLORS.red}18` : `${COLORS.cyan}18`,
@@ -447,41 +573,47 @@ function TranscriptTab({ data }: { data: any }) {
           </button>
         ))}
       </div>
-      {filtered.map((lot: any) => (
-        <Card key={lot.lot_number} className="mb-2">
-          <div className="py-2.5 px-4 border-b border-border-default flex items-center justify-between">
+      {filtered.map((lot: any, idx: number) => (
+        <motion.div
+          key={lot.lot_number}
+          className="broadcast-card mb-2"
+          initial={{ opacity: 0, x: -12 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: Math.min(idx * 0.03, 0.6) }}
+        >
+          <div className="py-2.5 px-4 border-b border-[rgba(255,255,255,0.05)] flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <span className="font-mono text-xs text-text-muted">#{lot.lot_number}</span>
-              <span className="text-sm font-semibold text-text-primary">{lot.player_name}</span>
+              <span className="font-mono text-xs text-[#6B6560]">#{lot.lot_number}</span>
+              <span className="text-sm font-semibold text-[#F5F0E8]">{lot.player_name}</span>
               <Badge text={lot.player_role.replace(/_/g, " ")} color={COLORS.cyan} />
             </div>
             <div className="flex items-center gap-2">
-              {lot.final_price && <span className="font-mono text-xs text-brand">₹{lot.final_price} Cr</span>}
+              {lot.final_price && <span className="font-mono text-xs text-[#D4A853]">₹{lot.final_price} Cr</span>}
               <Badge text={lot.status} color={lot.status === "SOLD" ? COLORS.green : COLORS.red} />
             </div>
           </div>
           {lot.bids.map((bid: any, i: number) => {
             const ti = data.teams?.findIndex((t: any) => t.team_id === bid.team_id);
             return (
-              <div key={i} className="py-1.5 px-4 flex items-start gap-3 text-xs border-b border-border-default">
+              <div key={i} className="py-1.5 px-4 flex items-start gap-3 text-xs border-b border-[rgba(255,255,255,0.03)]">
                 <span className="w-[60px] shrink-0 font-semibold" style={{ color: ti >= 0 ? TEAM_COLORS[ti] : COLORS.textMuted }}>{ti >= 0 ? TEAM_NAMES[ti].split(" ")[1] : "?"}</span>
                 <span className="w-[60px] shrink-0 font-mono" style={{ color: bid.action === "bid" ? COLORS.green : COLORS.red }}>{bid.action === "bid" ? `₹${bid.amount}` : "PASS"}</span>
-                {bid.reasoning && <span className="text-text-muted overflow-hidden text-ellipsis whitespace-nowrap">{bid.reasoning}</span>}
+                {bid.reasoning && <span className="text-[#6B6560] overflow-hidden text-ellipsis whitespace-nowrap">{bid.reasoning}</span>}
               </div>
             );
           })}
-        </Card>
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 }
 
 function SeasonTab({ seasonSim }: { seasonSim: any }) {
-  if (!seasonSim) return <p className="text-text-muted">No season data</p>;
+  if (!seasonSim) return <p className="text-[#6B6560]">No season data</p>;
   return (
-    <div>
-      <Card className="mb-4">
-        <div className="py-3.5 px-[18px] border-b border-border-default">
+    <motion.div initial="initial" animate="animate" variants={stagger}>
+      <motion.div className="broadcast-card mb-4" variants={cardReveal}>
+        <div className="py-3.5 px-5 border-b border-[rgba(255,255,255,0.05)]">
           <SectionLabel color={COLORS.gold} label="BPL Season Standings (Simulated)" />
         </div>
         <table className="w-full border-collapse text-sm">
@@ -489,7 +621,7 @@ function SeasonTab({ seasonSim }: { seasonSim: any }) {
             <tr>{["Pos", "Team", "P", "W", "L", "NRR", "Pts"].map((h) => (
               <th
                 key={h}
-                className={`py-2.5 px-4 text-sm uppercase tracking-wide text-text-muted border-b border-border-default bg-[#0d0d14] font-semibold ${
+                className={`py-2.5 px-4 text-sm uppercase tracking-wide text-[#6B6560] border-b border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.01)] font-semibold font-display ${
                   ["P", "W", "L", "NRR", "Pts"].includes(h) ? "text-center" : "text-left"
                 }`}
               >{h}</th>
@@ -497,33 +629,45 @@ function SeasonTab({ seasonSim }: { seasonSim: any }) {
           </thead>
           <tbody>
             {seasonSim.standings?.map((t: any, idx: number) => (
-              <tr key={t.teamIndex} className="border-b border-border-default">
-                <td className={`py-3 px-4 font-mono ${idx < 2 ? "text-neon-green" : "text-text-primary"}`}>{idx + 1}</td>
-                <td className="py-3 px-4" style={{ color: TEAM_COLORS[t.teamIndex] }}>{TEAM_LOGOS[t.teamIndex]} {TEAM_NAMES[t.teamIndex]}</td>
-                <td className="py-3 px-4 text-center text-text-secondary">{t.played}</td>
-                <td className="py-3 px-4 text-center text-neon-green">{t.won}</td>
-                <td className="py-3 px-4 text-center text-neon-red">{t.lost}</td>
+              <motion.tr
+                key={t.teamIndex}
+                className="border-b border-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.01)] transition-colors"
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: 0.1 + idx * 0.05 }}
+              >
+                <td className={`py-3 px-4 font-mono ${idx < 2 ? "text-[#4ADE80]" : "text-[#F5F0E8]"}`}>{idx + 1}</td>
+                <td className="py-3 px-4 font-display" style={{ color: TEAM_COLORS[t.teamIndex] }}>{TEAM_LOGOS[t.teamIndex]} {TEAM_NAMES[t.teamIndex]}</td>
+                <td className="py-3 px-4 text-center text-[#A09888]">{t.played}</td>
+                <td className="py-3 px-4 text-center text-[#4ADE80]">{t.won}</td>
+                <td className="py-3 px-4 text-center text-[#EF4444]">{t.lost}</td>
                 <td className="py-3 px-4 text-center font-mono" style={{ color: t.nrr >= 0 ? COLORS.green : COLORS.red }}>{t.nrr >= 0 ? "+" : ""}{t.nrr}</td>
-                <td className="py-3 px-4 text-center font-bold text-brand">{t.points}</td>
-              </tr>
+                <td className="py-3 px-4 text-center font-bold text-[#D4A853]">{t.points}</td>
+              </motion.tr>
             ))}
           </tbody>
         </table>
-      </Card>
+      </motion.div>
 
-      <Card className="p-[18px]">
+      <motion.div className="broadcast-card p-5" variants={cardReveal}>
         <div className="mb-3.5"><SectionLabel color={COLORS.orange} label="Match Results" /></div>
         <div className="grid grid-cols-2 gap-2">
           {seasonSim.matchResults?.map((m: any, i: number) => (
-            <div key={i} className="flex items-center justify-between py-2 px-3 rounded-md bg-bg-primary text-xs">
-              <span style={{ color: TEAM_COLORS[m.team1Index], opacity: m.winnerIndex === m.team1Index ? 1 : 0.35 }}>{TEAM_NAMES[m.team1Index].split(" ")[1]}</span>
-              <span className="text-text-muted text-xs">vs</span>
-              <span style={{ color: TEAM_COLORS[m.team2Index], opacity: m.winnerIndex === m.team2Index ? 1 : 0.35 }}>{TEAM_NAMES[m.team2Index].split(" ")[1]}</span>
-              <span className="font-mono text-xs text-text-muted">{m.margin}</span>
-            </div>
+            <motion.div
+              key={i}
+              className="flex items-center justify-between py-2 px-3 rounded-md bg-[rgba(255,255,255,0.02)] text-xs border border-[rgba(255,255,255,0.03)]"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.25, delay: Math.min(i * 0.02, 0.8) }}
+            >
+              <span className="font-display" style={{ color: TEAM_COLORS[m.team1Index], opacity: m.winnerIndex === m.team1Index ? 1 : 0.35 }}>{TEAM_NAMES[m.team1Index].split(" ")[1]}</span>
+              <span className="text-[#6B6560] text-xs">vs</span>
+              <span className="font-display" style={{ color: TEAM_COLORS[m.team2Index], opacity: m.winnerIndex === m.team2Index ? 1 : 0.35 }}>{TEAM_NAMES[m.team2Index].split(" ")[1]}</span>
+              <span className="font-mono text-xs text-[#6B6560]">{m.margin}</span>
+            </motion.div>
           ))}
         </div>
-      </Card>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
