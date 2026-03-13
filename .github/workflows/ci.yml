@@ -26,6 +26,8 @@ jobs:
     needs: lint-and-test
     env:
       DATABASE_URL: postgresql://fake:fake@localhost:5432/fake
+      OPENROUTER_API_KEY: build-placeholder
+      ADMIN_SECRET: build-placeholder-min16chars
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
