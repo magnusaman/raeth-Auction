@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     ]);
 
     const result = tournaments.map((t) => {
-      const config = JSON.parse(t.config || "{}");
+      const _config = JSON.parse(t.config || "{}");
       const isReal = t.dataSource === "real";
       const teamsConfig = isReal ? TEAMS_FULL : TEAMS;
 

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CommandPalette from "./CommandPalette";
 import NowPlayingBar from "./NowPlayingBar";
@@ -52,9 +52,15 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Close mobile menu on route change
+  const prevPathname = useRef(pathname);
   useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
+    if (prevPathname.current !== pathname) {
+      prevPathname.current = pathname;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (mobileOpen) setMobileOpen(false);
+    }
+  }, [pathname, mobileOpen]);
 
   // Cmd+K to open palette
   useEffect(() => {

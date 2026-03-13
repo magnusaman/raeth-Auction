@@ -432,7 +432,7 @@ function getIncrement(currentBid: number, config: AuctionConfig): number {
 export async function checkLotCompletion(
   auctionId: string,
   lotId: string,
-  config: AuctionConfig
+  _config: AuctionConfig
 ): Promise<{ completed: boolean; status?: "SOLD" | "UNSOLD" }> {
   return await prisma.$transaction(async (tx) => {
     const lot = await tx.lot.findUnique({

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { VENUES, getVenueForMatch, getVenueAdvantage } from "./venue-system";
+import { VENUES, getVenueForMatch } from "./venue-system";
 import { TEAMS } from "@/data/team-config";
 import { TEAMS_FULL } from "@/data/team-config-full";
 import { SEASON_MATCHES, SEASON_CONFIG, type SeasonId } from "@/data/ipl-seasons";
@@ -51,7 +51,7 @@ function generateSchedule(teamIndices: number[]): { team1: number; team2: number
 
 // Generate synthetic team squads (standalone mode)
 function generateSyntheticSquads(teamCount: number): TeamSquadData[] {
-  const roles = ["BATSMAN", "BOWLER", "ALL_ROUNDER", "WICKET_KEEPER"];
+  const _roles = ["BATSMAN", "BOWLER", "ALL_ROUNDER", "WICKET_KEEPER"];
   const subTypes: Record<string, string[]> = {
     BATSMAN: ["powerplay_hitter", "anchor", "finisher"],
     BOWLER: ["pace_ace", "death_bowler", "spin_wizard"],

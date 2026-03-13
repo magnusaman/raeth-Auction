@@ -5,6 +5,6 @@ import { NextRequest } from "next/server";
 // when the server starts. This route exists so that the /api/socket path
 // is recognized by Next.js routing — socket.io handles the actual
 // upgrade handshake at this path.
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   return new Response("Socket.io endpoint", { status: 200 });
 }

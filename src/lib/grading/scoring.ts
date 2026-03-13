@@ -1,6 +1,5 @@
 import { prisma } from "../db";
 import { GraderResult, TeamEvaluation, EvaluationResults, SeasonSimResult } from "../types";
-import { TEAMS } from "@/data/team-config";
 import {
   gradeBudgetEfficiency,
   gradeValuationAccuracy,

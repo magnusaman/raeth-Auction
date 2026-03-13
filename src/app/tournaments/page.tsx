@@ -5,7 +5,6 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import StatusBadge from "@/components/ui/StatusBadge";
-import AgentAvatar from "@/components/ui/AgentAvatar";
 import { AVAILABLE_MODELS, PROVIDER_META, PROVIDER_GROUPS, DEFAULT_SELECTIONS, TEAM_COLORS } from "@/lib/constants";
 
 const DEFAULT_PREDICTOR_MODELS = DEFAULT_SELECTIONS;

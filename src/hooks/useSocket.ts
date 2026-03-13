@@ -8,14 +8,14 @@ export function useSocket() {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    const socket = io({ path: "/api/socket", addTrailingSlash: false });
-    socketRef.current = socket;
+    const s = io({ path: "/api/socket", addTrailingSlash: false });
+    socketRef.current = s;
 
-    socket.on("connect", () => setConnected(true));
-    socket.on("disconnect", () => setConnected(false));
+    s.on("connect", () => setConnected(true));
+    s.on("disconnect", () => setConnected(false));
 
     return () => {
-      socket.disconnect();
+      s.disconnect();
     };
   }, []);
 
@@ -36,7 +36,6 @@ export function useSocket() {
   }, []);
 
   return {
-    socket: socketRef.current,
     connected,
     joinAuction,
     leaveAuction,

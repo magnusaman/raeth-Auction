@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import AgentAvatar from "@/components/ui/AgentAvatar";
 import { TEAMS } from "@/lib/constants";
 
 const TEAM_COLORS: Record<number, string> = Object.fromEntries(TEAMS.map((t, i) => [i, t.color]));

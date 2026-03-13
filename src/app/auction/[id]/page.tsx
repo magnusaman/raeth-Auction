@@ -88,7 +88,7 @@ export default function AuctionPage() {
   const [teamCount, setTeamCount] = useState(4);
   const [modelSelections, setModelSelections] = useState<string[]>(DEFAULT_SELECTIONS.slice(0, 4));
   const [externalTokens, setExternalTokens] = useState<Record<number, string>>({});
-  const [copiedToken, setCopiedToken] = useState<number | null>(null);
+  const [_copiedToken, _setCopiedToken] = useState<number | null>(null);
   const [connectedAgents, setConnectedAgents] = useState<Set<number>>(new Set());
   const [notification, setNotification] = useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -455,7 +455,6 @@ export default function AuctionPage() {
               const selectedModel = AVAILABLE_MODELS.find((m) => m.id === modelSelections[idx]);
               const providerMeta = selectedModel ? PROVIDER_META[selectedModel.provider] : null;
               const isDropdownOpen = openDropdown === idx;
-              const isExternal = modelSelections[idx] === "external";
               const hasSelection = !!modelSelections[idx];
               const teamColor = TEAMS[idx]?.color || "#6B7280";
               const teamShort = TEAMS[idx]?.shortName || `T${idx + 1}`;
@@ -635,7 +634,6 @@ export default function AuctionPage() {
           <div className="flex flex-col gap-3">
             {liveData.teams.map((team) => {
               const tColor = TEAMS[team.team_index]?.color || team.color || "#6B7280";
-              const tLogo = TEAMS[team.team_index]?.logo || team.logo || "\u{1F3CF}";
               return (
               <div key={team.team_index} className="rounded-xl py-4 px-5" style={{ background: `linear-gradient(135deg, #0a0a0a, ${tColor}08)`, borderTop: `1px solid ${tColor}30`, borderRight: `1px solid ${tColor}30`, borderBottom: `1px solid ${tColor}30`, borderLeft: `4px solid ${tColor}`, boxShadow: `0 2px 12px ${tColor}10` }}>
                 <div className="flex items-center gap-2.5 mb-3">

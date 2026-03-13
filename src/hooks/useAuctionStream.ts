@@ -19,7 +19,8 @@ export function useAuctionStream<T>(
   const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const retryCountRef = useRef(0);
   const onDataRef = useRef(onData);
-  onDataRef.current = onData;
+  useEffect(() => { onDataRef.current = onData; }, [onData]);
+  const connectRef = useRef<() => void>(() => {});
 
   const fallbackPoll = useCallback(() => {
     const interval = setInterval(async () => {
@@ -87,7 +88,7 @@ export function useAuctionStream<T>(
         setConnection({ status: "reconnecting", retryCount });
 
         retryTimeoutRef.current = setTimeout(() => {
-          connect();
+          connectRef.current();
         }, delay);
       };
     } catch {
@@ -95,6 +96,8 @@ export function useAuctionStream<T>(
       fallbackPoll();
     }
   }, [auctionId, fallbackPoll]);
+
+  useEffect(() => { connectRef.current = connect; }, [connect]);
 
   useEffect(() => {
     connect();

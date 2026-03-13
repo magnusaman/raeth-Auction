@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { TEAMS } from "@/data/team-config";
 import { apiError } from "@/lib/api-response";
 
 export async function GET(req: NextRequest) {

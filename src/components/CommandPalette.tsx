@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Command } from "cmdk";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -38,10 +38,19 @@ export default function CommandPalette({ open, onOpenChange }: CommandPalettePro
   const [search, setSearch] = useState("");
   const [auctions, setAuctions] = useState<AuctionItem[]>([]);
 
+  // Reset search when palette opens
+  const prevOpen = useRef(open);
+  useEffect(() => {
+    if (open && !prevOpen.current) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSearch("");
+    }
+    prevOpen.current = open;
+  }, [open]);
+
   // Fetch recent auctions when palette opens
   useEffect(() => {
     if (!open) return;
-    setSearch("");
 
     let cancelled = false;
     fetch("/api/v1/auctions?limit=8")

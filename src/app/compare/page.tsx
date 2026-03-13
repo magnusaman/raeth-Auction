@@ -3,7 +3,6 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { TEAMS, TEAM_COLORS, TEAM_SHORT } from "@/lib/constants";
-import AgentAvatar from "@/components/ui/AgentAvatar";
 
 /* ── Constants ── */
 const TEAM_ICONS = TEAMS.map((t) => t.logo);
@@ -425,7 +424,7 @@ export default function ComparePage() {
     setComparing(true);
   }, [selectedIds, resultsMap]);
 
-  const selectedAuctions = useMemo(
+  const _selectedAuctions = useMemo(
     () => auctions.filter((a) => selectedIds.has(a.auction_id)),
     [auctions, selectedIds]
   );
@@ -1035,7 +1034,7 @@ function ComparisonView({
           />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
             {teamComparisons.map((tc) => {
-              const datasets = tc.auctions.map((a, ai) => ({
+              const datasets = tc.auctions.map((a, _ai) => ({
                 label: a.auctionLabel,
                 values: graderNames.map(
                   (g) => (a.graderScores[g] || 0) * 100

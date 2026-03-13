@@ -47,9 +47,9 @@ export default function Error({
           <button onClick={reset} className="btn-primary py-2.5 px-6 text-sm">
             Try Again
           </button>
-          <a href="/" className="btn-secondary py-2.5 px-6 text-sm">
+          <button onClick={() => window.location.href = "/"} className="btn-secondary py-2.5 px-6 text-sm">
             Go Home
-          </a>
+          </button>
         </div>
       </div>
     </div>

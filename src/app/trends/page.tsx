@@ -210,7 +210,7 @@ export default function TrendsPage() {
       {/* Summary cards */}
       <RevealSection className="mb-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {data.models.map((m, i) => (
+          {data.models.map((m, _i) => (
             <motion.div
               key={m.model}
               onClick={() => toggleSpotlight(m.model)}

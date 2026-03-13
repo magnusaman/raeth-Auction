@@ -9,7 +9,7 @@ const POLL_INTERVAL = parseInt(process.env.POLL_INTERVAL || "3000");
 
 let apiKey = "";
 let agentId = "";
-let teamId = "";
+let _teamId = "";
 let auctionId = process.env.AUCTION_ID || "";
 
 async function apiFetch(path, options = {}) {
@@ -51,7 +51,7 @@ async function joinAuction() {
   });
 
   if (data.team_id) {
-    teamId = data.team_id;
+    _teamId = data.team_id;
     console.log(`[Agent] Joined as ${data.team_name}`);
   } else {
     console.error("[Agent] Join failed:", data);

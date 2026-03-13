@@ -9,7 +9,6 @@ import StatusBadge from "@/components/ui/StatusBadge";
 import ScoreReveal from "@/components/ui/ScoreReveal";
 import AgentAvatar from "@/components/ui/AgentAvatar";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
-import { TEAMS } from "@/lib/constants";
 import { timeAgo } from "@/lib/utils";
 
 interface AuctionSummary {

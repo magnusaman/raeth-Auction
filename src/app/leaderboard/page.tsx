@@ -108,7 +108,7 @@ export default function LeaderboardPage() {
   }, []);
 
   const top3 = data?.leaderboard.slice(0, 3) || [];
-  const rest = data?.leaderboard.slice(3) || [];
+  const _rest = data?.leaderboard.slice(3) || [];
 
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-10">

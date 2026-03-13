@@ -356,7 +356,7 @@ function parsePrediction(response: string, team1Index: number, team2Index: numbe
 } {
   // Real data: LLM responds with real short names (CSK, MI). Synthetic: fictional aliases (FHK, STB).
   const t1Short = isRealData ? teams[team1Index].shortName : teams[team1Index].promptShort;
-  const t2Short = isRealData ? teams[team2Index].shortName : teams[team2Index].promptShort;
+  const _t2Short = isRealData ? teams[team2Index].shortName : teams[team2Index].promptShort;
 
   // Parse prediction
   const predMatch = response.match(/PREDICTION:\s*(\w+)/i);
@@ -518,7 +518,7 @@ export async function runPredictionsAndEvaluate(
     }
   }
 
-  const evalResults = await runTourEvaluation(tournamentId);
+  const _evalResults = await runTourEvaluation(tournamentId);
 
   await prisma.tournament.update({
     where: { id: tournamentId },
