@@ -237,7 +237,7 @@ export default function TournamentsPage() {
   const completedCount = tournaments.filter((t) => t.status === "COMPLETED").length;
   const currentSeasonInfo = SEASONS.find((s) => s.id === selectedSeason);
 
-  const AGENT_COLORS = ["#00f0ff", "#00ff88", "#b347ff", "#ffd700", "#ff6b6b", "#4ecdc4", "#a855f7", "#f97316", "#06b6d4", "#ec4899"];
+  const AGENT_COLORS = ["#D4A853", "#4ADE80", "#CD7F32", "#F5C842", "#EF4444", "#8B7A4A", "#F97316", "#A09888", "#E8D5A3", "#F59E0B"];
   const AGENT_SUFFIXES = ["Oracle", "Forecaster", "Seer", "Analyst", "Strategist", "Prophet", "Navigator", "Visionary", "Sentinel", "Scholar"];
 
   return (
@@ -246,17 +246,17 @@ export default function TournamentsPage() {
       {/* Header */}
       <div className="flex items-start justify-between mb-12">
         <div>
-          <span className="text-base font-mono font-semibold tracking-[0.2em] uppercase" style={{ color: "#7877C6" }}>Predictive Reasoning</span>
+          <span className="text-base font-mono font-semibold tracking-[0.2em] uppercase" style={{ color: "#D4A853" }}>Predictive Reasoning</span>
           <div className="mt-3 flex items-center gap-3">
             <h1 className="text-5xl font-bold text-gradient-brand m-0">TourBench</h1>
             <div className="relative group">
-              <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold cursor-help border border-[#555] text-[#888] hover:text-[#EDEDED] hover:border-[#EDEDED] transition-colors">?</span>
+              <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold cursor-help border border-[#6B6560] text-[#A09888] hover:text-[#D4A853] hover:border-[#F5F0E8] transition-colors">?</span>
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg text-sm text-[#ccc] whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-200 z-50" style={{ background: "rgba(20,20,20,0.95)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                Want to understand the exact working? <a href="/about" className="text-[#22D3EE] underline pointer-events-auto">Refer to the About page</a>
+                Want to understand the exact working? <a href="/about" className="text-[#D4A853] underline pointer-events-auto">Refer to the About page</a>
               </div>
             </div>
           </div>
-          <p className="mt-3 text-lg text-[#888]">
+          <p className="mt-3 text-lg text-[#A09888]">
             AI agents predict match outcomes. Evaluated on accuracy, calibration, and reasoning.
           </p>
         </div>
@@ -273,13 +273,13 @@ export default function TournamentsPage() {
       {showSetup && !running && (
         <div className="bento-card mb-12 overflow-hidden">
           <div className="px-7 py-5 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-            <h3 className="text-xl font-bold text-[#EDEDED]">Tournament Setup</h3>
+            <h3 className="text-xl font-bold text-[#F5F0E8]">Tournament Setup</h3>
           </div>
 
           <div className="p-7">
             {/* Mode Picker */}
             <div className="mb-9">
-              <div className="text-sm font-bold tracking-[0.15em] uppercase text-[#888] mb-3">
+              <div className="text-sm font-bold tracking-[0.15em] uppercase text-[#A09888] mb-3">
                 Data Source
               </div>
               <div className="flex gap-3">
@@ -288,7 +288,7 @@ export default function TournamentsPage() {
                   className={`px-6 py-3 text-base font-medium border rounded-xl transition-all duration-150 cursor-pointer ${
                     mode === "real"
                       ? "border-amber-500/35 bg-amber-500/8 text-amber-400"
-                      : "border-[#222] text-[#888] hover:border-[#333]"
+                      : "border-[#2a2520] text-[#A09888] hover:border-[#4a4540]"
                   }`}
                 >
                   Real Match Data (S1–S4)
@@ -297,8 +297,8 @@ export default function TournamentsPage() {
                   onClick={() => setMode("synthetic")}
                   className={`px-6 py-3 text-base font-medium border rounded-xl transition-all duration-150 cursor-pointer ${
                     mode === "synthetic"
-                      ? "border-[#444] bg-white/5 text-[#EDEDED]"
-                      : "border-[#222] text-[#888] hover:border-[#333]"
+                      ? "border-[#4a4540] bg-white/5 text-[#F5F0E8]"
+                      : "border-[#2a2520] text-[#A09888] hover:border-[#4a4540]"
                   }`}
                 >
                   Synthetic (Simulated)
@@ -309,7 +309,7 @@ export default function TournamentsPage() {
             {/* Season Picker */}
             {mode === "real" && (
               <div className="mb-9">
-                <div className="text-sm font-bold tracking-[0.15em] uppercase text-[#888] mb-3">
+                <div className="text-sm font-bold tracking-[0.15em] uppercase text-[#A09888] mb-3">
                   Evaluation Season
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -320,15 +320,15 @@ export default function TournamentsPage() {
                       className={`relative px-5 py-4 border rounded-xl transition-all duration-150 text-left cursor-pointer ${
                         selectedSeason === s.id
                           ? "border-amber-500/35 bg-amber-500/8"
-                          : "border-[#222] hover:border-[#333]"
+                          : "border-[#2a2520] hover:border-[#4a4540]"
                       }`}
                     >
                       <div className={`text-xl font-bold font-mono ${
-                        selectedSeason === s.id ? "text-amber-400" : "text-[#EDEDED]"
+                        selectedSeason === s.id ? "text-amber-400" : "text-[#F5F0E8]"
                       }`}>
                         {s.label}
                       </div>
-                      <div className="text-base text-[#888] mt-1">
+                      <div className="text-base text-[#A09888] mt-1">
                         {s.matches} matches
                       </div>
                       {selectedSeason === s.id && (
@@ -337,7 +337,7 @@ export default function TournamentsPage() {
                     </button>
                   ))}
                 </div>
-                <div className="text-base text-[#666] mt-3">
+                <div className="text-base text-[#A09888] mt-3">
                   Agents see historical data prior to the evaluation season. No future data leakage.
                 </div>
               </div>
@@ -346,7 +346,7 @@ export default function TournamentsPage() {
             {/* Source Picker */}
             {mode === "synthetic" && (
               <div className="mb-9">
-                <div className="text-sm font-bold tracking-[0.15em] uppercase text-[#888] mb-3">
+                <div className="text-sm font-bold tracking-[0.15em] uppercase text-[#A09888] mb-3">
                   Squad Source
                 </div>
                 <div className="flex flex-wrap gap-3">
@@ -354,8 +354,8 @@ export default function TournamentsPage() {
                     onClick={() => setSetupSource(null)}
                     className={`px-5 py-3 text-base font-medium border rounded-xl transition-all duration-150 cursor-pointer ${
                       !setupSource
-                        ? "border-[#444] bg-white/5 text-[#EDEDED]"
-                        : "border-[#222] text-[#888] hover:border-[#333]"
+                        ? "border-[#4a4540] bg-white/5 text-[#F5F0E8]"
+                        : "border-[#2a2520] text-[#A09888] hover:border-[#4a4540]"
                     }`}
                   >
                     Standalone (Random Squads)
@@ -366,8 +366,8 @@ export default function TournamentsPage() {
                       onClick={() => setSetupSource(a.auction_id)}
                       className={`px-5 py-3 text-base font-medium border rounded-xl transition-all duration-150 cursor-pointer ${
                         setupSource === a.auction_id
-                          ? "border-[#444] bg-white/5 text-[#EDEDED]"
-                          : "border-[#222] text-[#888] hover:border-[#333]"
+                          ? "border-[#4a4540] bg-white/5 text-[#F5F0E8]"
+                          : "border-[#2a2520] text-[#A09888] hover:border-[#4a4540]"
                       }`}
                     >
                       Auction {a.auction_id.slice(0, 8)}
@@ -379,14 +379,14 @@ export default function TournamentsPage() {
 
             {/* Predictor Model Selection */}
             <div className="mb-9">
-              <div className="text-sm font-bold tracking-[0.15em] uppercase text-[#888] mb-3">
+              <div className="text-sm font-bold tracking-[0.15em] uppercase text-[#A09888] mb-3">
                 Predictor Agents ({agentCount} models)
               </div>
               <div className="flex items-center gap-4 mb-4">
-                <button onClick={removeAgent} disabled={agentCount <= 2} className="w-10 h-10 rounded-xl border flex items-center justify-center text-lg font-bold disabled:opacity-30 disabled:cursor-not-allowed hover:border-[#444] transition-colors cursor-pointer" style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.1)", color: "#EDEDED" }}>&minus;</button>
-                <span className="text-lg font-bold font-mono text-[#EDEDED] w-6 text-center">{agentCount}</span>
-                <button onClick={addAgent} disabled={agentCount >= 10} className="w-10 h-10 rounded-xl border flex items-center justify-center text-lg font-bold disabled:opacity-30 disabled:cursor-not-allowed hover:border-[#444] transition-colors cursor-pointer" style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.1)", color: "#EDEDED" }}>+</button>
-                <span className="text-sm text-[#888]">2–10 agents</span>
+                <button onClick={removeAgent} disabled={agentCount <= 2} className="w-10 h-10 rounded-xl border flex items-center justify-center text-lg font-bold disabled:opacity-30 disabled:cursor-not-allowed hover:border-[#4a4540] transition-colors cursor-pointer" style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.1)", color: "#F5F0E8" }}>&minus;</button>
+                <span className="text-lg font-bold font-mono text-[#F5F0E8] w-6 text-center">{agentCount}</span>
+                <button onClick={addAgent} disabled={agentCount >= 10} className="w-10 h-10 rounded-xl border flex items-center justify-center text-lg font-bold disabled:opacity-30 disabled:cursor-not-allowed hover:border-[#4a4540] transition-colors cursor-pointer" style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.1)", color: "#F5F0E8" }}>+</button>
+                <span className="text-sm text-[#A09888]">2–10 agents</span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {Array.from({ length: agentCount }, (_, i) => i).map((idx) => {
@@ -414,7 +414,7 @@ export default function TournamentsPage() {
                       >
                         {providerMeta && <span className="text-lg flex-shrink-0">{providerMeta.icon}</span>}
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-semibold text-[#EDEDED]">{selectedModel?.label || "Select model"}</div>
+                          <div className="text-sm font-semibold text-[#F5F0E8]">{selectedModel?.label || "Select model"}</div>
                           {selectedModel && <div className="text-xs font-medium mt-0.5" style={{ color: providerMeta?.color || "#94A3B8" }}>{selectedModel.provider}</div>}
                         </div>
                         <svg width="16" height="16" viewBox="0 0 14 14" fill="none" className="flex-shrink-0" style={{ transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }}><path d="M3.5 5.25L7 8.75L10.5 5.25" stroke="#94A3B8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -433,7 +433,7 @@ export default function TournamentsPage() {
                                     const isSel = predictorModels[idx] === m.id;
                                     return (
                                       <button key={m.id} onClick={() => { const next = [...predictorModels]; next[idx] = m.id; setPredictorModels(next); setOpenDropdown(null); setDropdownPos(null); }} className="w-full flex items-center gap-3 px-4 py-3 text-left cursor-pointer transition-all duration-150 border-none" style={{ background: isSel ? `${PROVIDER_META[m.provider]?.color || "#94A3B8"}12` : "transparent" }} onMouseEnter={(e) => { if (!isSel) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.05)"; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = isSel ? `${PROVIDER_META[m.provider]?.color || "#94A3B8"}12` : "transparent"; }}>
-                                        <span className="text-sm font-semibold text-[#EDEDED] flex-1">{m.label}</span>
+                                        <span className="text-sm font-semibold text-[#F5F0E8] flex-1">{m.label}</span>
                                         {isSel && <svg width="16" height="16" viewBox="0 0 14 14" fill="none"><path d="M3 7l3 3 5-5" stroke="#22C55E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>}
                                       </button>
                                     );
@@ -462,7 +462,7 @@ export default function TournamentsPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>
               </button>
-              <div className="text-sm text-[#888] mt-4">
+              <div className="text-sm text-[#A09888] mt-4">
                 {mode === "real"
                   ? `${currentSeasonInfo?.matches || 0} matches \u00b7 ${agentCount} agents \u00b7 ~${(currentSeasonInfo?.matches || 0) * agentCount} LLM predictions`
                   : `14 matches \u00b7 ${agentCount} agents \u00b7 ~${14 * agentCount} LLM predictions`
@@ -476,25 +476,25 @@ export default function TournamentsPage() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-px rounded-2xl overflow-hidden mb-12" style={{ background: "rgba(255,255,255,0.06)" }}>
         <div className="p-8 md:p-10 text-center" style={{ background: "#0a0a0a" }}>
-          <div className="text-4xl font-bold font-mono text-[#EDEDED]">{tournaments.length}</div>
-          <div className="mt-2 text-sm font-semibold uppercase tracking-wider text-[#888]">Tournaments</div>
+          <div className="text-4xl font-bold font-mono text-[#F5F0E8]">{tournaments.length}</div>
+          <div className="mt-2 text-sm font-semibold uppercase tracking-wider text-[#A09888]">Tournaments</div>
         </div>
         <div className="p-8 md:p-10 text-center" style={{ background: "#0a0a0a" }}>
-          <div className="text-4xl font-bold font-mono text-[#EDEDED]">{completedCount}</div>
-          <div className="mt-2 text-sm font-semibold uppercase tracking-wider text-[#888]">Completed</div>
+          <div className="text-4xl font-bold font-mono text-[#F5F0E8]">{completedCount}</div>
+          <div className="mt-2 text-sm font-semibold uppercase tracking-wider text-[#A09888]">Completed</div>
         </div>
         <div className="p-8 md:p-10 text-center" style={{ background: "#0a0a0a" }}>
-          <div className="text-4xl font-bold font-mono text-[#EDEDED]">
+          <div className="text-4xl font-bold font-mono text-[#F5F0E8]">
             {tournaments.length > 0 ? tournaments.reduce((sum, t) => sum + t.total_matches, 0) : 0}
           </div>
-          <div className="mt-2 text-sm font-semibold uppercase tracking-wider text-[#888]">Total Matches</div>
+          <div className="mt-2 text-sm font-semibold uppercase tracking-wider text-[#A09888]">Total Matches</div>
         </div>
       </div>
 
       {/* Search & Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
-          <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#555]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B6560]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
@@ -502,14 +502,14 @@ export default function TournamentsPage() {
             placeholder="Search by tournament ID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-[#EDEDED] placeholder-[#555] outline-none transition-colors"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-[#F5F0E8] placeholder-[#555] outline-none transition-colors"
             style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2.5 rounded-xl text-sm font-medium text-[#EDEDED] outline-none cursor-pointer appearance-none"
+          className="px-4 py-2.5 rounded-xl text-sm font-medium text-[#F5F0E8] outline-none cursor-pointer appearance-none"
           style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", minWidth: "140px" }}
         >
           <option value="ALL">All Statuses</option>
@@ -521,7 +521,7 @@ export default function TournamentsPage() {
         <select
           value={sourceFilter}
           onChange={(e) => setSourceFilter(e.target.value)}
-          className="px-4 py-2.5 rounded-xl text-sm font-medium text-[#EDEDED] outline-none cursor-pointer appearance-none"
+          className="px-4 py-2.5 rounded-xl text-sm font-medium text-[#F5F0E8] outline-none cursor-pointer appearance-none"
           style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", minWidth: "140px" }}
         >
           <option value="ALL">All Sources</option>
@@ -532,14 +532,14 @@ export default function TournamentsPage() {
 
       {/* Tournament Table */}
       <div className="rounded-2xl overflow-hidden" style={{ background: "#0a0a0a", border: "1px solid rgba(255,255,255,0.06)" }}>
-        <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(120,119,198,0.04)" }}>
+        <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(212,168,83,0.04)" }}>
           <div className="flex items-center gap-2.5">
             <span className="w-2 h-2 rounded-full" style={{ background: "#F97316" }} />
-            <span className="text-base font-bold tracking-[0.15em] uppercase font-mono" style={{ color: "#7877C6" }}>
+            <span className="text-base font-bold tracking-[0.15em] uppercase font-mono" style={{ color: "#D4A853" }}>
               Tournament Runs
             </span>
           </div>
-          <span className="text-base text-[#888] font-mono">
+          <span className="text-base text-[#A09888] font-mono">
             {filteredTournaments.length === tournaments.length
               ? `${tournaments.length} total`
               : `${filteredTournaments.length} of ${tournaments.length}`}
@@ -547,16 +547,16 @@ export default function TournamentsPage() {
         </div>
 
         {loading ? (
-          <div className="py-24 text-center text-base text-[#888]">Loading tournaments...</div>
+          <div className="py-24 text-center text-base text-[#A09888]">Loading tournaments...</div>
         ) : tournaments.length === 0 ? (
           <div className="py-24 text-center">
-            <p className="text-base text-[#EDEDED] mb-2">No tournaments yet</p>
-            <p className="text-sm text-[#888]">Click &quot;New Tournament&quot; to run a predictive reasoning evaluation</p>
+            <p className="text-base text-[#F5F0E8] mb-2">No tournaments yet</p>
+            <p className="text-sm text-[#A09888]">Click &quot;New Tournament&quot; to run a predictive reasoning evaluation</p>
           </div>
         ) : filteredTournaments.length === 0 ? (
           <div className="py-24 text-center">
-            <p className="text-base text-[#EDEDED] mb-2">No matching tournaments</p>
-            <p className="text-sm text-[#888]">Try adjusting your search or filters</p>
+            <p className="text-base text-[#F5F0E8] mb-2">No matching tournaments</p>
+            <p className="text-sm text-[#A09888]">Try adjusting your search or filters</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -564,7 +564,7 @@ export default function TournamentsPage() {
             <thead>
               <tr className="border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
                 {["Run ID", "Status", "Source", "Season", "Date", "Matches", "Standings", "Agents", "Actions"].map((h) => (
-                  <th key={h} className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-[#666] whitespace-nowrap">
+                  <th key={h} className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider text-[#A09888] whitespace-nowrap">
                     {h}
                   </th>
                 ))}
@@ -590,7 +590,7 @@ export default function TournamentsPage() {
                         ? "text-amber-400 bg-amber-500/8 border-amber-500/15"
                         : t.auction_id
                         ? "text-[#8B5CF6] bg-[#8B5CF6]/8 border-[#8B5CF6]/15"
-                        : "text-[#888] bg-white/3 border-[#222]"
+                        : "text-[#A09888] bg-white/3 border-[#2a2520]"
                     }`}>
                       {t.data_source === "real" ? "REAL DATA" : t.auction_id ? "AUCTION" : "SYNTHETIC"}
                     </span>
@@ -599,7 +599,7 @@ export default function TournamentsPage() {
                     {t.eval_season ? (
                       <span className="font-mono text-base font-bold text-amber-400">{t.eval_season}</span>
                     ) : (
-                      <span className="text-[#555]">—</span>
+                      <span className="text-[#6B6560]">—</span>
                     )}
                   </td>
                   <td className="px-5 py-4 text-base text-[#999]">
@@ -608,7 +608,7 @@ export default function TournamentsPage() {
                     })}
                   </td>
                   <td className="px-5 py-4">
-                    <span className="font-mono text-base text-[#EDEDED]">{t.total_matches}</span>
+                    <span className="font-mono text-base text-[#F5F0E8]">{t.total_matches}</span>
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex gap-2.5 flex-wrap">
@@ -620,7 +620,7 @@ export default function TournamentsPage() {
                     </div>
                   </td>
                   <td className="px-5 py-4">
-                    <span className="font-mono text-base font-bold text-[#EDEDED]">{t.agent_count}</span>
+                    <span className="font-mono text-base font-bold text-[#F5F0E8]">{t.agent_count}</span>
                   </td>
                   <td className="px-5 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
@@ -645,7 +645,7 @@ export default function TournamentsPage() {
                       <button
                         onClick={(e) => deleteTournament(t.tournament_id, e)}
                         disabled={deleting === t.tournament_id}
-                        className="text-base text-[#888] hover:text-neon-red px-3 py-1.5 border border-transparent hover:border-neon-red/15 rounded-lg transition-all duration-150 disabled:opacity-30 cursor-pointer"
+                        className="text-base text-[#A09888] hover:text-neon-red px-3 py-1.5 border border-transparent hover:border-neon-red/15 rounded-lg transition-all duration-150 disabled:opacity-30 cursor-pointer"
                       >
                         {deleting === t.tournament_id ? "..." : "Delete"}
                       </button>

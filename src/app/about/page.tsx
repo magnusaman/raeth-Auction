@@ -182,7 +182,7 @@ export default function AboutPage() {
         <div className="mx-auto max-w-[1200px] px-6 md:px-10">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-extrabold font-mono text-white"
-              style={{ background: "linear-gradient(135deg, #8B5CF6, #6D28D9)" }}>
+              style={{ background: "linear-gradient(135deg, #D4A853, #8B7A4A)" }}>
               2
             </div>
             <div>
@@ -202,7 +202,7 @@ export default function AboutPage() {
             {/* 2.1 What the Model Receives */}
             <div className="mb-8">
               <h4 className="text-base font-bold text-text-primary mb-3 flex items-center gap-2">
-                <span className="text-sm font-mono px-2 py-0.5 rounded" style={{ background: "rgba(139,92,246,0.15)", color: "#8B5CF6" }}>2.1</span>
+                <span className="text-sm font-mono px-2 py-0.5 rounded" style={{ background: "rgba(212,168,83,0.15)", color: "#D4A853" }}>2.1</span>
                 What the Model Receives (Input)
               </h4>
               <div className="overflow-x-auto">
@@ -250,7 +250,7 @@ export default function AboutPage() {
             {/* 2.2 How the Model Decides */}
             <div className="mb-8">
               <h4 className="text-base font-bold text-text-primary mb-3 flex items-center gap-2">
-                <span className="text-sm font-mono px-2 py-0.5 rounded" style={{ background: "rgba(139,92,246,0.15)", color: "#8B5CF6" }}>2.2</span>
+                <span className="text-sm font-mono px-2 py-0.5 rounded" style={{ background: "rgba(212,168,83,0.15)", color: "#D4A853" }}>2.2</span>
                 How the Model Decides
               </h4>
               <p className="text-[15px] leading-[1.8] text-text-secondary mb-4">
@@ -293,7 +293,7 @@ export default function AboutPage() {
             {/* 2.3 Evaluation */}
             <div>
               <h4 className="text-base font-bold text-text-primary mb-3 flex items-center gap-2">
-                <span className="text-sm font-mono px-2 py-0.5 rounded" style={{ background: "rgba(139,92,246,0.15)", color: "#8B5CF6" }}>2.3</span>
+                <span className="text-sm font-mono px-2 py-0.5 rounded" style={{ background: "rgba(212,168,83,0.15)", color: "#D4A853" }}>2.3</span>
                 How We Evaluate (7 Metrics)
               </h4>
               <div className="overflow-x-auto">
@@ -317,9 +317,9 @@ export default function AboutPage() {
                       ["7", "Composite Score", "—", "Weighted combination of all above metrics, used for final ranking"],
                     ].map(([num, name, weight, desc]) => (
                       <tr key={num} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                        <td className="py-3 px-4 font-mono font-bold" style={{ color: "#8B5CF6" }}>{num}</td>
+                        <td className="py-3 px-4 font-mono font-bold" style={{ color: "#D4A853" }}>{num}</td>
                         <td className="py-3 px-4 font-semibold text-text-primary">{name}</td>
-                        <td className="py-3 px-4 font-mono" style={{ color: "#8B5CF6" }}>{weight}</td>
+                        <td className="py-3 px-4 font-mono" style={{ color: "#D4A853" }}>{weight}</td>
                         <td className="py-3 px-4">{desc}</td>
                       </tr>
                     ))}
@@ -350,7 +350,7 @@ export default function AboutPage() {
                 label: "Data",
                 title: "Real IPL Stats",
                 desc: "Ball-by-ball data from Cricsheet.org for IPL 2022 to 2024. Dream11 T20 fantasy scoring computes true player value from real match performance.",
-                accent: "#22D3EE",
+                accent: "#D4A853",
               },
               {
                 label: "Architecture",
@@ -391,7 +391,7 @@ export default function AboutPage() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { value: "2-10", label: "Flexible Teams", accent: "#22D3EE" },
+              { value: "2-10", label: "Flexible Teams", accent: "#D4A853" },
               { value: "120", label: "Real Players", accent: "#FDB913" },
               { value: "10", label: "Eval Graders", accent: "#A855F7" },
               { value: "2", label: "Round System", accent: "#22C55E" },

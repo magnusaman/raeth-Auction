@@ -65,9 +65,9 @@ function exportCSV(data: any) {
 
 /* ── Color constants for recharts only ── */
 const COLORS = {
-  cyan: "#06B6D4", green: "#10B981", red: "#EF4444",
-  purple: "#A855F7", gold: "#F59E0B", orange: "#F97316",
-  surface: "#111827", border: "#1E293B", textDim: "#94A3B8", textMuted: "#64748B",
+  cyan: "#D4A853", green: "#4ADE80", red: "#EF4444",
+  purple: "#8B7A4A", gold: "#F5C842", orange: "#CD7F32",
+  surface: "#111111", border: "#2a2520", textDim: "#A09888", textMuted: "#6B6560",
 };
 
 const TEAM_COLORS = ["#004BA0", "#FDB913", "#EC1C24", "#3A225D", "#FF822A", "#EA1A85", "#004C93", "#DD1F2D", "#1C1C2B", "#A72056"];

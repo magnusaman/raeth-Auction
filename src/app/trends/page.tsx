@@ -8,7 +8,7 @@ import {
   XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid, Cell,
 } from "recharts";
 
-const MODEL_COLORS = ["#22D3EE", "#A855F7", "#10B981", "#F59E0B", "#EF4444", "#EC4899", "#3B82F6", "#F97316"];
+const MODEL_COLORS = ["#D4A853", "#CD7F32", "#4ADE80", "#F5C842", "#EF4444", "#8B7A4A", "#F97316", "#A09888"];
 
 const TOOLTIP_STYLE = {
   backgroundColor: "#111827",

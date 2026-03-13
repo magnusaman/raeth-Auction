@@ -21,9 +21,9 @@ const TEAM_NAMES = [
 ];
 
 const ACCENT = {
-  cyan: "#22D3EE",
-  purple: "#A855F7",
-  gold: "#FDB913",
+  cyan: "#D4A853",
+  purple: "#8B7A4A",
+  gold: "#F5C842",
   green: "#22C55E",
   red: "#FF3040",
   orange: "#F97316",
@@ -219,7 +219,7 @@ function BarChart({
               x={x + barWidth / 2}
               y={padTop + chartH + 16}
               textAnchor="middle"
-              fill="#94A3B8"
+              fill="#A09888"
               fontSize="11"
               fontFamily="var(--font-mono)"
             >
@@ -313,7 +313,7 @@ function RadarChart({
             y={p.y}
             textAnchor="middle"
             dominantBaseline="middle"
-            fill="#94A3B8"
+            fill="#A09888"
             fontSize="10"
             fontFamily="var(--font-mono)"
           >

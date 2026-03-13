@@ -29,7 +29,7 @@ const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   },
   PENDING: {
     label: "Pending",
-    className: "bg-[#333]/50 text-[#888] border-[#444]/50",
+    className: "bg-[#2a2520]/50 text-[#A09888] border-[#4a4540]/50",
   },
 };
 
@@ -41,7 +41,7 @@ interface StatusBadgeProps {
 export default function StatusBadge({ status, size = "sm" }: StatusBadgeProps) {
   const config = STATUS_CONFIG[status] || {
     label: status,
-    className: "bg-[#333]/50 text-[#888] border-[#444]/50",
+    className: "bg-[#2a2520]/50 text-[#A09888] border-[#4a4540]/50",
   };
 
   const sizeClass = size === "sm"

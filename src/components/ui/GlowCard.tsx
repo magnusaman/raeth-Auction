@@ -12,7 +12,7 @@ interface GlowCardProps {
 
 export default function GlowCard({
   children,
-  glowColor = "rgba(0, 240, 255, 0.15)",
+  glowColor = "rgba(212, 168, 83, 0.15)",
   className = "",
   onClick,
   hoverable = true,

@@ -102,11 +102,11 @@ export default function Navbar() {
       <div className="mx-auto flex h-[84px] max-w-[1200px] items-center justify-between px-5 md:px-6">
         {/* Brand */}
         <Link href="/" className="flex items-center no-underline group transition-transform hover:scale-[1.02]">
-          <span className="text-[15px] font-bold tracking-[0.25em] uppercase mt-[2px]" style={{ color: "#7877C6" }}>
+          <span className="text-[15px] font-bold tracking-[0.25em] uppercase mt-[2px]" style={{ color: "#D4A853" }}>
             Raeth
           </span>
-          <div className="h-[22px] w-px mx-4" style={{ background: "rgba(255,255,255,0.15)" }} />
-          <span className="text-[15px] font-bold tracking-[0.25em] uppercase mt-[2px]" style={{ color: "#7877C6" }}>
+          <div className="h-[22px] w-px mx-4" style={{ background: "rgba(212,168,83,0.25)" }} />
+          <span className="text-[15px] font-bold tracking-[0.25em] uppercase mt-[2px]" style={{ color: "#D4A853" }}>
             Arena
           </span>
         </Link>
@@ -123,17 +123,18 @@ export default function Navbar() {
                   relative block px-3 py-2 text-[14px] font-medium no-underline rounded-lg
                   transition-colors duration-200
                   ${active
-                    ? "text-[#EDEDED]"
-                    : "text-[#666] hover:text-[#EDEDED]"
+                    ? "text-[#F5F0E8]"
+                    : "text-[#6B6560] hover:text-[#F5F0E8]"
                   }
                 `}
               >
                 {active && (
                   <motion.div
-                    layoutId="nav-pill"
-                    className="absolute inset-0 rounded-lg -z-[1]"
+                    layoutId="nav-underline"
+                    className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full -z-[1]"
                     style={{
-                      background: "rgba(255,255,255,0.06)",
+                      background: "#D4A853",
+                      boxShadow: "0 1px 8px rgba(212,168,83,0.3)",
                     } as React.CSSProperties}
                     transition={{
                       type: "spring",
@@ -161,7 +162,7 @@ export default function Navbar() {
         {/* Mobile hamburger */}
         <button
           onClick={() => setMobileOpen((v) => !v)}
-          className="md:hidden p-2 text-[#888] rounded-lg hover:bg-white/[0.06] transition-colors bg-transparent border-none cursor-pointer"
+          className="md:hidden p-2 text-[#A09888] rounded-lg hover:bg-white/[0.06] transition-colors bg-transparent border-none cursor-pointer"
           aria-label="Toggle menu"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -190,13 +191,13 @@ export default function Navbar() {
             >
               {breadcrumbs.map((crumb, i) => (
                 <span key={i} className="flex items-center gap-2">
-                  {i > 0 && <span className="text-[#333] select-none">/</span>}
+                  {i > 0 && <span className="text-[#4a4540] select-none">/</span>}
                   {crumb.href ? (
-                    <Link href={crumb.href} className="text-[#555] hover:text-[#EDEDED] transition-colors no-underline font-medium">
+                    <Link href={crumb.href} className="text-[#6B6560] hover:text-[#F5F0E8] transition-colors no-underline font-medium">
                       {crumb.label}
                     </Link>
                   ) : (
-                    <span className="text-[#999] font-medium truncate max-w-[200px]">
+                    <span className="text-[#A09888] font-medium truncate max-w-[200px]">
                       {crumb.label}
                     </span>
                   )}
@@ -242,7 +243,7 @@ export default function Navbar() {
               <div className="flex items-center justify-end h-14 px-5">
                 <button
                   onClick={() => setMobileOpen(false)}
-                  className="p-2 text-[#888] rounded-lg hover:bg-white/[0.06] transition-colors bg-transparent border-none cursor-pointer"
+                  className="p-2 text-[#A09888] rounded-lg hover:bg-white/[0.06] transition-colors bg-transparent border-none cursor-pointer"
                   aria-label="Close menu"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -266,7 +267,7 @@ export default function Navbar() {
                         onClick={() => setMobileOpen(false)}
                         className={`
                           block px-4 py-3 text-sm font-medium no-underline rounded-lg transition-colors
-                          ${active ? "text-[#EDEDED] bg-white/[0.06]" : "text-[#888] hover:text-[#EDEDED] hover:bg-white/[0.04]"}
+                          ${active ? "text-[#F5F0E8] bg-white/[0.06]" : "text-[#A09888] hover:text-[#F5F0E8] hover:bg-white/[0.04]"}
                         `}
                       >
                         {link.label}

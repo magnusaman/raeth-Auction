@@ -67,7 +67,7 @@ function RankBadge({ rank }: { rank: number }) {
   );
 }
 
-function ScoreBar({ value, max = 10, color = "#22D3EE" }: { value: number; max?: number; color?: string }) {
+function ScoreBar({ value, max = 10, color = "#D4A853" }: { value: number; max?: number; color?: string }) {
   const pct = Math.min(100, (value / max) * 100);
   return (
     <div className="flex items-center gap-2">
@@ -104,7 +104,7 @@ function SparkLine({ results }: { results: { score: number; rank: number }[] }) 
     <svg width={w} height={h} className="inline-block">
       <polyline
         fill="none"
-        stroke="#22D3EE"
+        stroke="#D4A853"
         strokeWidth="1.5"
         strokeLinejoin="round"
         points={points.join(" ")}
@@ -114,7 +114,7 @@ function SparkLine({ results }: { results: { score: number; rank: number }[] }) 
           cx={points[points.length - 1].split(",")[0]}
           cy={points[points.length - 1].split(",")[1]}
           r="3"
-          fill="#22D3EE"
+          fill="#D4A853"
         />
       )}
     </svg>
@@ -177,7 +177,7 @@ export default function LeaderboardPage() {
           {/* Summary stat cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             {[
-              { label: "Agents Tracked", value: data.leaderboard.length.toString(), color: "#22D3EE" },
+              { label: "Agents Tracked", value: data.leaderboard.length.toString(), color: "#D4A853" },
               { label: "Highest Score", value: Math.max(...data.leaderboard.map((a) => a.bestScore)).toFixed(1), color: "#22C55E" },
               { label: "Most Wins", value: Math.max(...data.leaderboard.map((a) => a.wins)).toString(), color: "#FDB913" },
               { label: "Avg Spend", value: `₹${(data.leaderboard.reduce((s, a) => s + a.avgSpend, 0) / data.leaderboard.length).toFixed(0)} Cr`, color: "#A855F7" },
@@ -249,7 +249,7 @@ export default function LeaderboardPage() {
                       className="text-center text-[14px] font-mono font-semibold"
                       style={{
                         color:
-                          agent.winRate >= 50 ? "#22C55E" : agent.winRate >= 25 ? "#FDB913" : "#94A3B8",
+                          agent.winRate >= 50 ? "#22C55E" : agent.winRate >= 25 ? "#FDB913" : "#6B6560",
                       }}
                     >
                       {agent.winRate}%
@@ -284,7 +284,7 @@ export default function LeaderboardPage() {
                       </div>
                       <div>
                         <p className="text-[10px] uppercase tracking-wider text-text-muted">Win %</p>
-                        <p className="text-sm font-mono font-semibold" style={{ color: agent.winRate >= 50 ? "#22C55E" : agent.winRate >= 25 ? "#FDB913" : "#94A3B8" }}>{agent.winRate}%</p>
+                        <p className="text-sm font-mono font-semibold" style={{ color: agent.winRate >= 50 ? "#22C55E" : agent.winRate >= 25 ? "#FDB913" : "#6B6560" }}>{agent.winRate}%</p>
                       </div>
                     </div>
                     <div className="mt-2">
@@ -300,7 +300,7 @@ export default function LeaderboardPage() {
                           { label: "Best Score", value: agent.bestScore.toFixed(2), color: "#22C55E" },
                           { label: "Worst Score", value: agent.worstScore.toFixed(2), color: "#EF4444" },
                           { label: "Avg Spend", value: `₹${agent.avgSpend.toFixed(1)} Cr`, color: "#A855F7" },
-                          { label: "Avg Squad", value: `${agent.avgSquadSize} players`, color: "#22D3EE" },
+                          { label: "Avg Squad", value: `${agent.avgSquadSize} players`, color: "#D4A853" },
                           { label: "Consistency", value: `${agent.consistency}%`, color: "#FDB913" },
                         ].map((s) => (
                           <div key={s.label}>
@@ -334,7 +334,7 @@ export default function LeaderboardPage() {
                                       ? "#C0C0C0"
                                       : r.rank === 3
                                       ? "#CD7F32"
-                                      : "#94A3B8",
+                                      : "#6B6560",
                                 }}
                               >
                                 #{r.rank}
