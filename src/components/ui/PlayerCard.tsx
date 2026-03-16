@@ -55,23 +55,23 @@ export default function PlayerCard({
         >
           <div className="text-4xl mb-1">{roleIcon}</div>
           <div className="text-center">
-            <div className="text-base font-bold text-[#F5F0E8] font-display">{name}</div>
+            <div className="text-base font-bold text-[#E8E4DE] font-display">{name}</div>
             {nationality && (
-              <div className="text-[11px] text-[#6B6560] mt-0.5">{nationality}</div>
+              <div className="text-xs text-[#78736E] mt-0.5">{nationality}</div>
             )}
           </div>
           <div
-            className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider"
+            className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider"
             style={{
-              background: "rgba(212,168,83,0.1)",
-              color: "#D4A853",
-              border: "1px solid rgba(212,168,83,0.15)",
+              background: "rgba(196,162,101,0.1)",
+              color: "#C4A265",
+              border: "1px solid rgba(196,162,101,0.15)",
             }}
           >
             {role}
           </div>
-          <div className="text-lg font-bold font-mono text-[#D4A853] mt-1">{basePrice}</div>
-          <div className="text-[10px] text-[#4a4540] mt-1">tap to reveal stats</div>
+          <div className="text-lg font-bold font-mono text-[#C4A265] mt-1">{basePrice}</div>
+          <div className="text-xs text-[#625D58] mt-1">tap to reveal stats</div>
         </div>
 
         {/* Back */}
@@ -81,15 +81,15 @@ export default function PlayerCard({
             backfaceVisibility: "hidden",
             transform: "rotateY(180deg)",
             background: "linear-gradient(145deg, rgba(14,14,14,0.95), rgba(8,8,8,0.95))",
-            border: "1px solid rgba(212,168,83,0.12)",
+            border: "1px solid rgba(196,162,101,0.12)",
           }}
         >
-          <div className="text-sm font-bold text-[#F5F0E8] font-display mb-1">{name}</div>
+          <div className="text-sm font-bold text-[#E8E4DE] font-display mb-1">{name}</div>
           <div
-            className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full self-start"
+            className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full self-start"
             style={{
-              background: "rgba(212,168,83,0.1)",
-              color: "#D4A853",
+              background: "rgba(196,162,101,0.1)",
+              color: "#C4A265",
             }}
           >
             {role}
@@ -99,21 +99,21 @@ export default function PlayerCard({
             <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-2">
               {Object.entries(stats).map(([key, val]) => (
                 <div key={key} className="flex justify-between items-center">
-                  <span className="text-[11px] text-[#6B6560] truncate">{key}</span>
-                  <span className="text-[12px] font-mono font-bold text-[#A09888]">{val}</span>
+                  <span className="text-xs text-[#78736E] truncate">{key}</span>
+                  <span className="text-sm font-mono font-bold text-[#9A9590]">{val}</span>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-[#4a4540] text-xs">
+            <div className="flex-1 flex items-center justify-center text-[#625D58] text-xs">
               Stats unavailable
             </div>
           )}
 
           <div className="mt-auto pt-2" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
             <div className="flex justify-between items-center">
-              <span className="text-[10px] text-[#6B6560] uppercase tracking-wider">Base Price</span>
-              <span className="text-sm font-bold font-mono text-[#D4A853]">{basePrice}</span>
+              <span className="text-xs text-[#78736E] uppercase tracking-wider">Base Price</span>
+              <span className="text-sm font-bold font-mono text-[#C4A265]">{basePrice}</span>
             </div>
           </div>
         </div>

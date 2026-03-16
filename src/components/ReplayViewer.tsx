@@ -165,14 +165,14 @@ export default function ReplayViewer({ auctionId }: { auctionId: string }) {
       <div className="h-1 bg-bg-elevated">
         <div
           className="h-full transition-all duration-200"
-          style={{ width: `${progress}%`, background: "linear-gradient(90deg, #D4A853, #F5C842)" }}
+          style={{ width: `${progress}%`, background: "linear-gradient(90deg, #C4A265, #D4B06A)" }}
         />
       </div>
 
       {/* Bid feed */}
       <div ref={feedRef} className="max-h-60 overflow-y-auto p-3 space-y-1.5">
         {visibleBids.map((bid, i) => {
-          const color = TEAM_COLORS[bid.team_index] || "#6B6560";
+          const color = TEAM_COLORS[bid.team_index] || "#78736E";
           const isLatest = i === visibleBids.length - 1;
           return (
             <div

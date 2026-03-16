@@ -9,9 +9,9 @@ const TEAM_ICONS = TEAMS.map((t) => t.logo);
 const TEAM_NAMES = TEAMS.map((t) => t.name);
 
 const ACCENT = {
-  cyan: "#D4A853",
+  cyan: "#C4A265",
   purple: "#8B7A4A",
-  gold: "#F5C842",
+  gold: "#D4B06A",
   green: "#22C55E",
   red: "#FF3040",
   orange: "#F97316",
@@ -207,7 +207,7 @@ function BarChart({
               x={x + barWidth / 2}
               y={padTop + chartH + 16}
               textAnchor="middle"
-              fill="#A09888"
+              fill="#9A9590"
               fontSize="11"
               fontFamily="var(--font-mono)"
             >
@@ -301,8 +301,8 @@ function RadarChart({
             y={p.y}
             textAnchor="middle"
             dominantBaseline="middle"
-            fill="#A09888"
-            fontSize="10"
+            fill="#9A9590"
+            fontSize="11"
             fontFamily="var(--font-mono)"
           >
             {label}

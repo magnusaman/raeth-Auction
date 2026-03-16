@@ -66,7 +66,7 @@ export default function NowPlayingBar() {
                   background: "rgba(8,8,8,0.95)",
                   backdropFilter: "blur(20px)",
                   WebkitBackdropFilter: "blur(20px)",
-                  borderTop: "1px solid rgba(212,168,83,0.12)",
+                  borderTop: "1px solid rgba(196,162,101,0.12)",
                   borderLeft: "1px solid rgba(255,255,255,0.04)",
                   borderRight: "1px solid rgba(255,255,255,0.04)",
                 }}
@@ -77,7 +77,7 @@ export default function NowPlayingBar() {
                     <span className="absolute inline-flex h-full w-full rounded-full bg-[#4ADE80] opacity-75 animate-ping" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-[#4ADE80]" />
                   </span>
-                  <span className="text-[11px] font-bold font-mono tracking-wider text-[#4ADE80] uppercase">
+                  <span className="text-xs font-bold font-mono tracking-wider text-[#4ADE80] uppercase">
                     Live
                   </span>
                 </div>
@@ -87,22 +87,22 @@ export default function NowPlayingBar() {
 
                 {/* Auction info */}
                 <div className="flex-1 min-w-0 flex items-center gap-2">
-                  <span className="text-[13px] text-[#A09888] truncate">
+                  <span className="text-[13px] text-[#9A9590] truncate">
                     {liveAuction.teams.slice(0, 3).map((t) => t.agent_name).join(" vs ")}
                     {liveAuction.teams.length > 3 && (
-                      <span className="text-[#6B6560]"> +{liveAuction.teams.length - 3}</span>
+                      <span className="text-[#78736E]"> +{liveAuction.teams.length - 3}</span>
                     )}
                   </span>
                 </div>
 
                 {/* ID badge */}
-                <span className="text-[10px] font-mono text-[#6B6560] shrink-0 hidden sm:inline">
+                <span className="text-[11px] font-mono text-[#78736E] shrink-0 hidden sm:inline">
                   {liveAuction.auction_id.slice(0, 8)}
                 </span>
 
                 {/* Arrow */}
                 <svg
-                  className="w-4 h-4 text-[#6B6560] group-hover:text-[#D4A853] transition-colors shrink-0"
+                  className="w-4 h-4 text-[#78736E] group-hover:text-[#C4A265] transition-colors shrink-0"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"

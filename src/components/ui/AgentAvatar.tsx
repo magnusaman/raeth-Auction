@@ -9,7 +9,7 @@ interface AgentAvatarProps {
 }
 
 const SIZES = {
-  sm: { outer: "w-7 h-7", text: "text-[10px]" },
+  sm: { outer: "w-7 h-7", text: "text-[11px]" },
   md: { outer: "w-10 h-10", text: "text-xs" },
   lg: { outer: "w-14 h-14", text: "text-sm" },
 };

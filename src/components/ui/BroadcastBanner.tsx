@@ -15,7 +15,7 @@ export default function BroadcastBanner({
   playerName,
   role,
   basePrice,
-  teamColor = "#D4A853",
+  teamColor = "#C4A265",
 }: BroadcastBannerProps) {
   return (
     <AnimatePresence>
@@ -36,15 +36,15 @@ export default function BroadcastBanner({
 
           <div className="flex items-center gap-4 px-4 py-3 flex-1 min-w-0">
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-bold text-[#F5F0E8] truncate font-display">
+              <div className="text-sm font-bold text-[#E8E4DE] truncate font-display">
                 {playerName}
               </div>
-              <div className="text-[11px] text-[#6B6560] uppercase tracking-wider font-mono">
+              <div className="text-[11px] text-[#78736E] uppercase tracking-wider font-mono">
                 {role}
               </div>
             </div>
             <div className="text-right shrink-0">
-              <div className="text-xs text-[#6B6560] uppercase tracking-wider">Base</div>
+              <div className="text-xs text-[#78736E] uppercase tracking-wider">Base</div>
               <div className="text-sm font-bold font-mono" style={{ color: teamColor }}>
                 {basePrice}
               </div>

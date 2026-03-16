@@ -102,8 +102,8 @@ export default function CommandPalette({ open, onOpenChange }: CommandPalettePro
 
   const statusColor = (status: string) => {
     if (status === "RUNNING" || status === "BIDDING") return "#4ADE80";
-    if (status === "COMPLETED") return "#D4A853";
-    return "#6B6560";
+    if (status === "COMPLETED") return "#C4A265";
+    return "#78736E";
   };
 
   return (
@@ -142,23 +142,23 @@ export default function CommandPalette({ open, onOpenChange }: CommandPalettePro
             >
               {/* Search input */}
               <div className="flex items-center gap-3 px-4 border-b border-white/[0.06]">
-                <svg className="w-4 h-4 text-[#6B6560] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="w-4 h-4 text-[#78736E] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 <Command.Input
                   value={search}
                   onValueChange={setSearch}
                   placeholder="Search pages, auctions, actions…"
-                  className="flex-1 bg-transparent border-none outline-none text-[#F5F0E8] text-sm py-3.5 placeholder:text-[#4a4540] font-body"
+                  className="flex-1 bg-transparent border-none outline-none text-[#E8E4DE] text-sm py-3.5 placeholder:text-[#625D58] font-body"
                 />
-                <kbd className="text-[10px] font-mono text-[#4a4540] px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">
+                <kbd className="text-[11px] font-mono text-[#625D58] px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">
                   ESC
                 </kbd>
               </div>
 
               {/* Results */}
               <Command.List className="max-h-[min(400px,50vh)] overflow-y-auto overscroll-contain p-2">
-                <Command.Empty className="text-center text-[#6B6560] text-sm py-8">
+                <Command.Empty className="text-center text-[#78736E] text-sm py-8">
                   No results found.
                 </Command.Empty>
 
@@ -173,7 +173,7 @@ export default function CommandPalette({ open, onOpenChange }: CommandPalettePro
                     >
                       <span className="text-base w-6 text-center shrink-0 opacity-60">{page.icon}</span>
                       <span className="flex-1 text-sm">{page.name}</span>
-                      <kbd className="text-[10px] font-mono text-[#4a4540] px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">
+                      <kbd className="text-[11px] font-mono text-[#625D58] px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">
                         ⌘{page.shortcut}
                       </kbd>
                     </Command.Item>
@@ -199,12 +199,12 @@ export default function CommandPalette({ open, onOpenChange }: CommandPalettePro
                             {a.teams.slice(0, 3).map((t) => t.agent_name).join(" vs ")}
                             {a.teams.length > 3 && ` +${a.teams.length - 3}`}
                           </div>
-                          <div className="text-[11px] text-[#6B6560] truncate font-mono">
+                          <div className="text-xs text-[#78736E] truncate font-mono">
                             {a.auction_id.slice(0, 8)}
                           </div>
                         </div>
                         <span
-                          className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded"
+                          className="text-[11px] font-mono font-bold px-1.5 py-0.5 rounded"
                           style={{
                             color: statusColor(a.status),
                             background: `${statusColor(a.status)}15`,
@@ -235,21 +235,21 @@ export default function CommandPalette({ open, onOpenChange }: CommandPalettePro
                 {/* Keyboard shortcuts help */}
                 <Command.Group heading="Keyboard Shortcuts" className="cmdk-group">
                   <Command.Item value="shortcut help" className="cmdk-item cursor-default" onSelect={() => {}}>
-                    <span className="text-[#6B6560] text-xs flex-1 flex items-center gap-3 flex-wrap">
+                    <span className="text-[#78736E] text-xs flex-1 flex items-center gap-3 flex-wrap">
                       <span className="flex items-center gap-1">
-                        <kbd className="text-[10px] font-mono px-1 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">⌘K</kbd>
+                        <kbd className="text-[11px] font-mono px-1 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">⌘K</kbd>
                         Search
                       </span>
                       <span className="flex items-center gap-1">
-                        <kbd className="text-[10px] font-mono px-1 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">⌘H</kbd>
+                        <kbd className="text-[11px] font-mono px-1 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">⌘H</kbd>
                         Home
                       </span>
                       <span className="flex items-center gap-1">
-                        <kbd className="text-[10px] font-mono px-1 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">⌘A</kbd>
+                        <kbd className="text-[11px] font-mono px-1 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">⌘A</kbd>
                         Arena
                       </span>
                       <span className="flex items-center gap-1">
-                        <kbd className="text-[10px] font-mono px-1 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">⌘L</kbd>
+                        <kbd className="text-[11px] font-mono px-1 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">⌘L</kbd>
                         Leaderboard
                       </span>
                     </span>
@@ -259,11 +259,11 @@ export default function CommandPalette({ open, onOpenChange }: CommandPalettePro
 
               {/* Footer */}
               <div
-                className="flex items-center justify-between px-4 py-2.5 text-[11px] text-[#4a4540]"
+                className="flex items-center justify-between px-4 py-2.5 text-xs text-[#625D58]"
                 style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
               >
                 <span>Navigate with ↑↓ · Select with ↵</span>
-                <span className="font-display tracking-wider uppercase text-[10px]" style={{ color: "rgba(212,168,83,0.3)" }}>
+                <span className="font-display tracking-wider uppercase text-[11px]" style={{ color: "rgba(196,162,101,0.3)" }}>
                   Raeth
                 </span>
               </div>

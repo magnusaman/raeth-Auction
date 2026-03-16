@@ -18,22 +18,22 @@ export default function AnimatedBackground({ variant = "home" }: AnimatedBackgro
         style={{
           background: isHome
             ? `
-              radial-gradient(ellipse 80% 50% at 50% -20%, rgba(212,168,83,0.18) 0%, transparent 50%),
+              radial-gradient(ellipse 80% 50% at 50% -20%, rgba(196,162,101,0.18) 0%, transparent 50%),
               radial-gradient(ellipse 60% 40% at 70% 0%, rgba(205,127,50,0.1) 0%, transparent 50%),
               radial-gradient(ellipse 50% 30% at 30% 10%, rgba(139,122,74,0.08) 0%, transparent 50%)
             `
             : variant === "auction"
             ? `
-              radial-gradient(ellipse 70% 50% at 50% -20%, rgba(212,168,83,0.2) 0%, transparent 50%),
+              radial-gradient(ellipse 70% 50% at 50% -20%, rgba(196,162,101,0.2) 0%, transparent 50%),
               radial-gradient(ellipse 50% 30% at 80% 0%, rgba(245,200,66,0.1) 0%, transparent 50%)
             `
             : variant === "tournament"
             ? `
-              radial-gradient(ellipse 70% 50% at 50% -20%, rgba(212,168,83,0.15) 0%, transparent 50%),
+              radial-gradient(ellipse 70% 50% at 50% -20%, rgba(196,162,101,0.15) 0%, transparent 50%),
               radial-gradient(ellipse 50% 30% at 30% 0%, rgba(139,122,74,0.1) 0%, transparent 50%)
             `
             : `
-              radial-gradient(ellipse 70% 50% at 50% -20%, rgba(212,168,83,0.1) 0%, transparent 50%)
+              radial-gradient(ellipse 70% 50% at 50% -20%, rgba(196,162,101,0.1) 0%, transparent 50%)
             `,
         }}
       />
@@ -44,7 +44,7 @@ export default function AnimatedBackground({ variant = "home" }: AnimatedBackgro
           <div
             className="absolute w-[800px] h-[800px] rounded-full opacity-20"
             style={{
-              background: "radial-gradient(circle, rgba(212,168,83,0.3) 0%, transparent 70%)",
+              background: "radial-gradient(circle, rgba(196,162,101,0.3) 0%, transparent 70%)",
               top: "-200px",
               left: "50%",
               transform: "translateX(-50%)",
@@ -79,7 +79,7 @@ export default function AnimatedBackground({ variant = "home" }: AnimatedBackgro
       <div
         className="absolute inset-0 opacity-[0.03]"
         style={{
-          backgroundImage: "radial-gradient(circle, rgba(212,168,83,0.6) 1px, transparent 1px)",
+          backgroundImage: "radial-gradient(circle, rgba(196,162,101,0.6) 1px, transparent 1px)",
           backgroundSize: "24px 24px",
         }}
       />

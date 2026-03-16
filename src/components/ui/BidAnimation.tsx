@@ -34,15 +34,15 @@ export default function BidAnimation({
       <AgentAvatar name={agentName} size="sm" />
 
       <div className="flex-1 min-w-0">
-        <div className={`text-[13px] font-medium truncate ${isPass ? "text-[#6B6560]" : "text-[#F5F0E8]"}`}>
+        <div className={`text-[13px] font-medium truncate ${isPass ? "text-[#78736E]" : "text-[#E8E4DE]"}`}>
           {teamName}
         </div>
-        <div className="text-[11px] text-[#6B6560] truncate font-mono">{agentName}</div>
+        <div className="text-xs text-[#78736E] truncate font-mono">{agentName}</div>
       </div>
 
       <div className="shrink-0 text-right">
         {isPass ? (
-          <span className="text-xs text-[#6B6560] font-mono line-through">PASS</span>
+          <span className="text-xs text-[#78736E] font-mono line-through">PASS</span>
         ) : (
           <motion.span
             initial={{ scale: 0.8 }}

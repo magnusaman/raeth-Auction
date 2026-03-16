@@ -74,9 +74,9 @@ function exportCSV(data: any) {
 
 /* ── Color constants for recharts only ── */
 const COLORS = {
-  cyan: "#D4A853", green: "#4ADE80", red: "#EF4444",
-  purple: "#8B7A4A", gold: "#F5C842", orange: "#CD7F32",
-  surface: "#111111", border: "#2a2520", textDim: "#A09888", textMuted: "#6B6560",
+  cyan: "#C4A265", green: "#4ADE80", red: "#EF4444",
+  purple: "#8B7A4A", gold: "#D4B06A", orange: "#B8856A",
+  surface: "#111111", border: "#2a2520", textDim: "#9A9590", textMuted: "#78736E",
 };
 
 /* ── Motion presets ── */
@@ -153,7 +153,7 @@ export default function ResultsPage() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-[#A09888] font-display text-lg"
+          className="text-[#9A9590] font-display text-lg"
         >
           Loading evaluation...
         </motion.div>
@@ -189,7 +189,7 @@ export default function ResultsPage() {
       {/* Gold confetti on page load for winner */}
       <ConfettiTrigger
         fire={hasWinner}
-        teamColor={hasWinner ? TEAM_COLORS[winnerTeamIndex] : "#D4A853"}
+        teamColor={hasWinner ? TEAM_COLORS[winnerTeamIndex] : "#C4A265"}
         variant="shower"
       />
 
@@ -203,19 +203,19 @@ export default function ResultsPage() {
         <div className="flex items-center gap-4">
           <button
             onClick={() => router.push("/")}
-            className="text-xs text-[#6B6560] bg-transparent border-none cursor-pointer hover:text-[#A09888] transition-colors"
+            className="text-sm text-[#9A9590] bg-transparent border-none cursor-pointer hover:text-[#E8E4DE] transition-colors font-medium"
           >
             ← Back
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-[#F5F0E8] m-0 font-display">Auction Results</h1>
-            <span className="font-mono text-sm text-[#6B6560]">{data.auction_id?.slice(0, 14)}</span>
+            <h1 className="text-2xl font-bold text-[#E8E4DE] m-0 font-display">Auction Results</h1>
+            <span className="font-mono text-sm text-[#9A9590]">{data.auction_id?.slice(0, 14)}</span>
           </div>
         </div>
         <div className="flex items-center gap-3">
           {evaluation?.winner && (
             <>
-              <span className="text-xs text-[#A09888]">Winner:</span>
+              <span className="text-xs text-[#9A9590]">Winner:</span>
               <AgentAvatar name={evaluation.winner.agentName || TEAM_NAMES[winnerTeamIndex]} size="sm" />
               <span className="text-sm font-bold font-display" style={{ color: TEAM_COLORS[winnerTeamIndex] }}>
                 {TEAM_LOGOS[winnerTeamIndex]} {TEAM_NAMES[winnerTeamIndex]}
@@ -233,7 +233,7 @@ export default function ResultsPage() {
           <div className="relative flex items-center gap-1.5">
             <button
               onClick={handleShare}
-              className="py-1.5 px-3 text-xs rounded-md border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] text-[#A09888] hover:text-[#F5F0E8] hover:border-[rgba(212,168,83,0.15)] cursor-pointer transition-colors"
+              className="py-1.5 px-3 text-xs rounded-md border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] text-[#9A9590] hover:text-[#E8E4DE] hover:border-[rgba(196,162,101,0.15)] cursor-pointer transition-colors"
               title="Share results"
             >
               <svg className="w-3.5 h-3.5 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -243,14 +243,14 @@ export default function ResultsPage() {
             </button>
             <button
               onClick={() => exportCSV(data)}
-              className="py-1.5 px-3 text-xs rounded-md border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] text-[#A09888] hover:text-[#F5F0E8] hover:border-[rgba(212,168,83,0.15)] cursor-pointer transition-colors"
+              className="py-1.5 px-3 text-xs rounded-md border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] text-[#9A9590] hover:text-[#E8E4DE] hover:border-[rgba(196,162,101,0.15)] cursor-pointer transition-colors"
               title="Export CSV"
             >
               CSV
             </button>
             <button
               onClick={() => exportJSON(data)}
-              className="py-1.5 px-3 text-xs rounded-md border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] text-[#A09888] hover:text-[#F5F0E8] hover:border-[rgba(212,168,83,0.15)] cursor-pointer transition-colors"
+              className="py-1.5 px-3 text-xs rounded-md border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] text-[#9A9590] hover:text-[#E8E4DE] hover:border-[rgba(196,162,101,0.15)] cursor-pointer transition-colors"
               title="Export JSON"
             >
               JSON
@@ -305,7 +305,7 @@ export default function ResultsPage() {
 }
 
 function OverviewTab({ data, evaluation }: { data: any; evaluation: any }) {
-  if (!evaluation) return <p className="text-[#6B6560]">No evaluation data</p>;
+  if (!evaluation) return <p className="text-[#78736E]">No evaluation data</p>;
   const teamEvals = evaluation.teamEvaluations || [];
 
   return (
@@ -320,7 +320,7 @@ function OverviewTab({ data, evaluation }: { data: any; evaluation: any }) {
               key={team.teamId}
               variants={cardReveal}
               transition={{ ...cardReveal.transition, delay: idx * 0.1 }}
-              className={`broadcast-card p-6 text-center ${isWinner ? "ring-1 ring-[#D4A853]/30" : ""}`}
+              className={`broadcast-card p-6 text-center ${isWinner ? "ring-1 ring-[#C4A265]/30" : ""}`}
               style={isWinner ? { borderColor: `${tc}60`, boxShadow: `0 0 40px ${tc}15` } : undefined}
             >
               <div className="flex justify-center mb-3">
@@ -329,8 +329,8 @@ function OverviewTab({ data, evaluation }: { data: any; evaluation: any }) {
               <div className="text-sm font-bold mb-0.5 font-display" style={{ color: tc }}>
                 {TEAM_LOGOS[team.teamIndex]} {TEAM_NAMES[team.teamIndex]}
               </div>
-              <div className="text-xs font-mono text-[#6B6560] mb-4">{team.agentName}</div>
-              <div className={`text-4xl font-extrabold font-mono mb-2 ${isWinner ? "text-gradient-brand" : "text-[#F5F0E8]"}`}>
+              <div className="text-xs font-mono text-[#78736E] mb-4">{team.agentName}</div>
+              <div className={`text-4xl font-extrabold font-mono mb-2 ${isWinner ? "text-gradient-brand" : "text-[#E8E4DE]"}`}>
                 <ScoreReveal
                   value={team.compositeScore * 100}
                   suffix="%"
@@ -362,11 +362,11 @@ function OverviewTab({ data, evaluation }: { data: any; evaluation: any }) {
             </div>
             <div className="border-l-[3px] border-[#4ADE80] py-2 px-3.5 bg-[rgba(74,222,128,0.03)] rounded-r-md mb-2">
               <SectionLabel color={COLORS.green} label="Best" />
-              <p className="text-xs text-[#A09888] mt-1">{team.highlights.bestDecision.description}</p>
+              <p className="text-sm text-[#9A9590] mt-1">{team.highlights.bestDecision.description}</p>
             </div>
             <div className="border-l-[3px] border-[#EF4444] py-2 px-3.5 bg-[rgba(239,68,68,0.03)] rounded-r-md">
               <SectionLabel color={COLORS.red} label="Worst" />
-              <p className="text-xs text-[#A09888] mt-1">{team.highlights.worstDecision.description}</p>
+              <p className="text-sm text-[#9A9590] mt-1">{team.highlights.worstDecision.description}</p>
             </div>
           </motion.div>
         ))}
@@ -431,14 +431,14 @@ function SquadsTab({ data }: { data: any }) {
                   <div className="text-sm font-bold font-display" style={{ color: tc }}>
                     {TEAM_LOGOS[team.team_index]} {team.team_name}
                   </div>
-                  <div className="text-xs font-mono text-[#6B6560]">{team.agent_name}</div>
+                  <div className="text-xs font-mono text-[#78736E]">{team.agent_name}</div>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-[15px] font-mono font-bold text-[#D4A853]">
+                <div className="text-[15px] font-mono font-bold text-[#C4A265]">
                   <ScoreReveal value={team.purse_spent || 0} prefix="₹" suffix=" Cr" decimals={1} duration={1000} />
                 </div>
-                <div className="text-xs text-[#6B6560]">spent</div>
+                <div className="text-xs text-[#78736E]">spent</div>
               </div>
             </div>
             {team.squad?.map((p: any) => {
@@ -448,12 +448,12 @@ function SquadsTab({ data }: { data: any }) {
                   <div className="flex items-center gap-2.5">
                     <Badge text={p.role.replace("_", " ").slice(0, 3)} color={rc} />
                     <div>
-                      <div className="text-xs font-medium text-[#F5F0E8]">{p.name}{p.nationality !== "India" && " 🌍"}</div>
-                      <div className="text-xs text-[#6B6560]">{p.sub_type?.replace(/_/g, " ")}</div>
+                      <div className="text-sm font-medium text-[#E8E4DE]">{p.name}{p.nationality !== "India" && " 🌍"}</div>
+                      <div className="text-xs text-[#78736E]">{p.sub_type?.replace(/_/g, " ")}</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-xs font-mono text-[#F5F0E8]">₹{p.price_paid} Cr</div>
+                    <div className="text-xs font-mono text-[#E8E4DE]">₹{p.price_paid} Cr</div>
                     <div className="text-xs font-mono" style={{ color: p.hidden_true_value >= p.price_paid ? COLORS.green : COLORS.red }}>
                       True: ₹{p.hidden_true_value.toFixed(1)}{p.is_trap && " 🪤"}{p.is_sleeper && " 💎"}
                     </div>
@@ -461,7 +461,7 @@ function SquadsTab({ data }: { data: any }) {
                 </div>
               );
             })}
-            <div className="py-2.5 px-5 text-xs text-[#6B6560] flex gap-4">
+            <div className="py-2.5 px-5 text-xs text-[#78736E] flex gap-4">
               <span>Squad: {team.squad_size}</span>
               <span>Overseas: {team.overseas_count}</span>
               <span>Remaining: ₹{team.purse_remaining?.toFixed(1)} Cr</span>
@@ -474,7 +474,7 @@ function SquadsTab({ data }: { data: any }) {
 }
 
 function GradersTab({ evaluation }: { evaluation: any }) {
-  if (!evaluation) return <p className="text-[#6B6560]">No evaluation data</p>;
+  if (!evaluation) return <p className="text-[#78736E]">No evaluation data</p>;
   const teamEvals = evaluation.teamEvaluations || [];
   const graderNames = teamEvals[0]?.codeGraderScores?.map((g: any) => g.graderName) || [];
 
@@ -493,7 +493,7 @@ function GradersTab({ evaluation }: { evaluation: any }) {
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={barData}>
             <XAxis dataKey="name" stroke={COLORS.textMuted} fontSize={11} />
-            <YAxis stroke={COLORS.textMuted} domain={[0, 100]} fontSize={10} />
+            <YAxis stroke={COLORS.textMuted} domain={[0, 100]} fontSize={11} />
             <Tooltip contentStyle={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: 6, fontSize: 12 }} />
             <Bar dataKey="score" radius={[6, 6, 0, 0]}>{barData.map((e: any, i: number) => <Cell key={i} fill={e.fill} />)}</Bar>
           </BarChart>
@@ -505,10 +505,10 @@ function GradersTab({ evaluation }: { evaluation: any }) {
         <ResponsiveContainer width="100%" height={380}>
           <RadarChart data={radarData}>
             <PolarGrid stroke={COLORS.border} />
-            <PolarAngleAxis dataKey="grader" tick={{ fill: COLORS.textDim, fontSize: 10 }} />
-            <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: COLORS.textMuted, fontSize: 9 }} />
+            <PolarAngleAxis dataKey="grader" tick={{ fill: COLORS.textDim, fontSize: 11 }} />
+            <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: COLORS.textMuted, fontSize: 11 }} />
             {teamEvals.map((t: any) => <Radar key={t.teamIndex} name={TEAM_NAMES[t.teamIndex]} dataKey={TEAM_NAMES[t.teamIndex]} stroke={TEAM_COLORS[t.teamIndex]} fill={TEAM_COLORS[t.teamIndex]} fillOpacity={0.12} />)}
-            <Legend wrapperStyle={{ color: COLORS.textDim, fontSize: 11 }} />
+            <Legend wrapperStyle={{ color: COLORS.textDim, fontSize: 12 }} />
           </RadarChart>
         </ResponsiveContainer>
       </motion.div>
@@ -528,7 +528,7 @@ function GradersTab({ evaluation }: { evaluation: any }) {
           </div>
           {team.codeGraderScores.map((g: any) => (
             <div key={g.graderName} className="flex items-center gap-2.5 mb-1.5">
-              <span className="text-xs w-[110px] text-right font-mono text-[#A09888]">{g.graderName.replace(/_/g, " ")}</span>
+              <span className="text-xs w-[110px] text-right font-mono text-[#9A9590]">{g.graderName.replace(/_/g, " ")}</span>
               <div className="flex-1 h-1.5 rounded-sm bg-[rgba(255,255,255,0.03)] overflow-hidden">
                 <motion.div
                   className="h-full rounded-sm"
@@ -540,7 +540,7 @@ function GradersTab({ evaluation }: { evaluation: any }) {
                   }}
                 />
               </div>
-              <span className="text-xs w-9 text-right font-mono text-[#F5F0E8]">{(g.score * 100).toFixed(0)}%</span>
+              <span className="text-xs w-9 text-right font-mono text-[#E8E4DE]">{(g.score * 100).toFixed(0)}%</span>
             </div>
           ))}
         </motion.div>
@@ -562,7 +562,7 @@ function TranscriptTab({ data }: { data: any }) {
             key={f}
             onClick={() => setFilter(f)}
             className={`py-1.5 px-4 text-sm font-semibold rounded-[5px] border-none cursor-pointer font-mono transition-colors ${
-              filter === f ? "" : "bg-transparent text-[#6B6560] hover:text-[#A09888]"
+              filter === f ? "" : "bg-transparent text-[#78736E] hover:text-[#9A9590]"
             }`}
             style={filter === f ? {
               background: f === "SOLD" ? `${COLORS.green}18` : f === "UNSOLD" ? `${COLORS.red}18` : `${COLORS.cyan}18`,
@@ -583,12 +583,12 @@ function TranscriptTab({ data }: { data: any }) {
         >
           <div className="py-2.5 px-4 border-b border-[rgba(255,255,255,0.05)] flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <span className="font-mono text-xs text-[#6B6560]">#{lot.lot_number}</span>
-              <span className="text-sm font-semibold text-[#F5F0E8]">{lot.player_name}</span>
+              <span className="font-mono text-xs text-[#78736E]">#{lot.lot_number}</span>
+              <span className="text-sm font-semibold text-[#E8E4DE]">{lot.player_name}</span>
               <Badge text={lot.player_role.replace(/_/g, " ")} color={COLORS.cyan} />
             </div>
             <div className="flex items-center gap-2">
-              {lot.final_price && <span className="font-mono text-xs text-[#D4A853]">₹{lot.final_price} Cr</span>}
+              {lot.final_price && <span className="font-mono text-xs text-[#C4A265]">₹{lot.final_price} Cr</span>}
               <Badge text={lot.status} color={lot.status === "SOLD" ? COLORS.green : COLORS.red} />
             </div>
           </div>
@@ -598,7 +598,7 @@ function TranscriptTab({ data }: { data: any }) {
               <div key={i} className="py-1.5 px-4 flex items-start gap-3 text-xs border-b border-[rgba(255,255,255,0.03)]">
                 <span className="w-[60px] shrink-0 font-semibold" style={{ color: ti >= 0 ? TEAM_COLORS[ti] : COLORS.textMuted }}>{ti >= 0 ? TEAM_NAMES[ti].split(" ")[1] : "?"}</span>
                 <span className="w-[60px] shrink-0 font-mono" style={{ color: bid.action === "bid" ? COLORS.green : COLORS.red }}>{bid.action === "bid" ? `₹${bid.amount}` : "PASS"}</span>
-                {bid.reasoning && <span className="text-[#6B6560] overflow-hidden text-ellipsis whitespace-nowrap">{bid.reasoning}</span>}
+                {bid.reasoning && <span className="text-[#78736E] overflow-hidden text-ellipsis whitespace-nowrap">{bid.reasoning}</span>}
               </div>
             );
           })}
@@ -609,7 +609,7 @@ function TranscriptTab({ data }: { data: any }) {
 }
 
 function SeasonTab({ seasonSim }: { seasonSim: any }) {
-  if (!seasonSim) return <p className="text-[#6B6560]">No season data</p>;
+  if (!seasonSim) return <p className="text-[#78736E]">No season data</p>;
   return (
     <motion.div initial="initial" animate="animate" variants={stagger}>
       <motion.div className="broadcast-card mb-4" variants={cardReveal}>
@@ -621,7 +621,7 @@ function SeasonTab({ seasonSim }: { seasonSim: any }) {
             <tr>{["Pos", "Team", "P", "W", "L", "NRR", "Pts"].map((h) => (
               <th
                 key={h}
-                className={`py-2.5 px-4 text-sm uppercase tracking-wide text-[#6B6560] border-b border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.01)] font-semibold font-display ${
+                className={`py-2.5 px-4 text-sm uppercase tracking-wide text-[#78736E] border-b border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.01)] font-semibold font-display ${
                   ["P", "W", "L", "NRR", "Pts"].includes(h) ? "text-center" : "text-left"
                 }`}
               >{h}</th>
@@ -636,13 +636,13 @@ function SeasonTab({ seasonSim }: { seasonSim: any }) {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: 0.1 + idx * 0.05 }}
               >
-                <td className={`py-3 px-4 font-mono ${idx < 2 ? "text-[#4ADE80]" : "text-[#F5F0E8]"}`}>{idx + 1}</td>
+                <td className={`py-3 px-4 font-mono ${idx < 2 ? "text-[#4ADE80]" : "text-[#E8E4DE]"}`}>{idx + 1}</td>
                 <td className="py-3 px-4 font-display" style={{ color: TEAM_COLORS[t.teamIndex] }}>{TEAM_LOGOS[t.teamIndex]} {TEAM_NAMES[t.teamIndex]}</td>
-                <td className="py-3 px-4 text-center text-[#A09888]">{t.played}</td>
+                <td className="py-3 px-4 text-center text-[#9A9590]">{t.played}</td>
                 <td className="py-3 px-4 text-center text-[#4ADE80]">{t.won}</td>
                 <td className="py-3 px-4 text-center text-[#EF4444]">{t.lost}</td>
                 <td className="py-3 px-4 text-center font-mono" style={{ color: t.nrr >= 0 ? COLORS.green : COLORS.red }}>{t.nrr >= 0 ? "+" : ""}{t.nrr}</td>
-                <td className="py-3 px-4 text-center font-bold text-[#D4A853]">{t.points}</td>
+                <td className="py-3 px-4 text-center font-bold text-[#C4A265]">{t.points}</td>
               </motion.tr>
             ))}
           </tbody>
@@ -661,9 +661,9 @@ function SeasonTab({ seasonSim }: { seasonSim: any }) {
               transition={{ duration: 0.25, delay: Math.min(i * 0.02, 0.8) }}
             >
               <span className="font-display" style={{ color: TEAM_COLORS[m.team1Index], opacity: m.winnerIndex === m.team1Index ? 1 : 0.35 }}>{TEAM_NAMES[m.team1Index].split(" ")[1]}</span>
-              <span className="text-[#6B6560] text-xs">vs</span>
+              <span className="text-[#78736E] text-xs">vs</span>
               <span className="font-display" style={{ color: TEAM_COLORS[m.team2Index], opacity: m.winnerIndex === m.team2Index ? 1 : 0.35 }}>{TEAM_NAMES[m.team2Index].split(" ")[1]}</span>
-              <span className="font-mono text-xs text-[#6B6560]">{m.margin}</span>
+              <span className="font-mono text-xs text-[#78736E]">{m.margin}</span>
             </motion.div>
           ))}
         </div>

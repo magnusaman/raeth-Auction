@@ -1,24 +1,26 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Syne } from "next/font/google";
+import { Plus_Jakarta_Sans, Outfit, IBM_Plex_Mono } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { Toaster } from "sonner";
 import "./globals.css";
 
-const syne = Syne({
+const outfit = Outfit({
   variable: "--font-syne",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
 });
 
-const inter = Inter({
+const jakartaSans = Plus_Jakarta_Sans({
   variable: "--font-inter",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
-const jetbrains = JetBrains_Mono({
+const plexMono = IBM_Plex_Mono({
   variable: "--font-jetbrains",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -57,7 +59,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <body
-        className={`${syne.variable} ${inter.variable} ${jetbrains.variable} antialiased bg-bg-deep text-text-primary`}
+        className={`${outfit.variable} ${jakartaSans.variable} ${plexMono.variable} antialiased bg-bg-deep text-text-primary`}
       >
         <ThemeProvider>
           <Navbar />
@@ -70,7 +72,7 @@ export default function RootLayout({
               style: {
                 background: "rgba(14,14,14,0.95)",
                 border: "1px solid rgba(255,255,255,0.08)",
-                color: "#F5F0E8",
+                color: "#E8E4DE",
                 borderRadius: "12px",
               },
             }}

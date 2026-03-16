@@ -11,7 +11,7 @@ interface ConfettiTriggerProps {
 
 export default function ConfettiTrigger({
   fire,
-  teamColor = "#D4A853",
+  teamColor = "#C4A265",
   variant = "burst",
 }: ConfettiTriggerProps) {
   const hasFired = useRef(false);
@@ -20,8 +20,8 @@ export default function ConfettiTrigger({
     if (!fire || hasFired.current) return;
     hasFired.current = true;
 
-    const gold = "#D4A853";
-    const colors = [gold, teamColor, "#F5F0E8", "#E8D5A3"];
+    const gold = "#C4A265";
+    const colors = [gold, teamColor, "#E8E4DE", "#E8D5A3"];
 
     if (variant === "burst") {
       confetti({

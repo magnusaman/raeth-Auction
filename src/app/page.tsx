@@ -118,11 +118,11 @@ export default function Home() {
           >
             <span
               className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-[13px] font-mono font-semibold tracking-wider uppercase"
-              style={{ background: "rgba(212,168,83,0.08)", border: "1px solid rgba(212,168,83,0.15)", color: "#D4A853" }}
+              style={{ background: "rgba(196,162,101,0.08)", border: "1px solid rgba(196,162,101,0.15)", color: "#C4A265" }}
             >
               <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-[#D4A853] opacity-75 animate-ping" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#D4A853]" />
+                <span className="absolute inline-flex h-full w-full rounded-full bg-[#C4A265] opacity-75 animate-ping" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#C4A265]" />
               </span>
               AI Cricket Arena
             </span>
@@ -138,7 +138,7 @@ export default function Home() {
                 animate="visible"
                 variants={WORD_VARIANTS}
                 className={`inline-block mr-[0.28em] ${
-                  i < 3 ? "text-[#F5F0E8]" : ""
+                  i < 3 ? "text-[#E8E4DE]" : ""
                 } ${i >= 3 ? "text-gradient-brand" : ""}`}
               >
                 {word}
@@ -151,7 +151,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.9, duration: 0.6 }}
-            className="text-lg md:text-xl text-[#A09888] leading-relaxed mb-14 max-w-[600px] mx-auto"
+            className="text-lg md:text-xl text-[#9A9590] leading-relaxed mb-14 max-w-[600px] mx-auto"
           >
             Multiple AI models bid on real IPL players, build squads, and predict
             match outcomes — all scored against actual IPL 2024 data.
@@ -194,7 +194,7 @@ export default function Home() {
             animate={{ y: [0, 8, 0] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >
-            <svg className="w-5 h-5 text-[#6B6560]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-5 h-5 text-[#78736E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
             </svg>
           </motion.div>
@@ -213,13 +213,13 @@ export default function Home() {
         <div className="flex items-center h-11">
           <div
             className="shrink-0 flex items-center gap-2 px-5 h-full border-r"
-            style={{ borderColor: "rgba(255,255,255,0.05)", background: "rgba(212,168,83,0.06)" }}
+            style={{ borderColor: "rgba(255,255,255,0.05)", background: "rgba(196,162,101,0.06)" }}
           >
             <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-[#D4A853] opacity-75 animate-ping" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#D4A853]" />
+              <span className="absolute inline-flex h-full w-full rounded-full bg-[#C4A265] opacity-75 animate-ping" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#C4A265]" />
             </span>
-            <span className="text-[10px] font-mono font-bold tracking-[0.12em] uppercase" style={{ color: "#D4A853" }}>
+            <span className="text-xs font-mono font-bold tracking-[0.12em] uppercase" style={{ color: "#C4A265" }}>
               LIVE
             </span>
           </div>
@@ -230,9 +230,9 @@ export default function Home() {
             >
               {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, i) => (
                 <span key={i} className="inline-flex items-center gap-2 text-xs font-mono">
-                  <span className="text-[#6B6560]">{item.text}</span>
+                  <span className="text-[#78736E]">{item.text}</span>
                   <span className="font-bold" style={{ color: item.color }}>{item.highlight}</span>
-                  <span className="text-[#4a4540] mx-2">&#183;</span>
+                  <span className="text-[#625D58] mx-2">&#183;</span>
                 </span>
               ))}
             </div>
@@ -265,7 +265,7 @@ export default function Home() {
                 <div className="text-3xl md:text-4xl font-extrabold font-mono mb-1" style={{ color: stat.color }}>
                   <ScoreReveal value={stat.value} suffix={stat.suffix} triggerOnScroll={true} />
                 </div>
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6B6560]">
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[#78736E]">
                   {stat.label}
                 </div>
               </motion.div>
@@ -296,7 +296,7 @@ export default function Home() {
               {liveAuction.teams.map((t) => (
                 <div key={t.team_index} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.03]">
                   <AgentAvatar name={t.agent_name} size="sm" />
-                  <span className="text-sm text-[#A09888]">{t.agent_name}</span>
+                  <span className="text-sm text-[#9A9590]">{t.agent_name}</span>
                 </div>
               ))}
             </div>
@@ -313,11 +313,11 @@ export default function Home() {
             transition={{ duration: 0.5 }}
             className="text-center mb-16 md:mb-20"
           >
-            <p className="text-sm font-mono font-semibold tracking-[0.2em] uppercase mb-5" style={{ color: "#D4A853" }}>
+            <p className="text-sm font-mono font-semibold tracking-[0.2em] uppercase mb-5" style={{ color: "#C4A265" }}>
               Benchmarks
             </p>
             <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-[-0.02em] font-display">
-              <span className="text-[#F5F0E8]">Two Benchmarks.</span>{" "}
+              <span className="text-[#E8E4DE]">Two Benchmarks.</span>{" "}
               <span className="text-gradient-brand">One Arena.</span>
             </h2>
           </motion.div>
@@ -341,12 +341,12 @@ export default function Home() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-[#F5F0E8] font-display">AuctionBench</h3>
-                    <p className="text-sm text-[#6B6560] font-mono">Strategic Bidding Evaluation</p>
+                    <h3 className="text-lg font-bold text-[#E8E4DE] font-display">AuctionBench</h3>
+                    <p className="text-sm text-[#78736E] font-mono">Strategic Bidding Evaluation</p>
                   </div>
                 </div>
 
-                <p className="text-sm text-[#A09888] leading-relaxed mb-8">
+                <p className="text-sm text-[#9A9590] leading-relaxed mb-8">
                   AI agents compete in a live IPL-style auction. Each manages ₹100 Crore to build the best possible squad from 120 real players.
                 </p>
 
@@ -358,7 +358,7 @@ export default function Home() {
                   ].map((s) => (
                     <div key={s.label} className="rounded-xl p-3 text-center" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
                       <div className="text-sm font-bold font-mono" style={{ color: s.color }}>{s.val}</div>
-                      <div className="text-[10px] uppercase tracking-wider text-[#6B6560] mt-0.5">{s.label}</div>
+                      <div className="text-xs uppercase tracking-wider text-[#78736E] mt-0.5">{s.label}</div>
                     </div>
                   ))}
                 </div>
@@ -394,12 +394,12 @@ export default function Home() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-[#F5F0E8] font-display">TourBench</h3>
-                    <p className="text-sm text-[#6B6560] font-mono">Match Prediction Analysis</p>
+                    <h3 className="text-lg font-bold text-[#E8E4DE] font-display">TourBench</h3>
+                    <p className="text-sm text-[#78736E] font-mono">Match Prediction Analysis</p>
                   </div>
                 </div>
 
-                <p className="text-sm text-[#A09888] leading-relaxed mb-8">
+                <p className="text-sm text-[#9A9590] leading-relaxed mb-8">
                   AI agents analyze squads, venues, and form to predict winners of all 74 IPL 2024 matches. Graded on accuracy and calibration.
                 </p>
 
@@ -411,7 +411,7 @@ export default function Home() {
                   ].map((s) => (
                     <div key={s.label} className="rounded-xl p-3 text-center" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
                       <div className="text-sm font-bold font-mono" style={{ color: s.color }}>{s.val}</div>
-                      <div className="text-[10px] uppercase tracking-wider text-[#6B6560] mt-0.5">{s.label}</div>
+                      <div className="text-xs uppercase tracking-wider text-[#78736E] mt-0.5">{s.label}</div>
                     </div>
                   ))}
                 </div>
@@ -439,11 +439,11 @@ export default function Home() {
             transition={{ duration: 0.5 }}
             className="text-center mb-16 md:mb-20"
           >
-            <p className="text-sm font-mono font-semibold tracking-[0.2em] uppercase mb-5" style={{ color: "#D4A853" }}>
+            <p className="text-sm font-mono font-semibold tracking-[0.2em] uppercase mb-5" style={{ color: "#C4A265" }}>
               Process
             </p>
             <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-[-0.02em] font-display">
-              <span className="text-[#F5F0E8]">How It</span>{" "}
+              <span className="text-[#E8E4DE]">How It</span>{" "}
               <span className="text-gradient-brand">Works</span>
             </h2>
           </motion.div>
@@ -491,8 +491,8 @@ export default function Home() {
                   >
                     Step {item.step}
                   </div>
-                  <h3 className="text-xl font-bold text-[#F5F0E8] mb-3 font-display">{item.title}</h3>
-                  <p className="text-sm text-[#A09888] leading-relaxed">{item.desc}</p>
+                  <h3 className="text-xl font-bold text-[#E8E4DE] mb-3 font-display">{item.title}</h3>
+                  <p className="text-sm text-[#9A9590] leading-relaxed">{item.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -505,10 +505,10 @@ export default function Home() {
         <div className="mx-auto max-w-[1200px] px-6">
           <div className="flex items-center justify-between mb-10">
             <div>
-              <p className="text-sm font-mono font-semibold tracking-[0.2em] uppercase mb-3" style={{ color: "#D4A853" }}>
+              <p className="text-sm font-mono font-semibold tracking-[0.2em] uppercase mb-3" style={{ color: "#C4A265" }}>
                 History
               </p>
-              <h2 className="text-2xl md:text-4xl font-bold text-[#F5F0E8] font-display">
+              <h2 className="text-2xl md:text-4xl font-bold text-[#E8E4DE] font-display">
                 Recent Auctions
               </h2>
             </div>
@@ -540,14 +540,14 @@ export default function Home() {
             >
               <div
                 className="w-16 h-16 mx-auto mb-5 rounded-2xl flex items-center justify-center"
-                style={{ background: "rgba(212,168,83,0.08)", border: "1px solid rgba(212,168,83,0.12)" }}
+                style={{ background: "rgba(196,162,101,0.08)", border: "1px solid rgba(196,162,101,0.12)" }}
               >
-                <svg className="w-7 h-7" style={{ color: "#D4A853" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <svg className="w-7 h-7" style={{ color: "#C4A265" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z" />
                 </svg>
               </div>
-              <p className="text-lg font-bold text-[#F5F0E8] mb-2 font-display">No auctions yet</p>
-              <p className="text-sm text-[#6B6560] mb-8">Create your first auction to get started</p>
+              <p className="text-lg font-bold text-[#E8E4DE] mb-2 font-display">No auctions yet</p>
+              <p className="text-sm text-[#78736E] mb-8">Create your first auction to get started</p>
               <button onClick={createNewAuction} disabled={running} className="btn-gradient py-3 px-8 disabled:opacity-40">
                 <span>{running ? "Creating..." : "Create First Auction"}</span>
               </button>
@@ -571,11 +571,11 @@ export default function Home() {
                         : `/auction/${auction.auction_id}`
                     )
                   }
-                  className="broadcast-card p-5 min-w-[300px] md:min-w-[340px] snap-start cursor-pointer group shrink-0 hover:border-[rgba(212,168,83,0.15)] transition-colors"
+                  className="broadcast-card p-5 min-w-[300px] md:min-w-[340px] snap-start cursor-pointer group shrink-0 hover:border-[rgba(196,162,101,0.15)] transition-colors"
                 >
                   <div className="flex items-center justify-between mb-4">
                     <StatusBadge status={auction.status} />
-                    <span className="text-[11px] text-[#4a4540] font-mono">
+                    <span className="text-xs text-[#625D58] font-mono">
                       {timeAgo(auction.completed_at || auction.created_at)}
                     </span>
                   </div>
@@ -586,23 +586,23 @@ export default function Home() {
                     ))}
                   </div>
 
-                  <div className="text-[13px] text-[#A09888] truncate mb-3">
+                  <div className="text-[13px] text-[#9A9590] truncate mb-3">
                     {auction.teams.map((t) => t.agent_name).join(" vs ")}
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono text-[#6B6560]">
+                    <span className="text-xs font-mono text-[#78736E]">
                       {auction.auction_id.slice(0, 8)}
                     </span>
 
                     <button
                       onClick={(e) => deleteAuction(auction.auction_id, e)}
                       disabled={deleting === auction.auction_id}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 text-[#6B6560] hover:text-[#EF4444] rounded-lg transition-all bg-transparent border-none cursor-pointer"
+                      className="opacity-0 group-hover:opacity-100 p-1.5 text-[#78736E] hover:text-[#EF4444] rounded-lg transition-all bg-transparent border-none cursor-pointer"
                       title="Delete"
                     >
                       {deleting === auction.auction_id ? (
-                        <div className="w-3.5 h-3.5 border-2 border-[#6B6560] border-t-transparent rounded-full animate-spin" />
+                        <div className="w-3.5 h-3.5 border-2 border-[#78736E] border-t-transparent rounded-full animate-spin" />
                       ) : (
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -621,16 +621,16 @@ export default function Home() {
       <footer className="relative mt-20">
         <div
           className="absolute top-0 left-0 right-0 h-px"
-          style={{ background: "linear-gradient(90deg, transparent, rgba(212,168,83,0.12), transparent)" }}
+          style={{ background: "linear-gradient(90deg, transparent, rgba(196,162,101,0.12), transparent)" }}
         />
         <div className="mx-auto max-w-[1200px] px-6 py-14 md:py-20">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex items-center gap-2">
-              <span className="font-display text-[17px] font-extrabold tracking-[0.2em] uppercase" style={{ color: "#D4A853" }}>
+              <span className="font-display text-[17px] font-extrabold tracking-[0.2em] uppercase" style={{ color: "#C4A265" }}>
                 Raeth
               </span>
-              <span className="text-[#4a4540] mx-1 font-light text-sm select-none">/</span>
-              <span className="font-display text-[13px] font-bold tracking-[0.15em] uppercase text-[#6B6560]">
+              <span className="text-[#625D58] mx-1 font-light text-sm select-none">/</span>
+              <span className="font-display text-[13px] font-bold tracking-[0.15em] uppercase text-[#78736E]">
                 Arena
               </span>
             </div>
@@ -645,7 +645,7 @@ export default function Home() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="text-xs text-[#6B6560] hover:text-[#D4A853] transition-colors no-underline font-medium"
+                  className="text-sm text-[#9A9590] hover:text-[#C4A265] transition-colors no-underline font-medium"
                 >
                   {link.label}
                 </Link>
@@ -653,7 +653,7 @@ export default function Home() {
             </div>
           </div>
           <div className="mt-10 text-center">
-            <p className="text-[11px] text-[#4a4540] font-mono">
+            <p className="text-sm text-[#78736E] font-mono">
               Powered by AI models from Anthropic, OpenAI, Google, DeepSeek, Meta & Mistral
             </p>
           </div>

@@ -110,8 +110,8 @@ export default function TrendsPage() {
         </div>
         <div className="broadcast-card py-20 text-center">
           <div className="text-4xl mb-4">📊</div>
-          <p className="text-[#A09888] mb-2">No trend data yet</p>
-          <p className="text-sm text-[#6B6560] mb-6">Run some auctions to see performance trends</p>
+          <p className="text-[#9A9590] mb-2">No trend data yet</p>
+          <p className="text-sm text-[#78736E] mb-6">Run some auctions to see performance trends</p>
           <Link href="/" className="btn-primary text-sm py-2.5 px-6">Create Auction</Link>
         </div>
       </div>
@@ -186,8 +186,8 @@ export default function TrendsPage() {
         <div className="flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold tracking-[0.2em] uppercase text-accent-cyan">Analytics</span>
-            <h1 className="mt-1 text-3xl font-bold font-display text-[#F5F0E8]">Historical Trends</h1>
-            <p className="mt-1 text-sm text-[#A09888]">
+            <h1 className="mt-1 text-3xl font-bold font-display text-[#E8E4DE]">Historical Trends</h1>
+            <p className="mt-1 text-sm text-[#9A9590]">
               Track AI agent performance across {data.totalAuctions} completed auction{data.totalAuctions !== 1 ? "s" : ""}
             </p>
           </div>
@@ -200,9 +200,9 @@ export default function TrendsPage() {
             onClick={() => setSpotlightAgent(null)}
             className="btn-ghost text-xs mt-3 flex items-center gap-1.5"
           >
-            <span className="w-2 h-2 rounded-full bg-[#D4A853] animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-[#C4A265] animate-pulse" />
             Spotlight: {spotlightAgent}
-            <span className="text-[#6B6560] ml-1">— click to clear</span>
+            <span className="text-[#78736E] ml-1">— click to clear</span>
           </motion.button>
         )}
       </RevealSection>
@@ -219,18 +219,18 @@ export default function TrendsPage() {
               animate={{ opacity: spotlightOpacity(m.model) }}
               transition={{ duration: 0.3 }}
               className={`broadcast-card px-4 py-3 cursor-pointer ${
-                spotlightAgent === m.model ? "ring-1 ring-[#D4A853]/40" : ""
+                spotlightAgent === m.model ? "ring-1 ring-[#C4A265]/40" : ""
               }`}
               style={{ borderLeftColor: colorMap[m.model], borderLeftWidth: 3 }}
             >
               <div className="flex items-center gap-2 mb-1">
                 <AgentAvatar name={m.model} size="sm" />
-                <p className="text-xs text-[#6B6560] truncate flex-1">{m.model}</p>
+                <p className="text-xs text-[#78736E] truncate flex-1">{m.model}</p>
               </div>
               <p className="text-xl font-bold font-mono mt-0.5" style={{ color: colorMap[m.model] }}>
                 {m.summary.avgScore.toFixed(1)}%
               </p>
-              <p className="text-xs text-[#6B6560] mt-0.5">
+              <p className="text-xs text-[#78736E] mt-0.5">
                 {m.summary.totalWins}W / {m.summary.totalGames}G
               </p>
             </motion.div>
@@ -251,9 +251,9 @@ export default function TrendsPage() {
               <LineChart data={scoreTrend}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                 <XAxis dataKey="name" stroke="#707070" fontSize={11} />
-                <YAxis stroke="#707070" fontSize={10} domain={[0, 100]} />
+                <YAxis stroke="#707070" fontSize={11} domain={[0, 100]} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
                 {data.models.map((m) => (
                   <Line
                     key={m.model}
@@ -283,9 +283,9 @@ export default function TrendsPage() {
               <AreaChart data={winRateTrend}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                 <XAxis dataKey="name" stroke="#707070" fontSize={11} />
-                <YAxis stroke="#707070" fontSize={10} domain={[0, 100]} unit="%" />
+                <YAxis stroke="#707070" fontSize={11} domain={[0, 100]} unit="%" />
                 <Tooltip contentStyle={TOOLTIP_STYLE} />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
                 {data.models.map((m) => (
                   <Area
                     key={m.model}
@@ -315,8 +315,8 @@ export default function TrendsPage() {
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={spendData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                <XAxis dataKey="name" stroke="#707070" fontSize={10} />
-                <YAxis stroke="#707070" fontSize={10} unit=" Cr" />
+                <XAxis dataKey="name" stroke="#707070" fontSize={11} />
+                <YAxis stroke="#707070" fontSize={11} unit=" Cr" />
                 <Tooltip
                   contentStyle={TOOLTIP_STYLE}
                   formatter={(value: any) => [`₹${value} Cr`, "Avg Spend"]}
@@ -347,8 +347,8 @@ export default function TrendsPage() {
             <ResponsiveContainer width="100%" height={260}>
               <RadarChart data={radarData}>
                 <PolarGrid stroke="rgba(255,255,255,0.08)" />
-                <PolarAngleAxis dataKey="metric" tick={{ fill: "#707070", fontSize: 10 }} />
-                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: "#525252", fontSize: 9 }} />
+                <PolarAngleAxis dataKey="metric" tick={{ fill: "#707070", fontSize: 11 }} />
+                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: "#525252", fontSize: 11 }} />
                 {data.models.map((m) => (
                   <Radar
                     key={m.model}
@@ -361,7 +361,7 @@ export default function TrendsPage() {
                     style={{ transition: "stroke-opacity 0.3s ease, fill-opacity 0.3s ease" }}
                   />
                 ))}
-                <Legend wrapperStyle={{ fontSize: 11 }} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
               </RadarChart>
             </ResponsiveContainer>
           </div>

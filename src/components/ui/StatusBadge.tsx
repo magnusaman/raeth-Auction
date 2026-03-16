@@ -2,12 +2,12 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; glow: boolea
   RUNNING: { label: "Live", color: "#4ADE80", glow: true },
   BIDDING: { label: "Bidding", color: "#4ADE80", glow: true },
   PREDICTING: { label: "Predicting", color: "#4ADE80", glow: true },
-  COMPLETED: { label: "Completed", color: "#D4A853", glow: false },
-  EVALUATED: { label: "Evaluated", color: "#D4A853", glow: false },
+  COMPLETED: { label: "Completed", color: "#C4A265", glow: false },
+  EVALUATED: { label: "Evaluated", color: "#C4A265", glow: false },
   STOPPED: { label: "Stopped", color: "#EF4444", glow: false },
   CANCELLED: { label: "Cancelled", color: "#EF4444", glow: false },
   LOBBY: { label: "Lobby", color: "#F59E0B", glow: false },
-  PENDING: { label: "Pending", color: "#6B6560", glow: false },
+  PENDING: { label: "Pending", color: "#78736E", glow: false },
 };
 
 interface StatusBadgeProps {
@@ -16,9 +16,9 @@ interface StatusBadgeProps {
 }
 
 export default function StatusBadge({ status, size = "sm" }: StatusBadgeProps) {
-  const config = STATUS_CONFIG[status] || { label: status, color: "#6B6560", glow: false };
+  const config = STATUS_CONFIG[status] || { label: status, color: "#78736E", glow: false };
 
-  const sizeClass = size === "sm" ? "text-[10px] px-2 py-0.5 gap-1.5" : "text-xs px-2.5 py-1 gap-1.5";
+  const sizeClass = size === "sm" ? "text-xs px-2 py-0.5 gap-1.5" : "text-xs px-2.5 py-1 gap-1.5";
 
   return (
     <span

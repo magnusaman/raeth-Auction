@@ -98,46 +98,46 @@ export default function Navbar() {
         <div
           className="absolute bottom-0 left-0 right-0 h-px transition-opacity duration-500"
           style={{
-            background: "linear-gradient(90deg, transparent, rgba(212,168,83,0.08), transparent)",
+            background: "linear-gradient(90deg, transparent, rgba(196,162,101,0.08), transparent)",
             opacity: scrolled ? 1 : 0.3,
           }}
         />
 
-        <div className={`mx-auto flex items-center justify-between max-w-[1200px] px-5 md:px-6 transition-all duration-500 ${scrolled ? "h-[56px]" : "h-[72px]"}`}>
+        <div className={`mx-auto flex items-center justify-between max-w-[1200px] px-5 md:px-6 transition-all duration-500 ${scrolled ? "h-[64px]" : "h-[80px]"}`}>
           {/* Brand — Syne display font */}
           <Link href="/" className="flex items-center gap-1 no-underline group">
             <span
-              className="font-display text-[17px] font-extrabold tracking-[0.2em] uppercase transition-all duration-300"
-              style={{ color: "#D4A853" }}
+              className="font-display text-xl font-extrabold tracking-[0.2em] uppercase transition-all duration-300"
+              style={{ color: "#C4A265" }}
             >
               Raeth
             </span>
-            <span className="text-[#4a4540] mx-1 font-light text-sm select-none">/</span>
+            <span className="text-[#625D58] mx-1.5 font-light text-base select-none">/</span>
             <span
-              className="font-display text-[13px] font-bold tracking-[0.15em] uppercase text-[#6B6560] group-hover:text-[#A09888] transition-colors"
+              className="font-display text-[15px] font-bold tracking-[0.15em] uppercase text-[#78736E] group-hover:text-[#9A9590] transition-colors"
             >
               Arena
             </span>
           </Link>
 
           {/* Desktop nav — pill buttons */}
-          <div className="hidden md:flex items-center gap-1 bg-white/[0.02] rounded-full px-1.5 py-1 border border-white/[0.04]">
+          <div className="hidden md:flex items-center gap-1 bg-white/[0.02] rounded-full px-2 py-1.5 border border-white/[0.04]">
             {NAV_LINKS.map((link) => {
               const active = isActive(link.href);
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="relative block px-4 py-1.5 text-[13px] font-medium no-underline rounded-full transition-colors duration-200"
-                  style={{ color: active ? "#F5F0E8" : "#6B6560" }}
+                  className="relative block px-5 py-2 text-sm font-medium no-underline rounded-full transition-colors duration-200"
+                  style={{ color: active ? "#E8E4DE" : "#78736E" }}
                 >
                   {active && (
                     <motion.div
                       layoutId="nav-pill"
                       className="absolute inset-0 rounded-full"
                       style={{
-                        background: "rgba(212,168,83,0.1)",
-                        border: "1px solid rgba(212,168,83,0.15)",
+                        background: "rgba(196,162,101,0.1)",
+                        border: "1px solid rgba(196,162,101,0.15)",
                       }}
                       transition={{ type: "spring", stiffness: 400, damping: 35 }}
                     />
@@ -153,17 +153,17 @@ export default function Navbar() {
             {/* Cmd+K trigger */}
             <button
               onClick={() => setPaletteOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02] text-[#6B6560] hover:text-[#A09888] hover:border-white/[0.1] transition-all cursor-pointer text-xs"
+              className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg border border-white/[0.06] bg-white/[0.02] text-[#78736E] hover:text-[#9A9590] hover:border-white/[0.1] transition-all cursor-pointer text-sm"
             >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <span className="font-mono text-[10px] px-1 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">
+              <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">
                 ⌘K
               </span>
             </button>
 
-            <Link href="/" className="btn-primary text-xs py-2 px-4 font-bold">
+            <Link href="/" className="btn-primary text-sm py-2.5 px-5 font-bold">
               New Auction
             </Link>
           </div>
@@ -172,7 +172,7 @@ export default function Navbar() {
           <div className="flex md:hidden items-center gap-2">
             <button
               onClick={() => setPaletteOpen(true)}
-              className="p-2 text-[#6B6560] rounded-lg hover:bg-white/[0.06] transition-colors bg-transparent border-none cursor-pointer"
+              className="p-2 text-[#78736E] rounded-lg hover:bg-white/[0.06] transition-colors bg-transparent border-none cursor-pointer"
               aria-label="Search"
             >
               <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -181,7 +181,7 @@ export default function Navbar() {
             </button>
             <button
               onClick={() => setMobileOpen((v) => !v)}
-              className="p-2 text-[#A09888] rounded-lg hover:bg-white/[0.06] transition-colors bg-transparent border-none cursor-pointer"
+              className="p-2 text-[#9A9590] rounded-lg hover:bg-white/[0.06] transition-colors bg-transparent border-none cursor-pointer"
               aria-label="Toggle menu"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -211,13 +211,13 @@ export default function Navbar() {
               >
                 {breadcrumbs.map((crumb, i) => (
                   <span key={i} className="flex items-center gap-2">
-                    {i > 0 && <span className="text-[#4a4540] select-none">/</span>}
+                    {i > 0 && <span className="text-[#625D58] select-none">/</span>}
                     {crumb.href ? (
-                      <Link href={crumb.href} className="text-[#6B6560] hover:text-[#D4A853] transition-colors no-underline font-medium">
+                      <Link href={crumb.href} className="text-[#78736E] hover:text-[#C4A265] transition-colors no-underline font-medium">
                         {crumb.label}
                       </Link>
                     ) : (
-                      <span className="text-[#A09888] font-medium truncate max-w-[200px] font-mono text-xs">
+                      <span className="text-[#9A9590] font-medium truncate max-w-[200px] font-mono text-xs">
                         {crumb.label}
                       </span>
                     )}
@@ -262,10 +262,10 @@ export default function Navbar() {
               } as React.CSSProperties}
             >
               <div className="flex items-center justify-between h-16 px-5">
-                <span className="font-display text-sm font-bold tracking-[0.15em] uppercase text-[#D4A853]">Menu</span>
+                <span className="font-display text-sm font-bold tracking-[0.15em] uppercase text-[#C4A265]">Menu</span>
                 <button
                   onClick={() => setMobileOpen(false)}
-                  className="p-2 text-[#A09888] rounded-lg hover:bg-white/[0.06] transition-colors bg-transparent border-none cursor-pointer"
+                  className="p-2 text-[#9A9590] rounded-lg hover:bg-white/[0.06] transition-colors bg-transparent border-none cursor-pointer"
                   aria-label="Close menu"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -293,8 +293,8 @@ export default function Navbar() {
                         className={`
                           block px-4 py-3.5 text-[15px] font-medium no-underline rounded-xl transition-all
                           ${active
-                            ? "text-[#F5F0E8] bg-[rgba(212,168,83,0.06)] border border-[rgba(212,168,83,0.1)]"
-                            : "text-[#A09888] hover:text-[#F5F0E8] hover:bg-white/[0.04] border border-transparent"
+                            ? "text-[#E8E4DE] bg-[rgba(196,162,101,0.06)] border border-[rgba(196,162,101,0.1)]"
+                            : "text-[#9A9590] hover:text-[#E8E4DE] hover:bg-white/[0.04] border border-transparent"
                           }
                         `}
                       >

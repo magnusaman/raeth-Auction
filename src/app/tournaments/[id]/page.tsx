@@ -46,7 +46,7 @@ function Badge({ text, color }: { text: string; color: string }) {
 function Metric({ label, value, color, pct }: { label: string; value: string; color: string; pct: number }) {
   return (
     <div className="flex-1 min-w-[140px]">
-      <div className="text-sm text-[#A09888] mb-1.5 uppercase tracking-wider">{label}</div>
+      <div className="text-sm text-[#9A9590] mb-1.5 uppercase tracking-wider">{label}</div>
       <div className="text-[30px] font-extrabold font-mono mb-2" style={{ color }}>{value}</div>
       <div className="h-[6px] rounded-sm bg-[#111] overflow-hidden">
         <div
@@ -119,14 +119,14 @@ export default function TournamentDetailPage() {
   if (loading) return (
     <div className="py-24 text-center">
       <div className="text-[40px] mb-4">&#127942;</div>
-      <div className="text-[#A09888] text-base">Loading tournament...</div>
+      <div className="text-[#9A9590] text-base">Loading tournament...</div>
     </div>
   );
   if (!data || data.status === "PENDING") return (
     <div className="py-24 text-center">
       <div className="text-[40px] mb-4">&#9203;</div>
-      <div className="text-[#D4A853] text-lg font-semibold mb-2">Setting up tournament...</div>
-      <div className="text-[#A09888] text-base">Creating matches and generating squads</div>
+      <div className="text-[#C4A265] text-lg font-semibold mb-2">Setting up tournament...</div>
+      <div className="text-[#9A9590] text-base">Creating matches and generating squads</div>
     </div>
   );
 
@@ -153,15 +153,15 @@ export default function TournamentDetailPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.push("/tournaments")}
-            className="bg-transparent border-none text-[#A09888] cursor-pointer text-base p-0 hover:text-[#F5F0E8] transition-colors"
+            className="bg-transparent border-none text-[#9A9590] cursor-pointer text-base p-0 hover:text-[#E8E4DE] transition-colors"
           >
             TourBench
           </button>
-          <span className="text-[#6B6560]">/</span>
-          <span className="text-base font-mono text-[#F5F0E8]">{id?.slice(0, 12)}</span>
+          <span className="text-[#78736E]">/</span>
+          <span className="text-base font-mono text-[#E8E4DE]">{id?.slice(0, 12)}</span>
           <Badge
             text={data.status}
-            color={data.status === "COMPLETED" ? "#10B981" : data.status === "CANCELLED" ? "#EF4444" : "#D4A853"}
+            color={data.status === "COMPLETED" ? "#10B981" : data.status === "CANCELLED" ? "#EF4444" : "#C4A265"}
           />
         </div>
         <div className="flex items-center gap-3">
@@ -193,21 +193,21 @@ export default function TournamentDetailPage() {
         <div
           className="rounded-2xl p-8 mb-8 text-center"
           style={{
-            background: "linear-gradient(135deg, rgba(212,168,83,0.06), rgba(139,122,74,0.06))",
-            border: "1px solid rgba(212,168,83,0.2)",
-            boxShadow: "0 0 30px rgba(212,168,83,0.06)",
+            background: "linear-gradient(135deg, rgba(196,162,101,0.06), rgba(139,122,74,0.06))",
+            border: "1px solid rgba(196,162,101,0.2)",
+            boxShadow: "0 0 30px rgba(196,162,101,0.06)",
           }}
         >
-          <div className="text-2xl font-bold mb-3" style={{ color: "#D4A853" }}>
+          <div className="text-2xl font-bold mb-3" style={{ color: "#C4A265" }}>
             Predictions in Progress...
           </div>
-          <div className="text-base text-[#A09888] mb-5">
+          <div className="text-base text-[#9A9590] mb-5">
             AI agents are analyzing {data.matches.length} matches
           </div>
           <div className="max-w-[420px] mx-auto">
             <div className="flex justify-between mb-2">
-              <span className="text-base text-[#A09888]">Progress</span>
-              <span className="text-base font-mono font-bold" style={{ color: "#D4A853" }}>
+              <span className="text-base text-[#9A9590]">Progress</span>
+              <span className="text-base font-mono font-bold" style={{ color: "#C4A265" }}>
                 {currentPredictions} / {totalExpectedPredictions}
               </span>
             </div>
@@ -216,8 +216,8 @@ export default function TournamentDetailPage() {
                 className="h-full rounded-lg transition-[width] duration-500"
                 style={{
                   width: `${(currentPredictions / totalExpectedPredictions) * 100}%`,
-                  background: "linear-gradient(90deg, #D4A853, #F5C842)",
-                  boxShadow: "0 0 10px rgba(212,168,83,0.4)",
+                  background: "linear-gradient(90deg, #C4A265, #D4B06A)",
+                  boxShadow: "0 0 10px rgba(196,162,101,0.4)",
                 }}
               />
             </div>
@@ -231,8 +231,8 @@ export default function TournamentDetailPage() {
                   className="rounded-lg px-4 py-2.5 text-base"
                   style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
                 >
-                  <span className="text-[#A09888]">M{m.match_number}</span>
-                  <span className="text-[#F5F0E8] mx-2">
+                  <span className="text-[#9A9590]">M{m.match_number}</span>
+                  <span className="text-[#E8E4DE] mx-2">
                     {m.team1.shortName} v {m.team2.shortName}
                   </span>
                   <span className="font-mono text-neon-green font-semibold">
@@ -256,7 +256,7 @@ export default function TournamentDetailPage() {
           }}
         >
           <div>
-            <div className="text-base uppercase tracking-[2px] font-extrabold mb-3" style={{ color: "#D4A853" }}>
+            <div className="text-base uppercase tracking-[2px] font-extrabold mb-3" style={{ color: "#C4A265" }}>
               Champion
             </div>
             <div className="flex items-center gap-4">
@@ -270,10 +270,10 @@ export default function TournamentDetailPage() {
             </div>
           </div>
           <div className="text-right">
-            <div className="text-[52px] font-mono font-extrabold" style={{ color: "#D4A853" }}>
+            <div className="text-[52px] font-mono font-extrabold" style={{ color: "#C4A265" }}>
               {data.matches.length}
             </div>
-            <div className="text-base text-[#A09888] uppercase tracking-wider">Matches</div>
+            <div className="text-base text-[#9A9590] uppercase tracking-wider">Matches</div>
           </div>
         </div>
       )}
@@ -283,10 +283,10 @@ export default function TournamentDetailPage() {
         <div className="rounded-2xl overflow-hidden mb-8 shadow-[0_4px_24px_rgba(0,0,0,0.3)]" style={{ background: "#0a0a0a", border: "1px solid rgba(255,255,255,0.06)" }}>
           <div
             className="px-5 py-4 border-b flex items-center gap-2.5"
-            style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(212,168,83,0.04)" }}
+            style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(196,162,101,0.04)" }}
           >
-            <span className="w-2 h-2 rounded-full inline-block shadow-[0_0_8px_#D4A853]" style={{ background: "#D4A853" }} />
-            <span className="text-base font-bold uppercase tracking-wider font-mono" style={{ color: "#D4A853" }}>
+            <span className="w-2 h-2 rounded-full inline-block shadow-[0_0_8px_#C4A265]" style={{ background: "#C4A265" }} />
+            <span className="text-base font-bold uppercase tracking-wider font-mono" style={{ color: "#C4A265" }}>
               Points Table
             </span>
           </div>
@@ -296,7 +296,7 @@ export default function TournamentDetailPage() {
                 {["#", "Team", "P", "W", "L", "Pts"].map((h) => (
                   <th
                     key={h}
-                    className={`px-5 py-3.5 font-semibold text-sm uppercase tracking-wider text-[#A09888] border-b bg-[#0a0a0a] ${h === "Team" ? "text-left" : "text-center"}`}
+                    className={`px-5 py-3.5 font-semibold text-sm uppercase tracking-wider text-[#9A9590] border-b bg-[#0a0a0a] ${h === "Team" ? "text-left" : "text-center"}`}
                     style={{ borderColor: "rgba(255,255,255,0.06)" }}
                   >{h}</th>
                 ))}
@@ -309,7 +309,7 @@ export default function TournamentDetailPage() {
                   className="border-b"
                   style={{ borderColor: "rgba(255,255,255,0.04)", background: i === 0 ? `${s.color}08` : "transparent" }}
                 >
-                  <td className={`px-5 py-4 text-center font-extrabold text-base ${i === 0 ? "" : "text-[#A09888]"}`} style={i === 0 ? { color: "#D4A853" } : undefined}>{i + 1}</td>
+                  <td className={`px-5 py-4 text-center font-extrabold text-base ${i === 0 ? "" : "text-[#9A9590]"}`} style={i === 0 ? { color: "#C4A265" } : undefined}>{i + 1}</td>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">{s.logo}</span>
@@ -319,7 +319,7 @@ export default function TournamentDetailPage() {
                   <td className="px-5 py-4 text-center font-mono text-[#999] text-base">{s.played}</td>
                   <td className="px-5 py-4 text-center font-mono text-neon-green font-bold text-base">{s.wins}</td>
                   <td className="px-5 py-4 text-center font-mono text-neon-red text-base">{s.losses}</td>
-                  <td className="px-5 py-4 text-center font-mono font-extrabold text-lg" style={{ color: "#D4A853" }}>{s.points}</td>
+                  <td className="px-5 py-4 text-center font-mono font-extrabold text-lg" style={{ color: "#C4A265" }}>{s.points}</td>
                 </tr>
               ))}
             </tbody>
@@ -335,8 +335,8 @@ export default function TournamentDetailPage() {
             onClick={() => setTab(t.key)}
             className={`px-6 py-2.5 text-base font-semibold border-none cursor-pointer rounded-xl transition-all duration-150 ${
               tab === t.key
-                ? "text-[#F5F0E8] shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
-                : "bg-transparent text-[#A09888] hover:text-[#F5F0E8]"
+                ? "text-[#E8E4DE] shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
+                : "bg-transparent text-[#9A9590] hover:text-[#E8E4DE]"
             }`}
             style={tab === t.key ? { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" } : {}}
           >{t.label}</button>
@@ -358,7 +358,7 @@ export default function TournamentDetailPage() {
               }}
             >
               <div className="flex justify-between items-center mb-3">
-                <span className="text-base font-mono text-[#A09888]">
+                <span className="text-base font-mono text-[#9A9590]">
                   Match {m.match_number}
                 </span>
                 <Badge text={m.match_type} color={m.match_type === "FINAL" ? "#F59E0B" : m.match_type === "QUALIFIER" ? "#8B5CF6" : "#64748B"} />
@@ -377,11 +377,11 @@ export default function TournamentDetailPage() {
                 <div className="text-center min-w-[100px]">
                   {m.winner ? (
                     <>
-                      <div className="text-sm text-[#A09888] mb-1">{m.winner.shortName} won</div>
-                      <div className="text-base text-[#F5F0E8] font-mono">{m.margin}</div>
+                      <div className="text-sm text-[#9A9590] mb-1">{m.winner.shortName} won</div>
+                      <div className="text-base text-[#E8E4DE] font-mono">{m.margin}</div>
                     </>
                   ) : (
-                    <span className="text-base text-[#A09888] font-semibold">vs</span>
+                    <span className="text-base text-[#9A9590] font-semibold">vs</span>
                   )}
                 </div>
                 <div className="flex items-center gap-3 flex-1 justify-end">
@@ -395,7 +395,7 @@ export default function TournamentDetailPage() {
                 </div>
               </div>
 
-              <div className="text-base text-[#A09888] mt-3">
+              <div className="text-base text-[#9A9590] mt-3">
                 {m.venue}{m.home_team ? ` (${m.home_team} home)` : ""}
               </div>
 
@@ -430,7 +430,7 @@ export default function TournamentDetailPage() {
                 {["Rank", "Agent", "Accuracy", "Brier", "Upset Det.", "Margin", "Calibration", "Consistency", "Composite"].map((h) => (
                   <th
                     key={h}
-                    className={`px-4 py-4 font-semibold text-sm uppercase tracking-wider text-[#A09888] border-b bg-[#0a0a0a] ${h === "Agent" ? "text-left" : "text-center"}`}
+                    className={`px-4 py-4 font-semibold text-sm uppercase tracking-wider text-[#9A9590] border-b bg-[#0a0a0a] ${h === "Agent" ? "text-left" : "text-center"}`}
                     style={{ borderColor: "rgba(255,255,255,0.06)" }}
                   >{h}</th>
                 ))}
@@ -449,7 +449,7 @@ export default function TournamentDetailPage() {
                       #{agent.rank}
                     </td>
                     <td className="p-4">
-                      <div className="font-bold text-[#F5F0E8] text-base">{agent.agentName}</div>
+                      <div className="font-bold text-[#E8E4DE] text-base">{agent.agentName}</div>
                     </td>
                     <td className="p-4 text-center"><MetricCell value={agent.accuracy} /></td>
                     <td className="p-4 text-center"><MetricCell value={1 - agent.brierScore} label={agent.brierScore.toFixed(3)} /></td>
@@ -461,7 +461,7 @@ export default function TournamentDetailPage() {
                       <span
                         className="text-xl font-extrabold font-mono"
                         style={{
-                          color: agent.rank === 1 ? "#F59E0B" : agent.rank <= 2 ? "#10B981" : "#F5F0E8",
+                          color: agent.rank === 1 ? "#F59E0B" : agent.rank <= 2 ? "#10B981" : "#E8E4DE",
                         }}
                       >
                         {(agent.compositeScore * 100).toFixed(1)}
@@ -482,7 +482,7 @@ export default function TournamentDetailPage() {
                 Score Breakdown — {data.evaluation.agentScores[0].agentName}
               </div>
               <div className="flex gap-6">
-                <Metric label="Accuracy" value={`${(data.evaluation.agentScores[0].accuracy * 100).toFixed(0)}%`} color="#D4A853" pct={data.evaluation.agentScores[0].accuracy * 100} />
+                <Metric label="Accuracy" value={`${(data.evaluation.agentScores[0].accuracy * 100).toFixed(0)}%`} color="#C4A265" pct={data.evaluation.agentScores[0].accuracy * 100} />
                 <Metric label="Brier (inv)" value={(1 - data.evaluation.agentScores[0].brierScore).toFixed(2)} color="#10B981" pct={(1 - data.evaluation.agentScores[0].brierScore) * 100} />
                 <Metric label="Upset Det." value={`${(data.evaluation.agentScores[0].upsetDetection * 100).toFixed(0)}%`} color="#8B5CF6" pct={data.evaluation.agentScores[0].upsetDetection * 100} />
                 <Metric label="Calibration" value={`${(data.evaluation.agentScores[0].confidenceCalibration * 100).toFixed(0)}%`} color="#F59E0B" pct={data.evaluation.agentScores[0].confidenceCalibration * 100} />
@@ -493,7 +493,7 @@ export default function TournamentDetailPage() {
       )}
 
       {tab === "agents" && !data.evaluation?.agentScores && (
-        <div className="py-20 text-center text-[#A09888] text-base">
+        <div className="py-20 text-center text-[#9A9590] text-base">
           {isPredicting ? "Evaluation will be available after all predictions complete..." : "No evaluation data available"}
         </div>
       )}
@@ -508,8 +508,8 @@ export default function TournamentDetailPage() {
                 onClick={() => setSelectedMatch(m.match_number)}
                 className={`px-4 py-2 text-base font-mono border-none rounded-lg cursor-pointer transition-all duration-150 font-semibold ${
                   selectedMatch === m.match_number
-                    ? "text-[#F5F0E8] shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
-                    : "bg-transparent text-[#A09888] hover:text-[#F5F0E8]"
+                    ? "text-[#E8E4DE] shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
+                    : "bg-transparent text-[#9A9590] hover:text-[#E8E4DE]"
                 }`}
                 style={selectedMatch === m.match_number ? { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" } : {}}
               >
@@ -520,7 +520,7 @@ export default function TournamentDetailPage() {
 
           {(() => {
             const match = data.matches.find((m) => m.match_number === (selectedMatch || 1));
-            if (!match) return <div className="text-[#A09888] p-12 text-center text-base">Select a match above</div>;
+            if (!match) return <div className="text-[#9A9590] p-12 text-center text-base">Select a match above</div>;
 
             return (
               <div>
@@ -533,7 +533,7 @@ export default function TournamentDetailPage() {
                     <div className="flex items-center gap-4">
                       <span className="text-[36px]">{match.team1.logo}</span>
                       <span className="font-extrabold text-xl" style={{ color: match.team1.color }}>{match.team1.shortName}</span>
-                      <span className="text-[#A09888] text-lg font-light">vs</span>
+                      <span className="text-[#9A9590] text-lg font-light">vs</span>
                       <span className="font-extrabold text-xl" style={{ color: match.team2.color }}>{match.team2.shortName}</span>
                       <span className="text-[36px]">{match.team2.logo}</span>
                     </div>
@@ -543,7 +543,7 @@ export default function TournamentDetailPage() {
                           {match.winner.shortName} won by {match.margin}
                         </div>
                       )}
-                      <div className="text-sm text-[#A09888] mt-1">{match.venue}</div>
+                      <div className="text-sm text-[#9A9590] mt-1">{match.venue}</div>
                     </div>
                   </div>
                 </div>
@@ -555,9 +555,9 @@ export default function TournamentDetailPage() {
                       onClick={() => setShowAllReasoning(v => !v)}
                       className="flex items-center gap-2 px-4 py-2 rounded-xl text-base font-semibold cursor-pointer transition-all duration-150"
                       style={{
-                        background: showAllReasoning ? "rgba(212,168,83,0.12)" : "rgba(255,255,255,0.04)",
-                        color: showAllReasoning ? "#D4A853" : "#666",
-                        border: `1px solid ${showAllReasoning ? "rgba(212,168,83,0.3)" : "rgba(255,255,255,0.08)"}`,
+                        background: showAllReasoning ? "rgba(196,162,101,0.12)" : "rgba(255,255,255,0.04)",
+                        color: showAllReasoning ? "#C4A265" : "#666",
+                        border: `1px solid ${showAllReasoning ? "rgba(196,162,101,0.3)" : "rgba(255,255,255,0.08)"}`,
                       }}
                     >
                       {showAllReasoning ? "Hide All Reasoning" : "Show All Reasoning"}
@@ -566,7 +566,7 @@ export default function TournamentDetailPage() {
                 )}
 
                 {match.predictions.length === 0 ? (
-                  <div className="p-12 text-center text-[#A09888] text-base">
+                  <div className="p-12 text-center text-[#9A9590] text-base">
                     No predictions yet for this match
                   </div>
                 ) : (
@@ -589,7 +589,7 @@ export default function TournamentDetailPage() {
                           }}
                         >
                           <div className="flex items-center justify-between mb-4">
-                            <span className="font-bold text-[#F5F0E8] text-base">{p.agent_name}</span>
+                            <span className="font-bold text-[#E8E4DE] text-base">{p.agent_name}</span>
                             {p.correct !== null && (
                               <Badge text={p.correct ? "CORRECT" : "WRONG"} color={p.correct ? "#10B981" : "#EF4444"} />
                             )}
@@ -597,31 +597,31 @@ export default function TournamentDetailPage() {
 
                           <div className="flex gap-6 mb-4">
                             <div>
-                              <div className="text-sm text-[#A09888] uppercase mb-1">Pick</div>
-                              <div className="text-lg font-extrabold" style={{ color: TEAM_COLORS[p.predicted_winner] || "#F5F0E8" }}>
+                              <div className="text-sm text-[#9A9590] uppercase mb-1">Pick</div>
+                              <div className="text-lg font-extrabold" style={{ color: TEAM_COLORS[p.predicted_winner] || "#E8E4DE" }}>
                                 {p.predicted_team}
                               </div>
                             </div>
                             <div>
-                              <div className="text-sm text-[#A09888] uppercase mb-1">Confidence</div>
-                              <div className={`text-lg font-extrabold font-mono ${p.confidence >= 0.75 ? "text-[#D4A853]" : "text-[#999]"}`}>
+                              <div className="text-sm text-[#9A9590] uppercase mb-1">Confidence</div>
+                              <div className={`text-lg font-extrabold font-mono ${p.confidence >= 0.75 ? "text-[#C4A265]" : "text-[#999]"}`}>
                                 {(p.confidence * 100).toFixed(0)}%
                               </div>
                             </div>
                             <div>
-                              <div className="text-sm text-[#A09888] uppercase mb-1">Margin</div>
+                              <div className="text-sm text-[#9A9590] uppercase mb-1">Margin</div>
                               <div className="text-base text-[#999] font-medium">{p.predicted_margin}</div>
                             </div>
                           </div>
 
                           {p.key_factors.length > 0 && (
                             <div className="mb-3">
-                              <div className="text-sm text-[#A09888] uppercase mb-1.5">Key Factors</div>
+                              <div className="text-sm text-[#9A9590] uppercase mb-1.5">Key Factors</div>
                               <div className="flex gap-1.5 flex-wrap">
                                 {p.key_factors.slice(0, 3).map((f, i) => (
                                   <span
                                     key={i}
-                                    className="text-sm px-3 py-1 rounded-lg text-[#F5F0E8]"
+                                    className="text-sm px-3 py-1 rounded-lg text-[#E8E4DE]"
                                     style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
                                   >{f}</span>
                                 ))}
@@ -634,9 +634,9 @@ export default function TournamentDetailPage() {
                               <button
                                 onClick={() => togglePredReasoning(predKey)}
                                 className="flex items-center gap-1.5 text-sm font-semibold cursor-pointer bg-transparent border-none p-0 transition-colors duration-150"
-                                style={{ color: isReasoningOpen ? "#D4A853" : "#555" }}
+                                style={{ color: isReasoningOpen ? "#C4A265" : "#555" }}
                               >
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: isReasoningOpen ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: isReasoningOpen ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
                                   <polyline points="9 18 15 12 9 6" />
                                 </svg>
                                 Reasoning

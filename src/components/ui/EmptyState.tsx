@@ -20,16 +20,16 @@ export default function EmptyState({ icon, title, description, action }: EmptySt
     >
       {icon && (
         <motion.div
-          className="mb-5 text-[#4a4540]"
+          className="mb-5 text-[#625D58]"
           animate={{ y: [0, -6, 0] }}
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
         >
           {icon}
         </motion.div>
       )}
-      <p className="text-lg font-bold text-[#F5F0E8] mb-2 font-display">{title}</p>
+      <p className="text-lg font-bold text-[#E8E4DE] mb-2 font-display">{title}</p>
       {description && (
-        <p className="text-sm text-[#6B6560] mb-8 max-w-sm leading-relaxed">{description}</p>
+        <p className="text-sm text-[#78736E] mb-8 max-w-sm leading-relaxed">{description}</p>
       )}
       {action && <div>{action}</div>}
     </motion.div>

@@ -11,7 +11,7 @@ export default function NotFound() {
         className="absolute inset-0 flex items-center justify-center select-none pointer-events-none"
         style={{ opacity: 0.03 }}
       >
-        <span className="text-[300px] md:text-[400px] font-black font-mono leading-none text-[#F5F0E8]">
+        <span className="text-[300px] md:text-[400px] font-black font-mono leading-none text-[#E8E4DE]">
           404
         </span>
       </div>
@@ -28,19 +28,19 @@ export default function NotFound() {
           transition={{ delay: 0.1, duration: 0.4 }}
           className="text-[80px] md:text-[100px] font-black font-display leading-none mb-4"
           style={{
-            background: "linear-gradient(135deg, #D4A853, #CD7F32)",
+            background: "linear-gradient(135deg, #C4A265, #B8856A)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
-            textShadow: "0 0 80px rgba(212,168,83,0.2)",
+            textShadow: "0 0 80px rgba(196,162,101,0.2)",
           }}
         >
           404
         </motion.div>
 
-        <h2 className="text-xl font-bold text-[#F5F0E8] mb-2 font-display">
+        <h2 className="text-xl font-bold text-[#E8E4DE] mb-2 font-display">
           Page not found
         </h2>
-        <p className="text-sm text-[#6B6560] mb-8">
+        <p className="text-sm text-[#78736E] mb-8">
           The page you&apos;re looking for doesn&apos;t exist or has been moved.
         </p>
 

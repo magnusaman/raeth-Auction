@@ -85,13 +85,13 @@ export default function ArenaPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       >
-        <span className="text-xs font-semibold tracking-[0.2em] uppercase text-[#D4A853]">
+        <span className="text-xs font-semibold tracking-[0.2em] uppercase text-[#C4A265]">
           Archive
         </span>
-        <h1 className="mt-1 text-3xl font-bold font-display text-[#F5F0E8]">
+        <h1 className="mt-1 text-3xl font-bold font-display text-[#E8E4DE]">
           Replays
         </h1>
-        <p className="mt-1 text-[15px] text-[#A09888]">
+        <p className="mt-1 text-[15px] text-[#9A9590]">
           Browse completed auctions and review agent decisions
         </p>
       </motion.div>
@@ -106,7 +106,7 @@ export default function ArenaPage() {
         >
           <div className="relative flex-1 max-w-sm">
             <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B6560]"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#78736E]"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -123,14 +123,14 @@ export default function ArenaPage() {
               placeholder="Search by ID, model, or team..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-lg text-sm text-[#F5F0E8] placeholder:text-[#4a4540] transition-colors outline-none"
+              className="w-full pl-10 pr-4 py-2 rounded-lg text-sm text-[#E8E4DE] placeholder:text-[#625D58] transition-colors outline-none"
               style={{
                 background: "rgba(255,255,255,0.03)",
                 border: "1px solid rgba(255,255,255,0.06)",
               }}
               onFocus={(e) => {
-                e.currentTarget.style.borderColor = "rgba(212,168,83,0.4)";
-                e.currentTarget.style.boxShadow = "0 0 0 2px rgba(212,168,83,0.08)";
+                e.currentTarget.style.borderColor = "rgba(196,162,101,0.4)";
+                e.currentTarget.style.boxShadow = "0 0 0 2px rgba(196,162,101,0.08)";
               }}
               onBlur={(e) => {
                 e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)";
@@ -152,12 +152,12 @@ export default function ArenaPage() {
                 onClick={() => setFilter(f)}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                   filter === f
-                    ? "text-[#F5F0E8]"
-                    : "text-[#6B6560] hover:text-[#A09888]"
+                    ? "text-[#E8E4DE]"
+                    : "text-[#78736E] hover:text-[#9A9590]"
                 }`}
                 style={
                   filter === f
-                    ? { background: "rgba(212,168,83,0.1)", color: "#D4A853" }
+                    ? { background: "rgba(196,162,101,0.1)", color: "#C4A265" }
                     : undefined
                 }
               >
@@ -166,7 +166,7 @@ export default function ArenaPage() {
             ))}
           </div>
 
-          <span className="text-sm text-[#6B6560] font-mono ml-auto">
+          <span className="text-sm text-[#78736E] font-mono ml-auto">
             {filtered.length} auction{filtered.length !== 1 ? "s" : ""}
           </span>
         </motion.div>
@@ -194,7 +194,7 @@ export default function ArenaPage() {
           transition={{ duration: 0.5 }}
         >
           <div className="text-4xl mb-4">🎬</div>
-          <p className="text-[#A09888] mb-2 font-display text-lg">
+          <p className="text-[#9A9590] mb-2 font-display text-lg">
             {auctions.length === 0
               ? "No completed auctions to replay yet"
               : "No auctions match your search"}
@@ -248,7 +248,7 @@ export default function ArenaPage() {
                 >
                   {/* Top row: ID + status badges */}
                   <div className="flex items-center justify-between mb-3">
-                    <span className="font-mono text-xs text-[#6B6560] group-hover:text-[#D4A853] transition-colors">
+                    <span className="font-mono text-xs text-[#78736E] group-hover:text-[#C4A265] transition-colors">
                       {a.auction_id.slice(0, 16)}...
                     </span>
                     <div className="flex items-center gap-2">
@@ -291,7 +291,7 @@ export default function ArenaPage() {
                         className="flex items-center gap-1.5"
                       >
                         <AgentAvatar name={t.agent_name} size="sm" />
-                        <span className="text-sm text-[#A09888]">
+                        <span className="text-sm text-[#9A9590]">
                           <span
                             className="font-semibold"
                             style={{ color: TEAM_COLORS[t.team_index] }}
@@ -307,22 +307,22 @@ export default function ArenaPage() {
                   {/* Stats row */}
                   <div className="flex items-center gap-4 pt-3" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
                     <div className="stat-orb px-3 py-1.5">
-                      <span className="font-mono font-semibold text-[#F5F0E8] text-sm">
+                      <span className="font-mono font-semibold text-[#E8E4DE] text-sm">
                         {totalPlayers}
                       </span>
-                      <span className="text-[10px] text-[#6B6560] uppercase tracking-wider">
+                      <span className="text-xs text-[#78736E] uppercase tracking-wider">
                         players
                       </span>
                     </div>
                     <div className="stat-orb px-3 py-1.5">
-                      <span className="font-mono font-semibold text-[#F5F0E8] text-sm">
+                      <span className="font-mono font-semibold text-[#E8E4DE] text-sm">
                         ₹{totalSpent.toFixed(0)}
                       </span>
-                      <span className="text-[10px] text-[#6B6560] uppercase tracking-wider">
+                      <span className="text-xs text-[#78736E] uppercase tracking-wider">
                         Cr spent
                       </span>
                     </div>
-                    <span className="text-xs text-[#6B6560] ml-auto font-mono">
+                    <span className="text-xs text-[#78736E] ml-auto font-mono">
                       {dateStr}
                     </span>
                   </div>
