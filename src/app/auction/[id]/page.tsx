@@ -88,7 +88,9 @@ export default function AuctionPage() {
   const [teamCount, setTeamCount] = useState(4);
   const [modelSelections, setModelSelections] = useState<string[]>(DEFAULT_SELECTIONS.slice(0, 4));
   const [externalTokens, setExternalTokens] = useState<Record<number, string>>({});
-  const [_copiedToken, _setCopiedToken] = useState<number | null>(null);
+  const [externalToggles, setExternalToggles] = useState<Record<number, boolean>>({});
+  const [registeringExternal, setRegisteringExternal] = useState<number | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
   const [connectedAgents, setConnectedAgents] = useState<Set<number>>(new Set());
   const [notification, setNotification] = useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -115,6 +117,69 @@ export default function AuctionPage() {
       if (next.has(key)) next.delete(key); else next.add(key);
       return next;
     });
+  }
+
+  function copyToClipboard(text: string, fieldKey: string) {
+    navigator.clipboard.writeText(text);
+    setCopiedField(fieldKey);
+    setTimeout(() => setCopiedField(null), 2000);
+  }
+
+  async function toggleExternal(idx: number) {
+    const isCurrentlyOn = externalToggles[idx];
+    if (isCurrentlyOn) {
+      // Turn OFF — revert to normal model
+      setExternalToggles(prev => ({ ...prev, [idx]: false }));
+      setExternalTokens(prev => {
+        const next = { ...prev };
+        delete next[idx];
+        return next;
+      });
+      setConnectedAgents(prev => {
+        const next = new Set(prev);
+        next.delete(idx);
+        return next;
+      });
+      // Restore default model for this slot
+      setModelSelections(prev => {
+        const next = [...prev];
+        next[idx] = DEFAULT_SELECTIONS[idx % DEFAULT_SELECTIONS.length];
+        return next;
+      });
+      return;
+    }
+
+    // Turn ON — register external agent and get token
+    setRegisteringExternal(idx);
+    setExternalToggles(prev => ({ ...prev, [idx]: true }));
+    setModelSelections(prev => {
+      const next = [...prev];
+      next[idx] = "external";
+      return next;
+    });
+
+    try {
+      const res = await fetch(`/api/v1/auctions/${id}/external/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ team_index: idx }),
+      });
+      const data = await res.json();
+      if (data.token) {
+        setExternalTokens(prev => ({ ...prev, [idx]: data.token }));
+      }
+    } catch (e) {
+      console.error("External register error:", e);
+      // Revert on failure
+      setExternalToggles(prev => ({ ...prev, [idx]: false }));
+      setModelSelections(prev => {
+        const next = [...prev];
+        next[idx] = DEFAULT_SELECTIONS[idx % DEFAULT_SELECTIONS.length];
+        return next;
+      });
+    } finally {
+      setRegisteringExternal(null);
+    }
   }
 
   function addTeamSlot() {
@@ -245,6 +310,42 @@ export default function AuctionPage() {
     if (autoScroll && feedRef.current) feedRef.current.scrollTop = feedRef.current.scrollHeight;
     if (liveData?.recent_bids) setPrevBidCount(liveData.recent_bids.length);
   }, [liveData?.recent_bids, autoScroll]);
+
+  // Poll for external agent connections when toggles are active
+  useEffect(() => {
+    const activeTokens = Object.entries(externalTokens);
+    if (activeTokens.length === 0 || phase !== "lobby") return;
+
+    // Check which ones still need to connect
+    const unconnected = activeTokens.filter(([idx]) => !connectedAgents.has(parseInt(idx)));
+    if (unconnected.length === 0) return;
+
+    const interval = setInterval(async () => {
+      for (const [idx, token] of unconnected) {
+        try {
+          const res = await fetch(`/api/v1/auctions/${id}/external/state?token=${token}`);
+          if (res.ok) {
+            const data = await res.json();
+            // If we got a valid response, the agent has connected (first poll marks as connected)
+            if (data.your_team) {
+              setConnectedAgents(prev => {
+                if (!prev.has(parseInt(idx))) {
+                  const next = new Set(prev);
+                  next.add(parseInt(idx));
+                  setNotification(`${TEAMS[parseInt(idx)]?.shortName || `T${idx}`} external agent connected!`);
+                  setTimeout(() => setNotification(null), 5000);
+                  return next;
+                }
+                return prev;
+              });
+            }
+          }
+        } catch { /* ignore poll errors */ }
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [externalTokens, connectedAgents, phase, id]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -483,47 +584,92 @@ export default function AuctionPage() {
                         </div>
                       </div>
                     ) : (
-                      <div ref={(el) => { dropdownRefs.current[idx] = el; }} className="relative">
-                        <button ref={(el) => { dropdownBtnRefs.current[idx] = el; }} onClick={() => { if (isDropdownOpen) { setOpenDropdown(null); setDropdownPos(null); } else { const btn = dropdownBtnRefs.current[idx]; if (btn) { const rect = btn.getBoundingClientRect(); setDropdownPos({ top: rect.bottom + 6, left: rect.left, width: Math.max(rect.width, 240) }); } setOpenDropdown(idx); } }} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border bg-[#111] text-left cursor-pointer transition-all duration-200" style={{ borderColor: isDropdownOpen ? `${teamColor}60` : "rgba(255,255,255,0.08)", boxShadow: isDropdownOpen ? `0 0 16px ${teamColor}15` : "none" }}>
-                          {providerMeta && <span className="text-lg flex-shrink-0">{providerMeta.icon}</span>}
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-semibold text-[#E8E4DE]">{selectedModel?.label || "Select model"}</div>
-                            {selectedModel && <div className="text-xs font-medium mt-0.5" style={{ color: providerMeta?.color || "#78736E" }}>{selectedModel.provider}</div>}
-                          </div>
-                          {hasSelection && !isDropdownOpen ? (
-                            <svg width="18" height="18" viewBox="0 0 16 16" fill="none" className="flex-shrink-0"><circle cx="8" cy="8" r="7" stroke="#22C55E" strokeWidth="1.5" fill="rgba(34,197,94,0.12)" /><path d="M5 8l2 2 4-4" stroke="#22C55E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                          ) : (
-                            <svg width="16" height="16" viewBox="0 0 14 14" fill="none" className="flex-shrink-0" style={{ transform: isDropdownOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }}><path d="M3.5 5.25L7 8.75L10.5 5.25" stroke="#78736E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                          )}
-                        </button>
+                      <div>
+                        {/* Model dropdown — hidden when external toggle is ON */}
+                        {!externalToggles[idx] && (
+                          <div ref={(el) => { dropdownRefs.current[idx] = el; }} className="relative">
+                            <button ref={(el) => { dropdownBtnRefs.current[idx] = el; }} onClick={() => { if (isDropdownOpen) { setOpenDropdown(null); setDropdownPos(null); } else { const btn = dropdownBtnRefs.current[idx]; if (btn) { const rect = btn.getBoundingClientRect(); setDropdownPos({ top: rect.bottom + 6, left: rect.left, width: Math.max(rect.width, 240) }); } setOpenDropdown(idx); } }} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border bg-[#111] text-left cursor-pointer transition-all duration-200" style={{ borderColor: isDropdownOpen ? `${teamColor}60` : "rgba(255,255,255,0.08)", boxShadow: isDropdownOpen ? `0 0 16px ${teamColor}15` : "none" }}>
+                              {providerMeta && <span className="text-lg flex-shrink-0">{providerMeta.icon}</span>}
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-semibold text-[#E8E4DE]">{selectedModel?.label || "Select model"}</div>
+                                {selectedModel && <div className="text-xs font-medium mt-0.5" style={{ color: providerMeta?.color || "#78736E" }}>{selectedModel.provider}</div>}
+                              </div>
+                              {hasSelection && !isDropdownOpen ? (
+                                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" className="flex-shrink-0"><circle cx="8" cy="8" r="7" stroke="#22C55E" strokeWidth="1.5" fill="rgba(34,197,94,0.12)" /><path d="M5 8l2 2 4-4" stroke="#22C55E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                              ) : (
+                                <svg width="16" height="16" viewBox="0 0 14 14" fill="none" className="flex-shrink-0" style={{ transform: isDropdownOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }}><path d="M3.5 5.25L7 8.75L10.5 5.25" stroke="#78736E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                              )}
+                            </button>
 
-                        {typeof document !== "undefined" && createPortal(
-                          <AnimatePresence>
-                            {isDropdownOpen && (
-                              <motion.div ref={dropdownMenuRef} initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }} transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }} className="fixed z-[9999] rounded-xl py-2" style={{ background: "#111", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 16px 48px rgba(0,0,0,0.6)", maxHeight: "320px", overflowY: "auto", top: dropdownPos?.top ?? 0, left: dropdownPos?.left ?? 0, width: dropdownPos?.width ?? 240 } as React.CSSProperties}>
-                                {PROVIDER_GROUPS.map((group) => (
-                                  <div key={group.provider}>
-                                    <div className="px-4 pt-3 pb-1.5 flex items-center gap-2">
-                                      <span className="text-sm">{PROVIDER_META[group.provider]?.icon}</span>
-                                      <span className="text-xs font-bold uppercase tracking-widest font-mono" style={{ color: PROVIDER_META[group.provider]?.color || "#78736E" }}>{group.provider}</span>
-                                    </div>
-                                    {group.models.map((m) => {
-                                      const isSelected = modelSelections[idx] === m.id;
-                                      return (
-                                        <button key={m.id} onClick={() => { const next = [...modelSelections]; next[idx] = m.id; setModelSelections(next); setOpenDropdown(null); setDropdownPos(null); }} className="w-full flex items-center gap-3 px-4 py-3 text-left cursor-pointer transition-all duration-150 border-none" style={{ background: isSelected ? `${PROVIDER_META[m.provider]?.color || "#78736E"}12` : "transparent" }} onMouseEnter={(e) => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.05)"; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = isSelected ? `${PROVIDER_META[m.provider]?.color || "#78736E"}12` : "transparent"; }}>
-                                          <span className="text-sm font-semibold text-[#E8E4DE] flex-1">{m.label}</span>
-                                          {isSelected && <svg width="16" height="16" viewBox="0 0 14 14" fill="none"><path d="M3 7l3 3 5-5" stroke="#22C55E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-                                        </button>
-                                      );
-                                    })}
-                                  </div>
-                                ))}
-                              </motion.div>
+                            {typeof document !== "undefined" && createPortal(
+                              <AnimatePresence>
+                                {isDropdownOpen && (
+                                  <motion.div ref={dropdownMenuRef} initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }} transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }} className="fixed z-[9999] rounded-xl py-2" style={{ background: "#111", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 16px 48px rgba(0,0,0,0.6)", maxHeight: "320px", overflowY: "auto", top: dropdownPos?.top ?? 0, left: dropdownPos?.left ?? 0, width: dropdownPos?.width ?? 240 } as React.CSSProperties}>
+                                    {PROVIDER_GROUPS.map((group) => (
+                                      <div key={group.provider}>
+                                        <div className="px-4 pt-3 pb-1.5 flex items-center gap-2">
+                                          <span className="text-sm">{PROVIDER_META[group.provider]?.icon}</span>
+                                          <span className="text-xs font-bold uppercase tracking-widest font-mono" style={{ color: PROVIDER_META[group.provider]?.color || "#78736E" }}>{group.provider}</span>
+                                        </div>
+                                        {group.models.map((m) => {
+                                          const isSelected = modelSelections[idx] === m.id;
+                                          return (
+                                            <button key={m.id} onClick={() => { const next = [...modelSelections]; next[idx] = m.id; setModelSelections(next); setOpenDropdown(null); setDropdownPos(null); }} className="w-full flex items-center gap-3 px-4 py-3 text-left cursor-pointer transition-all duration-150 border-none" style={{ background: isSelected ? `${PROVIDER_META[m.provider]?.color || "#78736E"}12` : "transparent" }} onMouseEnter={(e) => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.05)"; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = isSelected ? `${PROVIDER_META[m.provider]?.color || "#78736E"}12` : "transparent"; }}>
+                                              <span className="text-sm font-semibold text-[#E8E4DE] flex-1">{m.label}</span>
+                                              {isSelected && <svg width="16" height="16" viewBox="0 0 14 14" fill="none"><path d="M3 7l3 3 5-5" stroke="#22C55E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                    ))}
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>,
+                              document.body
                             )}
-                          </AnimatePresence>,
-                          document.body
+                          </div>
                         )}
 
+                        {/* External Agent active label */}
+                        {externalToggles[idx] && (
+                          <div className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl mb-3" style={{ background: "rgba(196,162,101,0.06)", border: "1px solid rgba(196,162,101,0.2)" }}>
+                            <span className="text-base">🔌</span>
+                            <span className="text-sm font-bold" style={{ color: "#C4A265" }}>External Agent</span>
+                            {registeringExternal === idx && (
+                              <span className="w-3 h-3 border-2 border-[#C4A265] border-t-transparent rounded-full animate-spin" />
+                            )}
+                          </div>
+                        )}
+
+                        {/* External Agent Toggle */}
+                        <button
+                          onClick={() => toggleExternal(idx)}
+                          disabled={registeringExternal !== null}
+                          className="w-full flex items-center justify-between gap-2 px-3 py-2.5 mt-3 rounded-lg cursor-pointer transition-all duration-200 border"
+                          style={{
+                            background: externalToggles[idx] ? "rgba(196,162,101,0.08)" : "rgba(255,255,255,0.02)",
+                            borderColor: externalToggles[idx] ? "rgba(196,162,101,0.2)" : "rgba(255,255,255,0.06)",
+                          }}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm">🔌</span>
+                            <span className="text-xs font-semibold" style={{ color: externalToggles[idx] ? "#C4A265" : "#78736E" }}>External Agent</span>
+                          </div>
+                          {/* Toggle switch */}
+                          <div
+                            className="relative w-9 h-5 rounded-full transition-all duration-200"
+                            style={{ background: externalToggles[idx] ? "#C4A265" : "rgba(255,255,255,0.1)" }}
+                          >
+                            <div
+                              className="absolute top-0.5 w-4 h-4 rounded-full transition-all duration-200"
+                              style={{
+                                background: externalToggles[idx] ? "#fff" : "#78736E",
+                                left: externalToggles[idx] ? "18px" : "2px",
+                                boxShadow: externalToggles[idx] ? "0 0 6px rgba(196,162,101,0.4)" : "none",
+                              }}
+                            />
+                          </div>
+                        </button>
                       </div>
                     )}
                   </div>
@@ -532,6 +678,97 @@ export default function AuctionPage() {
             })}
           </div>
 
+
+          {/* ── External Agent Connection Panel ── */}
+          {Object.keys(externalTokens).length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="mb-8 rounded-2xl overflow-hidden"
+              style={{
+                background: "linear-gradient(135deg, rgba(10,10,10,0.95), rgba(196,162,101,0.04))",
+                border: "1px solid rgba(196,162,101,0.2)",
+                boxShadow: "0 4px 24px rgba(196,162,101,0.06)",
+              }}
+            >
+              <div className="px-6 py-4 flex items-center gap-3" style={{ borderBottom: "1px solid rgba(196,162,101,0.12)", background: "rgba(196,162,101,0.04)" }}>
+                <span className="text-lg">🔌</span>
+                <span className="text-sm font-bold uppercase tracking-wider font-mono" style={{ color: "#C4A265" }}>External Agent Connection</span>
+                <span className="ml-auto text-xs font-mono px-2 py-1 rounded-md" style={{ color: "#9A9590", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                  {Object.keys(externalTokens).length} slot{Object.keys(externalTokens).length > 1 ? "s" : ""}
+                </span>
+              </div>
+
+              <div className="p-6 space-y-5">
+                {Object.entries(externalTokens).map(([teamIdx, token]) => {
+                  const tIdx = parseInt(teamIdx);
+                  const tColor = TEAMS[tIdx]?.color || "#C4A265";
+                  const tName = TEAMS[tIdx]?.shortName || `T${tIdx + 1}`;
+                  const isConnected = connectedAgents.has(tIdx);
+                  const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+                  const stateUrl = `${baseUrl}/api/v1/auctions/${id}/external/state?token=${token}`;
+                  const bidUrl = `${baseUrl}/api/v1/auctions/${id}/external/bid?token=${token}`;
+
+                  return (
+                    <div key={teamIdx} className="rounded-xl p-5" style={{ background: "rgba(255,255,255,0.02)", border: `1px solid ${tColor}20` }}>
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="text-base">{TEAMS[tIdx]?.logo || "🏏"}</span>
+                        <span className="text-base font-extrabold" style={{ color: tColor }}>{tName}</span>
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${isConnected ? "text-[#10B981]" : "text-[#F97316]"}`} style={{ background: isConnected ? "rgba(16,185,129,0.1)" : "rgba(249,115,22,0.1)", border: `1px solid ${isConnected ? "rgba(16,185,129,0.2)" : "rgba(249,115,22,0.2)"}` }}>
+                          <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: isConnected ? "#10B981" : "#F97316", boxShadow: `0 0 6px ${isConnected ? "#10B981" : "#F97316"}` }} />
+                          {isConnected ? "Connected" : "Awaiting connection"}
+                        </span>
+                      </div>
+
+                      {/* Token */}
+                      <div className="mb-3">
+                        <div className="text-xs text-[#78736E] uppercase tracking-wider font-semibold mb-1.5">API Token</div>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-1 text-sm font-mono px-3 py-2 rounded-lg truncate" style={{ background: "rgba(0,0,0,0.4)", color: "#C4A265", border: "1px solid rgba(196,162,101,0.15)" }}>{token}</code>
+                          <button onClick={() => copyToClipboard(token, `token-${teamIdx}`)} className="px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider cursor-pointer transition-all" style={{ background: copiedField === `token-${teamIdx}` ? "rgba(16,185,129,0.15)" : "rgba(255,255,255,0.04)", color: copiedField === `token-${teamIdx}` ? "#10B981" : "#9A9590", border: `1px solid ${copiedField === `token-${teamIdx}` ? "rgba(16,185,129,0.3)" : "rgba(255,255,255,0.08)"}` }}>
+                            {copiedField === `token-${teamIdx}` ? "Copied!" : "Copy"}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* State Endpoint */}
+                      <div className="mb-3">
+                        <div className="text-xs text-[#78736E] uppercase tracking-wider font-semibold mb-1.5">Poll State <span className="text-[#625D58] normal-case">(GET)</span></div>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-1 text-xs font-mono px-3 py-2 rounded-lg truncate" style={{ background: "rgba(0,0,0,0.4)", color: "#9A9590", border: "1px solid rgba(255,255,255,0.06)" }}>{stateUrl}</code>
+                          <button onClick={() => copyToClipboard(stateUrl, `state-${teamIdx}`)} className="px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider cursor-pointer transition-all" style={{ background: copiedField === `state-${teamIdx}` ? "rgba(16,185,129,0.15)" : "rgba(255,255,255,0.04)", color: copiedField === `state-${teamIdx}` ? "#10B981" : "#9A9590", border: `1px solid ${copiedField === `state-${teamIdx}` ? "rgba(16,185,129,0.3)" : "rgba(255,255,255,0.08)"}` }}>
+                            {copiedField === `state-${teamIdx}` ? "Copied!" : "Copy"}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Bid Endpoint */}
+                      <div className="mb-4">
+                        <div className="text-xs text-[#78736E] uppercase tracking-wider font-semibold mb-1.5">Submit Bid <span className="text-[#625D58] normal-case">(POST)</span></div>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-1 text-xs font-mono px-3 py-2 rounded-lg truncate" style={{ background: "rgba(0,0,0,0.4)", color: "#9A9590", border: "1px solid rgba(255,255,255,0.06)" }}>{bidUrl}</code>
+                          <button onClick={() => copyToClipboard(bidUrl, `bid-${teamIdx}`)} className="px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider cursor-pointer transition-all" style={{ background: copiedField === `bid-${teamIdx}` ? "rgba(16,185,129,0.15)" : "rgba(255,255,255,0.04)", color: copiedField === `bid-${teamIdx}` ? "#10B981" : "#9A9590", border: `1px solid ${copiedField === `bid-${teamIdx}` ? "rgba(16,185,129,0.3)" : "rgba(255,255,255,0.08)"}` }}>
+                            {copiedField === `bid-${teamIdx}` ? "Copied!" : "Copy"}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Quick Start */}
+                      <div className="rounded-lg px-4 py-3" style={{ background: "rgba(196,162,101,0.04)", border: "1px solid rgba(196,162,101,0.1)" }}>
+                        <div className="text-xs text-[#C4A265] font-bold uppercase tracking-wider mb-2">Quick Start</div>
+                        <div className="text-sm text-[#9A9590] leading-relaxed">
+                          1. Read <code className="text-xs px-1.5 py-0.5 rounded bg-black/40 text-[#C4A265]">{baseUrl}/skill.md</code> for full API docs<br/>
+                          2. Poll the state endpoint until <code className="text-xs px-1.5 py-0.5 rounded bg-black/40 text-[#C4A265]">your_turn: true</code><br/>
+                          3. POST your bid/pass decision to the bid endpoint
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
 
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.35 }} className="bento-card p-7 mb-8">
             <div className="flex items-center gap-2 mb-5">
@@ -618,12 +855,25 @@ export default function AuctionPage() {
             </div>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 }} className="flex justify-center">
-            <motion.button onClick={handleStartAuction} disabled={starting || addingBots || !modelSelections.slice(0, teamCount).every(Boolean)} whileHover={!starting && !addingBots ? { scale: 1.03, y: -2 } : undefined} whileTap={!starting && !addingBots ? { scale: 0.98 } : undefined} className={`py-4 px-16 rounded-2xl border-none text-lg font-black tracking-wider transition-colors duration-200 relative overflow-hidden ${starting || addingBots ? "bg-[#222] text-[#9A9590] cursor-not-allowed" : "text-white cursor-pointer"}`} style={starting || addingBots ? undefined : { background: "linear-gradient(135deg, #C4A265, #3B82F6)", boxShadow: "0 6px 32px rgba(196,162,101,0.3), 0 0 60px rgba(59,130,246,0.1)" }}>
-              {!starting && !addingBots && <span className="absolute inset-0 opacity-30" style={{ background: "linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.3) 50%, transparent 75%)", backgroundSize: "200% 100%", animation: "shimmer 2.5s linear infinite" }} />}
-              <span className="relative z-10">{addingBots ? "Preparing Agents..." : starting ? "Starting..." : "START AUCTION"}</span>
-            </motion.button>
-          </motion.div>
+          {(() => {
+            const externalToggleIndices = Object.entries(externalToggles).filter(([, v]) => v).map(([k]) => parseInt(k));
+            const hasUnconnectedExternal = externalToggleIndices.some(idx => !connectedAgents.has(idx));
+            const isDisabled = starting || addingBots || !modelSelections.slice(0, teamCount).every(Boolean) || hasUnconnectedExternal;
+            return (
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 }} className="flex flex-col items-center gap-3">
+                <motion.button onClick={handleStartAuction} disabled={isDisabled} whileHover={!isDisabled ? { scale: 1.03, y: -2 } : undefined} whileTap={!isDisabled ? { scale: 0.98 } : undefined} className={`py-4 px-16 rounded-2xl border-none text-lg font-black tracking-wider transition-colors duration-200 relative overflow-hidden ${isDisabled ? "bg-[#222] text-[#9A9590] cursor-not-allowed" : "text-white cursor-pointer"}`} style={isDisabled ? undefined : { background: "linear-gradient(135deg, #C4A265, #3B82F6)", boxShadow: "0 6px 32px rgba(196,162,101,0.3), 0 0 60px rgba(59,130,246,0.1)" }}>
+                  {!isDisabled && <span className="absolute inset-0 opacity-30" style={{ background: "linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.3) 50%, transparent 75%)", backgroundSize: "200% 100%", animation: "shimmer 2.5s linear infinite" }} />}
+                  <span className="relative z-10">{addingBots ? "Preparing Agents..." : starting ? "Starting..." : "START AUCTION"}</span>
+                </motion.button>
+                {hasUnconnectedExternal && (
+                  <div className="flex items-center gap-2 text-sm text-[#F97316]">
+                    <span className="w-2 h-2 rounded-full inline-block animate-pulse" style={{ background: "#F97316", boxShadow: "0 0 8px #F97316" }} />
+                    Waiting for external agent{externalToggleIndices.length > 1 ? "s" : ""} to connect...
+                  </div>
+                )}
+              </motion.div>
+            );
+          })()}
         </div>
       )}
 
@@ -717,6 +967,37 @@ export default function AuctionPage() {
               );
             })()}
 
+
+            {/* External Agent Waiting Indicator */}
+            {liveData.waiting_for_external && phase === "running" && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="rounded-xl px-5 py-4 flex items-center gap-4"
+                style={{
+                  background: "linear-gradient(135deg, rgba(249,115,22,0.06), rgba(196,162,101,0.04))",
+                  border: "1px solid rgba(249,115,22,0.2)",
+                  boxShadow: "0 0 20px rgba(249,115,22,0.06)",
+                }}
+              >
+                <div className="relative flex-shrink-0">
+                  <span className="w-3 h-3 rounded-full inline-block" style={{ background: "#F97316", boxShadow: "0 0 12px #F97316" }} />
+                  <span className="absolute inset-0 w-3 h-3 rounded-full animate-ping" style={{ background: "#F97316", opacity: 0.4 }} />
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-[#F97316]">Waiting for external agent</div>
+                  <div className="text-xs text-[#9A9590] mt-0.5">
+                    <span className="font-semibold" style={{ color: TEAMS[liveData.waiting_for_external.team_index]?.color || "#C4A265" }}>
+                      {liveData.waiting_for_external.team_name}
+                    </span>
+                    {" "}is polling for their turn — 120s timeout
+                  </div>
+                </div>
+                <div className="ml-auto">
+                  <span className="text-lg">🔌</span>
+                </div>
+              </motion.div>
+            )}
 
             {liveData.last_result && !liveData.current_lot && (
               <div className="rounded-xl p-6" style={{ background: "#0a0a0a", border: `1px solid ${liveData.last_result.status === "SOLD" ? "rgba(16,185,129,0.25)" : "rgba(239,68,68,0.25)"}` }}>

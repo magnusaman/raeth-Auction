@@ -163,9 +163,6 @@ export default function Navbar() {
               </span>
             </button>
 
-            <Link href="/" className="btn-primary text-sm py-2.5 px-5 font-bold">
-              New Auction
-            </Link>
           </div>
 
           {/* Mobile: search + hamburger */}
@@ -307,13 +304,6 @@ export default function Navbar() {
 
               <div className="px-4 pb-8">
                 <div className="h-px mb-4" style={{ background: "rgba(255,255,255,0.06)" }} />
-                <Link
-                  href="/"
-                  onClick={() => setMobileOpen(false)}
-                  className="btn-gradient w-full text-center text-sm py-3 font-bold justify-center"
-                >
-                  New Auction
-                </Link>
               </div>
             </motion.div>
           </>

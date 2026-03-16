@@ -347,37 +347,30 @@ async function waitForExternalBid(
 ): Promise<BidAction> {
   const startTime = Date.now();
 
-  // Count existing bids from this team on this lot before we start waiting
-  const existingBids = await prisma.bid.count({
-    where: { lotId, teamId },
-  });
-
   while (Date.now() - startTime < EXTERNAL_BID_TIMEOUT_MS) {
-    // Check if auction was stopped
+    // Check auction config for the external agent's decision
     const auction = await prisma.auction.findUnique({ where: { id: auctionId } });
-    if (auction?.status === "STOPPED") {
+    if (!auction) return { action: "pass", reasoning: "Auction not found" };
+    if (auction.status === "STOPPED") {
       return { action: "pass", reasoning: "Auction stopped" };
     }
 
-    // Check for new bid from this team
-    const currentBids = await prisma.bid.count({
-      where: { lotId, teamId },
-    });
+    const cfg = JSON.parse(auction.config || "{}");
+    const response = cfg.externalBidResponse;
 
-    if (currentBids > existingBids) {
-      // External agent submitted a bid — fetch it
-      const latestBid = await prisma.bid.findFirst({
-        where: { lotId, teamId },
-        orderBy: { timestamp: "desc" },
+    if (response && response.teamId === teamId && response.lotId === lotId) {
+      // Clear the response so it's not re-read
+      delete cfg.externalBidResponse;
+      await prisma.auction.update({
+        where: { id: auctionId },
+        data: { config: JSON.stringify(cfg) },
       });
 
-      if (latestBid) {
-        return {
-          action: latestBid.action as "bid" | "pass",
-          amount: latestBid.amount || undefined,
-          reasoning: latestBid.reasoning,
-        };
-      }
+      return {
+        action: response.action as "bid" | "pass",
+        amount: response.amount || undefined,
+        reasoning: response.reasoning,
+      };
     }
 
     await new Promise((r) => setTimeout(r, EXTERNAL_POLL_INTERVAL_MS));
@@ -556,16 +549,33 @@ ${avgBudgetPerPlayer < 3 ? "🚨 YOUR AVERAGE BUDGET PER REMAINING SLOT IS ONLY 
 10. Value Discovery — Did you find sleeper picks (low visible stats, high true value)?
 
 ═══ PLAYER ASSESSMENT FRAMEWORK ═══
-BATSMEN: Look at batting avg (>30 is good), strike rate (>135 elite), recent form, hundreds/fifties count
-BOWLERS: Economy (<7.5 elite), wickets tally, bowling average, recent form wickets/match
-ALL-ROUNDERS: Dual contribution — both batting AND bowling stats must be decent
-WICKET-KEEPERS: Batting avg + strike rate matter most (keeping is assumed)
+Stats are ONE input — NOT the full picture. Consider ALL of these:
+
+1. REPUTATION & MATCH IMPACT: Proven match-winners (e.g. Kohli, Dhoni, Bumrah, Buttler, Rashid Khan)
+   are worth MORE than their raw numbers suggest. A player with 200+ IPL matches and a 30 avg / 125 SR
+   is STILL elite — they've performed under the most pressure for years. Don't dismiss them for "low" SR.
+   Players with 150+ matches are PROVEN — their consistency and experience is immensely valuable.
+
+2. ROLE-SPECIFIC EVALUATION:
+   BATSMEN: Avg >30 is solid, SR >135 is elite. BUT anchors (high avg, lower SR like 125-135) are
+     ESSENTIAL for team balance. Every squad needs 1-2 anchors alongside aggressive hitters.
+   BOWLERS: Economy <7.5 is great, but also look at total wickets (>100 = elite), clutch ability.
+     Death bowlers and powerplay specialists are premium regardless of raw economy.
+   ALL-ROUNDERS: True all-rounders (decent in BOTH disciplines) are the rarest and most valuable players.
+     Even moderate stats make them worth a premium because they provide squad flexibility.
+   WICKET-KEEPERS: Batting ability matters most. A keeper who bats at avg >25, SR >130 is premium.
+
+3. CONTEXT MATTERS:
+   - High hundreds/fifties count = big-game player, worth extra investment
+   - 200+ IPL matches = veteran presence, knows how to win tournaments
+   - Indian players don't use overseas slots = inherently more valuable (no cap constraint)
+   - Some players' value is in their intangibles: captaincy, fielding, dressing room presence
 
 ⚠️ TRAPS TO WATCH:
-- Players with great career stats but POOR recent form → might be declining
-- Very high base price with moderate stats → overvalued
-- Batsmen with high average but LOW strike rate → anchors, less T20 impact
+- Players with very few matches (<20) but flashy stats → small sample, unproven
+- Very high base price with genuinely mediocre career → overvalued
 - Bowlers with low economy but very few matches → small sample size
+- Don't confuse "anchor" with "bad" — anchors with 30+ avg are essential squad players
 
 ═══ ROUND SYSTEM ═══
 - ROUND 1: All ${totalPoolSize} players auctioned. You MUST buy most of your squad in Round 1.
@@ -579,18 +589,26 @@ ${currentRound === 2 ? "🔄 ROUND 2: Fill your squad NOW with these remaining p
 - Lots 36–80 (Mid): Fill role gaps. Target players going for ₹2-5 Cr. You should have 5-10 players by lot 80.
 - Lots 81–120 (Late): Squad completion priority. Buy to reach ${minSquad}. Don't overpay but DO buy.
 
-═══ BIDDING PHILOSOPHY: BE PASSIVE-AGGRESSIVE ═══
-- ALWAYS BID on elite players (batting avg >35, SR >140, or economy <7.0). Contest them up to ₹8-10 Cr.
-- For solid players, bid confidently up to ₹3-5 Cr. Don't let every player go cheaply to opponents.
-- For average players at base price, BID — they fill your squad cheaply.
-- Only PASS on overpriced mediocre players or when the bidding war goes beyond the player's value.
-- USE YOUR FULL ₹100 Cr BUDGET. Hoarding purse = wasted potential. Aim to spend ₹85-100 Cr total.
-- READ THE SITUATION: If opponents are low on purse, you have pricing power. If you're behind on squad size, buy now.
-- Winning auctions requires BALANCE: don't just be passive (passing everything) or just aggressive (overpaying for all).
+═══ BIDDING PHILOSOPHY: SPEND TO WIN ═══
+- You MUST spend ₹90-100 Cr by the end. Finishing with ₹30+ Cr unspent is a MASSIVE failure.
+  UNSPENT PURSE = WASTED POTENTIAL. Every crore saved is a better player you didn't buy.
+- ALWAYS BID on proven players (150+ matches, avg >30, or economy <8.0). Contest them up to ₹8-12 Cr.
+- For solid players, bid confidently up to ₹5-7 Cr. These form your squad's backbone.
+- For average players at base price, ALWAYS BID — they fill your squad at minimal cost.
+- Only PASS when: (a) you genuinely cannot afford it, (b) overseas cap blocks it, or (c) it's a true bidding war trap beyond ₹12 Cr for a non-elite player.
+- DO NOT be afraid to spend ₹6-10 Cr on a great player. That is NORMAL and EXPECTED in IPL auctions.
+- READ THE SITUATION: If opponents are low on purse, you have pricing power — push bids. If you're behind on squad size, buy immediately.
+- Think like a FRANCHISE OWNER: would you rather end with ₹50 Cr unspent and a mediocre squad, or ₹5 Cr left and a squad full of proven match-winners?
+
+═══ SPENDING PACE GUIDE ═══
+- By lot 30 (~25% done): Should have spent ₹25-35 Cr on 4-6 premium/solid players
+- By lot 60 (~50% done): Should have spent ₹50-65 Cr on 8-12 players
+- By lot 90 (~75% done): Should have spent ₹75-85 Cr on 13-17 players
+- Final: Aim for ₹90-100 Cr spent, ${minSquad}-${maxSquad} quality players
 
 ═══ KEY RULE: WHEN TO STOP BIDDING ═══
-If the current bid exceeds ₹10 Cr, PASS unless this player has truly elite stats AND you have 60%+ purse left.
-Don't let moderate bidding wars scare you — a player at ₹4-5 Cr can still be great value.
+If the current bid exceeds ₹12 Cr, PASS unless this player has elite career stats (150+ matches, avg >35 or econ <7.0) AND you have 50%+ purse left.
+Don't let moderate bidding wars scare you — a proven player at ₹5-8 Cr is NORMAL VALUE, not overpaying.
 ${currentBidAmount > 0 ? "\nCurrent asking price for this player: ₹" + currentBidAmount.toFixed(2) + " Cr" : ""}
 
 ${isMustBuy ? "🚨 EMERGENCY: You MUST BID on this player. You need " + slotsNeeded + " more players and only " + lotsLeft + " lots remain. PASSING = AUTOMATIC LOSS." : ""}${isCritical && !isMustBuy ? "⚠️ URGENT: You need " + slotsNeeded + " more players and only " + lotsLeft + " lots remain. Strongly prefer BIDDING unless the player is terrible AND there are clearly better options coming." : ""}${isBehindPace && !isCritical ? "\n🚨 BEHIND PACE: By lot " + (state.auctionProgress.lotsCompleted + 1) + " you should have ~" + expectedPlayersByNow + " players but you only have " + team.squadSize + "! START BUYING NOW. You are falling dangerously behind — bid on any decent player at reasonable price!" : ""}

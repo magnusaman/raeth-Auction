@@ -19,11 +19,11 @@ interface AuctionItem {
 
 const PAGES = [
   { name: "Home", href: "/", shortcut: "H", icon: "⌂" },
-  { name: "Arena — Replays", href: "/arena", shortcut: "A", icon: "⚔" },
+  { name: "Arena — Replays", href: "/arena", shortcut: "", icon: "⚔" },
   { name: "Leaderboard", href: "/leaderboard", shortcut: "L", icon: "🏆" },
   { name: "Tournaments", href: "/tournaments", shortcut: "T", icon: "🏟" },
   { name: "Trends & Analytics", href: "/trends", shortcut: "R", icon: "📈" },
-  { name: "Compare Auctions", href: "/compare", shortcut: "C", icon: "⚖" },
+  { name: "Compare Auctions", href: "/compare", shortcut: "", icon: "⚖" },
   { name: "About Raeth", href: "/about", shortcut: "B", icon: "ℹ" },
 ];
 
@@ -82,6 +82,10 @@ export default function CommandPalette({ open, onOpenChange }: CommandPalettePro
     const handler = (e: KeyboardEvent) => {
       if (!e.metaKey && !e.ctrlKey) return;
       if (e.shiftKey || e.altKey) return;
+
+      // Skip keys that conflict with native OS shortcuts (Ctrl+C = copy, Ctrl+A = select all)
+      const reserved = ["c", "a", "v", "x", "z"];
+      if (reserved.includes(e.key.toLowerCase())) return;
 
       const page = PAGES.find((p) => p.shortcut.toLowerCase() === e.key.toLowerCase());
       if (page) {
@@ -173,9 +177,11 @@ export default function CommandPalette({ open, onOpenChange }: CommandPalettePro
                     >
                       <span className="text-base w-6 text-center shrink-0 opacity-60">{page.icon}</span>
                       <span className="flex-1 text-sm">{page.name}</span>
-                      <kbd className="text-[11px] font-mono text-[#625D58] px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">
-                        ⌘{page.shortcut}
-                      </kbd>
+                      {page.shortcut && (
+                        <kbd className="text-[11px] font-mono text-[#625D58] px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">
+                          ⌘{page.shortcut}
+                        </kbd>
+                      )}
                     </Command.Item>
                   ))}
                 </Command.Group>
@@ -245,12 +251,12 @@ export default function CommandPalette({ open, onOpenChange }: CommandPalettePro
                         Home
                       </span>
                       <span className="flex items-center gap-1">
-                        <kbd className="text-[11px] font-mono px-1 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">⌘A</kbd>
-                        Arena
-                      </span>
-                      <span className="flex items-center gap-1">
                         <kbd className="text-[11px] font-mono px-1 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">⌘L</kbd>
                         Leaderboard
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <kbd className="text-[11px] font-mono px-1 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">⌘T</kbd>
+                        Tournaments
                       </span>
                     </span>
                   </Command.Item>

@@ -4,7 +4,9 @@ import { TEAMS } from "@/data/team-config";
 import { ExternalBidSchema, zodError } from "@/lib/api-schemas";
 
 // POST /api/v1/auctions/[id]/external/bid?token=xxx
-// External agent submits a bid/pass decision
+// External agent submits a bid/pass decision.
+// Decision is stored in auction config — the bidding loop picks it up
+// and routes it through processBid() for proper validation.
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -79,18 +81,21 @@ export async function POST(
       return NextResponse.json({ error: "Lot has changed, not your turn anymore" }, { status: 409 });
     }
 
-    // Create the bid record directly — the bidding loop will detect it
-    const roundNum = currentLot.bids.length + 1;
+    // Store decision in config — the bidding loop's waitForExternalBid()
+    // will pick this up and route through processBid() for validation.
+    // This prevents bypassing squad size, purse, and overseas checks.
+    config.externalBidResponse = {
+      teamId: myTeam.id,
+      lotId: currentLot.id,
+      action,
+      amount: action === "bid" ? amount : null,
+      reasoning: reasoning || "",
+      timestamp: new Date().toISOString(),
+    };
 
-    await prisma.bid.create({
-      data: {
-        lotId: currentLot.id,
-        teamId: myTeam.id,
-        action,
-        amount: action === "bid" ? amount : null,
-        reasoning: reasoning || "",
-        roundNumber: roundNum,
-      },
+    await prisma.auction.update({
+      where: { id: auctionId },
+      data: { config: JSON.stringify(config) },
     });
 
     console.log(`  [External] ${TEAMS[myTeamIndex].shortName}: ${action}${amount ? ` ₹${amount}Cr` : ""}`);

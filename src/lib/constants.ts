@@ -18,6 +18,7 @@ export const PROVIDER_META: Record<string, { icon: string; color: string }> = {
   DeepSeek: { icon: "⚫", color: "#94A3B8" },
   Meta: { icon: "🔷", color: "#0668E1" },
   Mistral: { icon: "🟠", color: "#F97316" },
+  External: { icon: "🔌", color: "#C4A265" },
 };
 
 // ── Available LLM models ──
@@ -34,6 +35,7 @@ export const AVAILABLE_MODELS = [
   { id: "meta-llama/llama-4-maverick", label: "Llama 4 Maverick", provider: "Meta" },
   { id: "mistralai/mistral-medium", label: "Mistral Medium", provider: "Mistral" },
   { id: "mistralai/mistral-small", label: "Mistral Small", provider: "Mistral" },
+  { id: "external", label: "External Agent", provider: "External" },
 ] as const;
 
 export type ModelId = (typeof AVAILABLE_MODELS)[number]["id"];

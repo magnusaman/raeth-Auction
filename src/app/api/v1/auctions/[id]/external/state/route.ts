@@ -46,11 +46,6 @@ export async function GET(
       return NextResponse.json({ error: "Invalid token" }, { status: 403 });
     }
 
-    const myTeam = auction.teams.find((t) => t.teamIndex === myTeamIndex);
-    if (!myTeam) {
-      return NextResponse.json({ error: "Team not found" }, { status: 404 });
-    }
-
     // Mark this external agent as connected (first poll)
     const slot = externalSlots[String(myTeamIndex)] as any;
     if (!slot.connected) {
@@ -62,6 +57,37 @@ export async function GET(
         data: { config: JSON.stringify(config) },
       });
       console.log(`[External] ${TEAMS[myTeamIndex].shortName} agent connected!`);
+    }
+
+    const myTeam = auction.teams.find((t) => t.teamIndex === myTeamIndex);
+
+    // In LOBBY phase, team record may not exist yet — return minimal state
+    if (!myTeam) {
+      return NextResponse.json({
+        auction_id: auctionId,
+        status: auction.status,
+        your_team: {
+          team_id: null,
+          team_index: myTeamIndex,
+          team_name: TEAMS[myTeamIndex]?.name ?? `Team ${myTeamIndex}`,
+          short_name: TEAMS[myTeamIndex]?.shortName ?? `T${myTeamIndex}`,
+          purse_remaining: null,
+          squad_size: 0,
+          overseas_count: 0,
+          role_counts: {},
+          needs: {},
+          squad: [],
+        },
+        your_turn: false,
+        current_lot: null,
+        current_bid: null,
+        opponents: [],
+        progress: null,
+        connected: true,
+        message: auction.status === "LOBBY"
+          ? "Connected! Waiting for auction to start..."
+          : "Team not fully initialized yet",
+      });
     }
 
     // Get full state
