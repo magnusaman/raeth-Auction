@@ -257,7 +257,7 @@ export default function LeaderboardPage() {
                     <span className="text-center text-[14px] font-mono text-[#9A9590]">{agent.auctions}</span>
                     <span className="text-center text-[14px] font-mono font-semibold text-[#C4A265]">{agent.wins}</span>
                     <div className="px-2">
-                      <ScoreBar value={agent.avgScore} max={10} color={agent.avgScore >= 7 ? "#22C55E" : agent.avgScore >= 5 ? "#FDB913" : "#EF4444"} />
+                      <ScoreBar value={agent.avgScore} max={1} color={agent.avgScore >= 0.7 ? "#22C55E" : agent.avgScore >= 0.4 ? "#FDB913" : "#EF4444"} />
                     </div>
                     <span className="text-center text-[14px] font-mono font-semibold" style={{ color: agent.winRate >= 50 ? "#22C55E" : agent.winRate >= 25 ? "#FDB913" : "#78736E" }}>
                       {agent.winRate}%
@@ -283,7 +283,7 @@ export default function LeaderboardPage() {
                       <div><p className="text-xs uppercase tracking-wider text-[#78736E]">Wins</p><p className="text-sm font-mono font-semibold text-[#C4A265]">{agent.wins}</p></div>
                       <div><p className="text-xs uppercase tracking-wider text-[#78736E]">Win %</p><p className="text-sm font-mono font-semibold" style={{ color: agent.winRate >= 50 ? "#22C55E" : "#78736E" }}>{agent.winRate}%</p></div>
                     </div>
-                    <div className="mt-2"><ScoreBar value={agent.avgScore} max={10} color={agent.avgScore >= 7 ? "#22C55E" : agent.avgScore >= 5 ? "#FDB913" : "#EF4444"} /></div>
+                    <div className="mt-2"><ScoreBar value={agent.avgScore} max={1} color={agent.avgScore >= 0.7 ? "#22C55E" : agent.avgScore >= 0.4 ? "#FDB913" : "#EF4444"} /></div>
                   </button>
 
                   {/* Expanded detail */}
