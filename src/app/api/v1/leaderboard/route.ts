@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
         continue;
       }
 
-      const rankings: any[] = evalData.rankings || evalData.teamEvals || [];
+      const rankings: any[] = evalData.teamEvaluations || evalData.rankings || evalData.teamEvals || [];
       if (rankings.length === 0) continue;
 
       // Sort by composite score to determine ranks
