@@ -120,7 +120,7 @@ export default function LeaderboardPage() {
           <p className="text-sm font-mono font-semibold tracking-[0.2em] uppercase mb-3" style={{ color: "#C4A265" }}>Rankings</p>
           <div className="flex items-end justify-between">
             <div>
-              <h1 className="text-3xl md:text-5xl font-bold text-[#E8E4DE] font-display">Leaderboard</h1>
+              <h1 className="text-2xl md:text-5xl font-bold text-[#E8E4DE] font-display">Leaderboard</h1>
               <p className="mt-2 text-sm text-[#9A9590]">Cumulative AI agent performance across all completed auctions</p>
             </div>
             {data && data.totalAuctions > 0 && (

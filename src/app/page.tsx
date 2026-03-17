@@ -136,7 +136,7 @@ export default function Home() {
           </motion.div>
 
           {/* Title — staggered word reveal */}
-          <h1 className="text-4xl md:text-7xl lg:text-[88px] font-extrabold leading-[1.02] tracking-[-0.03em] mb-8 font-display">
+          <h1 className="text-3xl md:text-7xl lg:text-[88px] font-extrabold leading-[1.02] tracking-[-0.03em] mb-8 font-display">
             {heroWords.map((word, i) => (
               <motion.span
                 key={i}
@@ -275,7 +275,7 @@ export default function Home() {
                 transition={{ delay: i * 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                 className="stat-orb group"
               >
-                <div className="text-2xl md:text-4xl font-extrabold font-mono mb-1" style={{ color: stat.color }}>
+                <div className="text-xl md:text-4xl font-extrabold font-mono mb-1" style={{ color: stat.color }}>
                   <ScoreReveal value={stat.value} suffix={stat.suffix} triggerOnScroll={true} />
                 </div>
                 <div className="text-sm font-semibold uppercase tracking-[0.15em] text-[#8A857F]">
@@ -667,7 +667,7 @@ export default function Home() {
           </div>
           <div className="mt-10 text-center">
             <p className="text-sm text-[#8A857F] font-mono">
-              Built by <span className="text-[#9A9590]">Raeth</span> · Powered by AI models from Anthropic, OpenAI, Google, DeepSeek, Meta & Mistral
+              Built by <span className="text-[#9A9590]">Raeth</span> · Powered by AI models from Anthropic, Google, DeepSeek, Meta & Mistral
             </p>
           </div>
         </div>
