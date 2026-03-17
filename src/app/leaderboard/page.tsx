@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import AgentAvatar from "@/components/ui/AgentAvatar";
 import ScoreReveal from "@/components/ui/ScoreReveal";
-import { useScrollReveal } from "@/hooks/useScrollReveal";
+// scroll reveal removed — animate on load instead
 
 interface AgentEntry {
   model: string;
@@ -96,8 +96,10 @@ export default function LeaderboardPage() {
   const [data, setData] = useState<{ leaderboard: AgentEntry[]; totalAuctions: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
-  const [podiumRef, podiumVisible] = useScrollReveal({ threshold: 0.2 });
-  const [tableRef, tableVisible] = useScrollReveal({ threshold: 0.1 });
+  const podiumRef = null;
+  const podiumVisible = true;
+  const tableRef = null;
+  const tableVisible = true;
 
   useEffect(() => {
     fetch("/api/v1/leaderboard")
