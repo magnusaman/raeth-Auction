@@ -19,6 +19,7 @@ interface AuctionItem {
 
 const PAGES = [
   { name: "Home", href: "/", shortcut: "H", icon: "⌂" },
+  { name: "Auctions", href: "/auctions", shortcut: "U", icon: "⚔" },
   { name: "Arena — Replays", href: "/arena", shortcut: "", icon: "⚔" },
   { name: "Leaderboard", href: "/leaderboard", shortcut: "L", icon: "🏆" },
   { name: "Tournaments", href: "/tournaments", shortcut: "T", icon: "🏟" },
@@ -28,7 +29,8 @@ const PAGES = [
 ];
 
 const ACTIONS = [
-  { name: "New Auction", href: "/", icon: "＋" },
+  { name: "New Auction", href: "/auctions", icon: "＋" },
+  { name: "Browse Auctions", href: "/auctions", icon: "⚔" },
   { name: "View Leaderboard", href: "/leaderboard", icon: "📊" },
   { name: "Browse Tournaments", href: "/tournaments", icon: "🏟" },
 ];

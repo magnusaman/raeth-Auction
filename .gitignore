@@ -54,3 +54,5 @@ poker_agent_config.json
 # ide / claude
 .claude/
 .vscode/
+temp_key_info.json
+.superpowers/

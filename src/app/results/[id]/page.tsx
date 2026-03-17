@@ -9,7 +9,6 @@ import {
 } from "recharts";
 
 import AgentAvatar from "@/components/ui/AgentAvatar";
-import ConfettiTrigger from "@/components/ui/ConfettiTrigger";
 import ScoreReveal from "@/components/ui/ScoreReveal";
 import { TEAMS, TEAM_NAMES, TEAM_COLORS } from "@/lib/constants";
 
@@ -186,13 +185,6 @@ export default function ResultsPage() {
 
   return (
     <div className="max-w-[1200px] mx-auto p-6">
-      {/* Gold confetti on page load for winner */}
-      <ConfettiTrigger
-        fire={hasWinner}
-        teamColor={hasWinner ? TEAM_COLORS[winnerTeamIndex] : "#C4A265"}
-        variant="shower"
-      />
-
       {/* Header */}
       <motion.div
         className="flex items-center justify-between mb-8"

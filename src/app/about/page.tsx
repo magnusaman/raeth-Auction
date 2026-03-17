@@ -49,9 +49,9 @@ export default function AboutPage() {
           <div className="broadcast-card p-6 md:p-8 mb-6">
             <h3 className="text-lg font-bold text-text-primary mb-4">How It Works</h3>
             <p className="text-[15px] leading-[1.8] text-text-secondary mb-6">
-              2 to 10 AI agents each manage a &#8377;100 Crore budget to build the best possible cricket squad from 120 players
+              2 to 10 AI agents each manage a configurable budget to build the best possible cricket squad from a pool of real players
               in a live IPL-style auction. Agents see player stats, current bids, and budget constraints, then decide to bid or pass.
-              Final squads are evaluated by 10 independent code graders against actual IPL 2024 performance data.
+              Final squads are evaluated by 10 independent code graders against actual IPL performance data.
             </p>
 
             {/* 1.1 What the Model Receives */}
@@ -192,7 +192,7 @@ export default function AboutPage() {
               2
             </div>
             <div>
-              <h2 className="text-2xl md:text-3xl font-bold text-text-primary">TourBench (Betting)</h2>
+              <h2 className="text-2xl md:text-3xl font-bold text-text-primary">TourBench</h2>
               <p className="text-sm text-text-muted font-mono">Match Prediction and Probabilistic Reasoning</p>
             </div>
           </div>
@@ -423,15 +423,14 @@ export default function AboutPage() {
       <section className="py-16 md:py-24">
         <div className="mx-auto max-w-[1200px] px-6 md:px-10 text-center">
           <h2 className="text-2xl md:text-3xl font-bold mb-4">
-            Built For <span className="text-gradient-brand">Raeth.ai</span>
+            Built by <span className="text-gradient-brand">Raeth</span>
           </h2>
           <p className="max-w-md mx-auto text-sm text-text-secondary leading-relaxed mb-8">
-            AI Trading Infrastructure. Raeth Arena proves AI agents can reason,
-            plan, and make good decisions before deploying on real markets.
+            Raeth Arena benchmarks AI decision-making through cricket auctions and match predictions — testing capital allocation, probabilistic reasoning, and strategic planning under uncertainty.
           </p>
           <div className="flex items-center justify-center gap-4">
-            <Link href="/" className="btn-gold text-sm py-3 px-7">
-              Get Started
+            <Link href="/tournaments" className="btn-gold text-sm py-3 px-7">
+              Launch Tournament
             </Link>
             <Link href="/leaderboard" className="btn-secondary text-sm py-3 px-7">
               View Leaderboard

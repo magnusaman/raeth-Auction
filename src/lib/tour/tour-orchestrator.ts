@@ -414,6 +414,81 @@ async function callOpenRouter(model: string, prompt: string, isRealData: boolean
   return data.choices?.[0]?.message?.content || "";
 }
 
+/** Wait for an external agent to submit a prediction via API */
+async function waitForExternalPrediction(
+  tournamentId: string,
+  agentIndex: number,
+  match: any,
+  prompt: string,
+  teams: TeamConfig[],
+  isRealData: boolean
+): Promise<{ predictedWinner: number; confidence: number; predictedMargin: string; keyFactors: string[]; reasoning: string }> {
+  const TIMEOUT_MS = 120_000; // 2 minutes
+  const POLL_MS = 2_000; // 2 seconds
+
+  // Set pending prediction signal so external agent knows it's their turn
+  const tournament = await prisma.tournament.findUnique({ where: { id: tournamentId } });
+  const config = JSON.parse(tournament?.config || "{}");
+  config.pendingExternalPrediction = {
+    agentIndex,
+    matchId: match.id,
+    matchNumber: match.matchNumber,
+    prompt,
+  };
+  await prisma.tournament.update({
+    where: { id: tournamentId },
+    data: { config: JSON.stringify(config) },
+  });
+
+  console.log(`  [Waiting] External agent #${agentIndex} — match ${match.matchNumber}...`);
+
+  const startTime = Date.now();
+  while (Date.now() - startTime < TIMEOUT_MS) {
+    const fresh = await prisma.tournament.findUnique({ where: { id: tournamentId } });
+    const freshConfig = JSON.parse(fresh?.config || "{}");
+    const response = freshConfig.externalPredictionResponse;
+
+    if (response && response.agentIndex === agentIndex) {
+      // Clear the response and pending signal
+      delete freshConfig.externalPredictionResponse;
+      delete freshConfig.pendingExternalPrediction;
+      await prisma.tournament.update({
+        where: { id: tournamentId },
+        data: { config: JSON.stringify(freshConfig) },
+      });
+
+      // Parse the prediction team name to an index
+      const t1Short = isRealData ? teams[match.team1Index].shortName : teams[match.team1Index].promptShort;
+      const predTeam = String(response.prediction).toUpperCase();
+      const predictedWinner = predTeam === t1Short.toUpperCase() ? match.team1Index : match.team2Index;
+
+      return {
+        predictedWinner,
+        confidence: response.confidence,
+        predictedMargin: response.margin,
+        keyFactors: response.keyFactors,
+        reasoning: response.reasoning,
+      };
+    }
+
+    await new Promise((r) => setTimeout(r, POLL_MS));
+  }
+
+  // Timeout — clear pending and auto-predict randomly
+  console.log(`  [Timeout] External agent #${agentIndex} timed out on match ${match.matchNumber}, using random prediction`);
+  const cfg = JSON.parse((await prisma.tournament.findUnique({ where: { id: tournamentId } }))?.config || "{}");
+  delete cfg.pendingExternalPrediction;
+  await prisma.tournament.update({ where: { id: tournamentId }, data: { config: JSON.stringify(cfg) } });
+
+  return {
+    predictedWinner: Math.random() > 0.5 ? match.team1Index : match.team2Index,
+    confidence: 0.55,
+    predictedMargin: "5 wickets",
+    keyFactors: ["External agent timed out — random prediction"],
+    reasoning: "External agent did not respond within 120 seconds.",
+  };
+}
+
 // Background prediction runner — called fire-and-forget from the API route
 export async function runPredictionsAndEvaluate(
   tournamentId: string,
@@ -451,8 +526,10 @@ export async function runPredictionsAndEvaluate(
     console.log(`[TourBench] Real data mode — ${visibleHistory?.length || 0} visible history matches loaded for ${tournament?.evalSeason}`);
   }
 
-  for (const predictor of predictors) {
-    console.log(`[TourBench] ${predictor.name} predicting ${matches.length} matches...`);
+  for (let pIdx = 0; pIdx < predictors.length; pIdx++) {
+    const predictor = predictors[pIdx];
+    const isExternal = predictor.model === "external";
+    console.log(`[TourBench] ${predictor.name}${isExternal ? " (EXTERNAL)" : ""} predicting ${matches.length} matches...`);
 
     for (const match of matches) {
       // Check if tournament was cancelled (stop button pressed)
@@ -467,8 +544,16 @@ export async function runPredictionsAndEvaluate(
 
       try {
         const prompt = buildMatchPrompt(match, matches, teamSquads, teamsConfig, visibleHistory);
-        const response = await callOpenRouter(predictor.model, prompt, isRealData);
-        const parsed = parsePrediction(response, match.team1Index, match.team2Index, teamsConfig, isRealData);
+        let response: string;
+        let parsed;
+
+        if (isExternal) {
+          // External agent — wait for prediction via API
+          parsed = await waitForExternalPrediction(tournamentId, pIdx, match, prompt, teamsConfig, isRealData);
+        } else {
+          response = await callOpenRouter(predictor.model, prompt, isRealData);
+          parsed = parsePrediction(response, match.team1Index, match.team2Index, teamsConfig, isRealData);
+        }
 
         await prisma.tournamentPrediction.create({
           data: {

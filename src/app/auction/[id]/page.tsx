@@ -480,24 +480,27 @@ export default function AuctionPage() {
       {/* === LOBBY PHASE === */}
       {phase === "lobby" && (
         <div>
-          <AnimatePresence>
-            {countdown !== null && (
-              <motion.div key="countdown-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 0.3 } }} className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(5,5,5,0.92)", backdropFilter: "blur(12px)" } as React.CSSProperties}>
-                <AnimatePresence mode="wait">
-                  <motion.div key={countdown} initial={{ scale: 0.3, opacity: 0, filter: "blur(16px)" }} animate={{ scale: 1, opacity: 1, filter: "blur(0px)" }} exit={{ scale: 2.5, opacity: 0, filter: "blur(8px)" }} transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }} className="text-center">
-                    {countdown > 0 ? (
-                      <div className="text-[140px] font-black font-mono leading-none text-gradient-brand" style={{ textShadow: "0 0 80px rgba(196,162,101,0.4), 0 0 160px rgba(139,122,74,0.2)" }}>{countdown}</div>
-                    ) : (
-                      <div>
-                        <div className="text-[100px] font-black leading-none text-gradient-green" style={{ textShadow: "0 0 80px rgba(16,185,129,0.5)" }}>GO!</div>
-                        <div className="text-xl text-[#9A9590] mt-4 font-mono tracking-widest uppercase">Auction is live</div>
-                      </div>
-                    )}
-                  </motion.div>
-                </AnimatePresence>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {typeof document !== "undefined" && createPortal(
+            <AnimatePresence>
+              {countdown !== null && (
+                <motion.div key="countdown-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 0.3 } }} className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(5,5,5,0.92)", backdropFilter: "blur(12px)" } as React.CSSProperties}>
+                  <AnimatePresence mode="wait">
+                    <motion.div key={countdown} initial={{ scale: 0.3, opacity: 0, filter: "blur(16px)" }} animate={{ scale: 1, opacity: 1, filter: "blur(0px)" }} exit={{ scale: 2.5, opacity: 0, filter: "blur(8px)" }} transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }} className="text-center">
+                      {countdown > 0 ? (
+                        <div className="text-[140px] font-black font-mono leading-none text-gradient-brand" style={{ textShadow: "0 0 80px rgba(196,162,101,0.4), 0 0 160px rgba(139,122,74,0.2)" }}>{countdown}</div>
+                      ) : (
+                        <div>
+                          <div className="text-[100px] font-black leading-none text-gradient-green" style={{ textShadow: "0 0 80px rgba(16,185,129,0.5)" }}>GO!</div>
+                          <div className="text-xl text-[#9A9590] mt-4 font-mono tracking-widest uppercase">Auction is live</div>
+                        </div>
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
+                </motion.div>
+              )}
+            </AnimatePresence>,
+            document.body
+          )}
 
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} className="bento-card p-10 text-center mb-8">
             <div className="flex items-center justify-center gap-3 mb-3">

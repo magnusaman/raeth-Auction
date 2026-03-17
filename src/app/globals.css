@@ -19,7 +19,7 @@
   /* ── Cool Text Hierarchy ── */
   --color-text-primary: #E8E4DE;
   --color-text-secondary: #9A9590;
-  --color-text-muted: #78736E;
+  --color-text-muted: #8A857F;
   --color-text-disabled: #3d3b39;
 
   /* ── Subtle Borders ── */
@@ -136,7 +136,7 @@ body {
 
 .label-mono {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -1185,4 +1185,85 @@ main#main > * {
   color: var(--color-text-primary) !important;
   border-radius: 12px !important;
   backdrop-filter: blur(16px) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CONFIRM DIALOG
+   ═══════════════════════════════════════════════════════════════ */
+
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.confirm-dialog {
+  position: fixed;
+  z-index: 9999;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 400px;
+  width: calc(100% - 32px);
+  background: rgba(14, 14, 14, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.7),
+    0 0 60px rgba(0, 0, 0, 0.3);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ENHANCED TABLE HOVER ROWS
+   ═══════════════════════════════════════════════════════════════ */
+
+.table-row-hover {
+  transition: background 200ms ease;
+}
+
+.table-row-hover:hover {
+  background: rgba(196, 162, 101, 0.03) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   IMPROVED STAT ORBS — Responsive
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .stat-orb {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SUBTLE CARD SHINE EFFECT
+   ═══════════════════════════════════════════════════════════════ */
+
+.broadcast-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.01) 0%, transparent 100%);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PROVIDER DOT (replaces emoji icons)
+   ═══════════════════════════════════════════════════════════════ */
+
+.provider-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  line-height: 1;
 }

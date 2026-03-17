@@ -8,8 +8,10 @@ import ParticleField from "@/components/ui/ParticleField";
 import StatusBadge from "@/components/ui/StatusBadge";
 import ScoreReveal from "@/components/ui/ScoreReveal";
 import AgentAvatar from "@/components/ui/AgentAvatar";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { timeAgo } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface AuctionSummary {
   auction_id: string;
@@ -47,6 +49,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const router = useRouter();
 
   const [statsRef, statsVisible] = useScrollReveal({ threshold: 0.2 });
@@ -72,18 +75,22 @@ export default function Home() {
       const res = await fetch("/api/v1/auctions/create", { method: "POST" });
       const data = await res.json();
       if (data.auction_id) router.push(`/auction/${data.auction_id}`);
-    } catch (e) { console.error("Failed to create auction:", e); }
+    } catch (e) { console.error("Failed to create auction:", e); toast.error("Failed to create auction"); }
     finally { setRunning(false); }
   }
 
-  async function deleteAuction(id: string, e: React.MouseEvent) {
-    e.stopPropagation();
+  async function deleteAuction(id: string) {
     if (deleting) return;
     setDeleting(id);
+    setConfirmDelete(null);
     try {
       await fetch(`/api/v1/auctions/${id}/delete`, { method: "DELETE" });
       setAuctions((prev) => prev.filter((a) => a.auction_id !== id));
-    } catch (err) { console.error("Delete failed:", err); }
+      toast.success("Auction deleted");
+    } catch (err) {
+      console.error("Delete failed:", err);
+      toast.error("Failed to delete auction");
+    }
     finally { setDeleting(null); }
   }
 
@@ -153,9 +160,19 @@ export default function Home() {
             transition={{ delay: 0.9, duration: 0.6 }}
             className="text-lg md:text-xl text-[#9A9590] leading-relaxed mb-14 max-w-[600px] mx-auto"
           >
-            Multiple AI models bid on real IPL players, build squads, and predict
-            match outcomes — all scored against actual IPL 2024 data.
+            Watch AI models compete in live cricket auctions, build strategic
+            squads from 120 real players, and predict match outcomes.
           </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.0, duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-mono mb-10"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#9A9590" }}
+          >
+            Benchmarked against IPL 2024 season data
+          </motion.div>
 
           {/* CTA buttons */}
           <motion.div
@@ -164,16 +181,12 @@ export default function Home() {
             transition={{ delay: 1.1, duration: 0.5 }}
             className="flex flex-wrap items-center justify-center gap-4"
           >
-            <button
-              onClick={createNewAuction}
-              disabled={running}
-              className="btn-gradient group disabled:opacity-40 disabled:cursor-not-allowed text-base py-3.5 px-8"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z" />
+            <Link href="/auctions" className="btn-gradient group text-base py-3.5 px-8">
+              <span>Open AuctionBench</span>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
               </svg>
-              <span>{running ? "Creating..." : "Start Auction"}</span>
-            </button>
+            </Link>
             <Link href="/tournaments" className="btn-secondary py-3.5 px-8 text-base">
               <span>Open TourBench</span>
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -194,7 +207,7 @@ export default function Home() {
             animate={{ y: [0, 8, 0] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >
-            <svg className="w-5 h-5 text-[#78736E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-5 h-5 text-[#8A857F]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
             </svg>
           </motion.div>
@@ -220,7 +233,7 @@ export default function Home() {
               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#C4A265]" />
             </span>
             <span className="text-xs font-mono font-bold tracking-[0.12em] uppercase" style={{ color: "#C4A265" }}>
-              LIVE
+              FEED
             </span>
           </div>
           <div className="overflow-hidden flex-1">
@@ -230,7 +243,7 @@ export default function Home() {
             >
               {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, i) => (
                 <span key={i} className="inline-flex items-center gap-2 text-xs font-mono">
-                  <span className="text-[#78736E]">{item.text}</span>
+                  <span className="text-[#8A857F]">{item.text}</span>
                   <span className="font-bold" style={{ color: item.color }}>{item.highlight}</span>
                   <span className="text-[#625D58] mx-2">&#183;</span>
                 </span>
@@ -250,10 +263,10 @@ export default function Home() {
             className="grid grid-cols-2 md:grid-cols-4 gap-4"
           >
             {[
-              { value: 120, label: "Players", suffix: "", color: "#F59E0B" },
-              { value: 4, label: "AI Models", suffix: "+", color: "#8B5CF6" },
-              { value: 74, label: "Matches", suffix: "", color: "#10B981" },
-              { value: 10, label: "Graders", suffix: "", color: "#3B82F6" },
+              { value: 12, label: "AI Models", suffix: "+", color: "#8B5CF6" },
+              { value: 4, label: "Seasons", suffix: "", color: "#F59E0B" },
+              { value: 10, label: "Graders", suffix: "", color: "#10B981" },
+              { value: 7, label: "Metrics", suffix: "", color: "#3B82F6" },
             ].map((stat, i) => (
               <motion.div
                 key={stat.label}
@@ -265,7 +278,7 @@ export default function Home() {
                 <div className="text-3xl md:text-4xl font-extrabold font-mono mb-1" style={{ color: stat.color }}>
                   <ScoreReveal value={stat.value} suffix={stat.suffix} triggerOnScroll={true} />
                 </div>
-                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[#78736E]">
+                <div className="text-sm font-semibold uppercase tracking-[0.15em] text-[#8A857F]">
                   {stat.label}
                 </div>
               </motion.div>
@@ -342,23 +355,23 @@ export default function Home() {
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-[#E8E4DE] font-display">AuctionBench</h3>
-                    <p className="text-sm text-[#78736E] font-mono">Strategic Bidding Evaluation</p>
+                    <p className="text-sm text-[#8A857F] font-mono">Strategic Bidding Evaluation</p>
                   </div>
                 </div>
 
                 <p className="text-sm text-[#9A9590] leading-relaxed mb-8">
-                  AI agents compete in a live IPL-style auction. Each manages ₹100 Crore to build the best possible squad from 120 real players.
+                  AI agents compete in a live IPL-style auction. Each manages a budget to build the best possible squad from a pool of real cricket players.
                 </p>
 
                 <div className="grid grid-cols-3 gap-3 mb-8">
                   {[
-                    { val: "120", label: "Players", color: "#F59E0B" },
-                    { val: "₹100Cr", label: "Per Team", color: "#8B5CF6" },
+                    { val: "2–10", label: "Agents", color: "#F59E0B" },
+                    { val: "Live", label: "Bidding", color: "#8B5CF6" },
                     { val: "10", label: "Graders", color: "#3B82F6" },
                   ].map((s) => (
                     <div key={s.label} className="rounded-xl p-3 text-center" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
                       <div className="text-sm font-bold font-mono" style={{ color: s.color }}>{s.val}</div>
-                      <div className="text-xs uppercase tracking-wider text-[#78736E] mt-0.5">{s.label}</div>
+                      <div className="text-[13px] uppercase tracking-wider text-[#8A857F] mt-0.5">{s.label}</div>
                     </div>
                   ))}
                 </div>
@@ -395,23 +408,23 @@ export default function Home() {
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-[#E8E4DE] font-display">TourBench</h3>
-                    <p className="text-sm text-[#78736E] font-mono">Match Prediction Analysis</p>
+                    <p className="text-sm text-[#8A857F] font-mono">Match Prediction Analysis</p>
                   </div>
                 </div>
 
                 <p className="text-sm text-[#9A9590] leading-relaxed mb-8">
-                  AI agents analyze squads, venues, and form to predict winners of all 74 IPL 2024 matches. Graded on accuracy and calibration.
+                  AI agents analyze squads, venues, and form to predict match winners across multiple IPL seasons. Graded on accuracy and calibration.
                 </p>
 
                 <div className="grid grid-cols-3 gap-3 mb-8">
                   {[
-                    { val: "74", label: "Matches", color: "#8B5CF6" },
+                    { val: "4", label: "Seasons", color: "#8B5CF6" },
                     { val: "10", label: "Teams", color: "#EC4899" },
                     { val: "7", label: "Metrics", color: "#3B82F6" },
                   ].map((s) => (
                     <div key={s.label} className="rounded-xl p-3 text-center" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
                       <div className="text-sm font-bold font-mono" style={{ color: s.color }}>{s.val}</div>
-                      <div className="text-xs uppercase tracking-wider text-[#78736E] mt-0.5">{s.label}</div>
+                      <div className="text-[13px] uppercase tracking-wider text-[#8A857F] mt-0.5">{s.label}</div>
                     </div>
                   ))}
                 </div>
@@ -453,13 +466,13 @@ export default function Home() {
               {
                 step: "01",
                 title: "AI Agents Bid",
-                desc: "Multiple AI models each get ₹100 Cr to bid on 120 real IPL players in a live auction with strategic constraints.",
+                desc: "Multiple AI models each get a budget to bid on real IPL players in a live auction with strategic constraints.",
                 accent: "#F59E0B",
               },
               {
                 step: "02",
                 title: "Squads Compete",
-                desc: "Built squads are scored across all 74 IPL 2024 matches using Dream11 fantasy points system.",
+                desc: "Built squads are scored across a full IPL season using real-world performance data and fantasy scoring.",
                 accent: "#8B5CF6",
               },
               {
@@ -547,7 +560,7 @@ export default function Home() {
                 </svg>
               </div>
               <p className="text-lg font-bold text-[#E8E4DE] mb-2 font-display">No auctions yet</p>
-              <p className="text-sm text-[#78736E] mb-8">Create your first auction to get started</p>
+              <p className="text-sm text-[#8A857F] mb-8">Create your first auction to get started</p>
               <button onClick={createNewAuction} disabled={running} className="btn-gradient py-3 px-8 disabled:opacity-40">
                 <span>{running ? "Creating..." : "Create First Auction"}</span>
               </button>
@@ -591,18 +604,18 @@ export default function Home() {
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono text-[#78736E]">
-                      {auction.auction_id.slice(0, 8)}
+                    <span className="text-xs font-mono text-[#8A857F]">
+                      Auction #{auctions.length - i}
                     </span>
 
                     <button
-                      onClick={(e) => deleteAuction(auction.auction_id, e)}
+                      onClick={(e) => { e.stopPropagation(); setConfirmDelete(auction.auction_id); }}
                       disabled={deleting === auction.auction_id}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 text-[#78736E] hover:text-[#EF4444] rounded-lg transition-all bg-transparent border-none cursor-pointer"
+                      className="opacity-40 hover:opacity-100 p-1.5 text-[#8A857F] hover:text-[#EF4444] rounded-lg transition-all bg-transparent border-none cursor-pointer"
                       title="Delete"
                     >
                       {deleting === auction.auction_id ? (
-                        <div className="w-3.5 h-3.5 border-2 border-[#78736E] border-t-transparent rounded-full animate-spin" />
+                        <div className="w-3.5 h-3.5 border-2 border-[#8A857F] border-t-transparent rounded-full animate-spin" />
                       ) : (
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -630,7 +643,7 @@ export default function Home() {
                 Raeth
               </span>
               <span className="text-[#625D58] mx-1 font-light text-sm select-none">/</span>
-              <span className="font-display text-[13px] font-bold tracking-[0.15em] uppercase text-[#78736E]">
+              <span className="font-display text-[13px] font-bold tracking-[0.15em] uppercase text-[#8A857F]">
                 Arena
               </span>
             </div>
@@ -653,12 +666,22 @@ export default function Home() {
             </div>
           </div>
           <div className="mt-10 text-center">
-            <p className="text-sm text-[#78736E] font-mono">
-              Powered by AI models from Anthropic, OpenAI, Google, DeepSeek, Meta & Mistral
+            <p className="text-sm text-[#8A857F] font-mono">
+              Built by <span className="text-[#9A9590]">Raeth</span> · Powered by AI models from Anthropic, OpenAI, Google, DeepSeek, Meta & Mistral
             </p>
           </div>
         </div>
       </footer>
+
+      <ConfirmDialog
+        open={confirmDelete !== null}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={() => confirmDelete && deleteAuction(confirmDelete)}
+        title="Delete Auction"
+        description="This auction and all its data will be permanently deleted. This action cannot be undone."
+        confirmLabel="Delete Auction"
+        variant="danger"
+      />
     </div>
   );
 }

@@ -7,7 +7,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; glow: boolea
   STOPPED: { label: "Stopped", color: "#EF4444", glow: false },
   CANCELLED: { label: "Cancelled", color: "#EF4444", glow: false },
   LOBBY: { label: "Lobby", color: "#F59E0B", glow: false },
-  PENDING: { label: "Pending", color: "#78736E", glow: false },
+  PENDING: { label: "Pending", color: "#8A857F", glow: false },
 };
 
 interface StatusBadgeProps {
@@ -16,7 +16,7 @@ interface StatusBadgeProps {
 }
 
 export default function StatusBadge({ status, size = "sm" }: StatusBadgeProps) {
-  const config = STATUS_CONFIG[status] || { label: status, color: "#78736E", glow: false };
+  const config = STATUS_CONFIG[status] || { label: status, color: "#8A857F", glow: false };
 
   const sizeClass = size === "sm" ? "text-xs px-2 py-0.5 gap-1.5" : "text-xs px-2.5 py-1 gap-1.5";
 

@@ -302,6 +302,11 @@ This creates a closed-loop eval: strategic execution (auction) + predictive reas
 | Method | Endpoint | Description |
 |---|---|---|
 | POST | `/api/v1/tournaments/run` | Run full tournament with predictions |
+| POST | `/api/v1/tournaments/setup` | Create tournament in PENDING state (for external agents) |
+| POST | `/api/v1/tournaments/{id}/start` | Start predictions on a pre-created tournament |
+| POST | `/api/v1/tournaments/{id}/external/register` | Register external agent slot, get API token |
+| GET | `/api/v1/tournaments/{id}/external/state?token=` | Poll for match prompt when it's your turn |
+| POST | `/api/v1/tournaments/{id}/external/predict?token=` | Submit prediction for current match |
 | GET | `/api/v1/tournaments` | List all tournaments |
 | GET | `/api/v1/tournaments/{id}/results` | Get tournament results + evaluation |
 

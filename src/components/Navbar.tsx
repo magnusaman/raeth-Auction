@@ -9,6 +9,7 @@ import NowPlayingBar from "./NowPlayingBar";
 
 const NAV_LINKS = [
   { href: "/", label: "Home", shortcut: "H" },
+  { href: "/auctions", label: "Auctions", shortcut: "U" },
   { href: "/arena", label: "Arena", shortcut: "A" },
   { href: "/leaderboard", label: "Leaderboard", shortcut: "L" },
   { href: "/tournaments", label: "Tournaments", shortcut: "T" },
@@ -27,7 +28,10 @@ function buildBreadcrumbs(pathname: string): Crumb[] | null {
   const rest = segments.slice(1);
 
   if (root === "auction") {
-    return [{ label: "Home", href: "/" }, { label: `Auction ${(rest[0] ?? "").slice(0, 8)}` }];
+    return [{ label: "Auctions", href: "/auctions" }, { label: "Live Auction" }];
+  }
+  if (root === "auctions") {
+    return null;
   }
   if (root === "results") {
     return [{ label: "Arena", href: "/arena" }, { label: "Results" }];
@@ -114,7 +118,7 @@ export default function Navbar() {
             </span>
             <span className="text-[#625D58] mx-1.5 font-light text-base select-none">/</span>
             <span
-              className="font-display text-[15px] font-bold tracking-[0.15em] uppercase text-[#78736E] group-hover:text-[#9A9590] transition-colors"
+              className="font-display text-[15px] font-bold tracking-[0.15em] uppercase text-[#8A857F] group-hover:text-[#9A9590] transition-colors"
             >
               Arena
             </span>
@@ -128,8 +132,8 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="relative block px-5 py-2 text-sm font-medium no-underline rounded-full transition-colors duration-200"
-                  style={{ color: active ? "#E8E4DE" : "#78736E" }}
+                  className="relative block px-4 py-2 text-[15px] font-medium no-underline rounded-full transition-colors duration-200"
+                  style={{ color: active ? "#E8E4DE" : "#9A9590" }}
                 >
                   {active && (
                     <motion.div
@@ -153,7 +157,7 @@ export default function Navbar() {
             {/* Cmd+K trigger */}
             <button
               onClick={() => setPaletteOpen(true)}
-              className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg border border-white/[0.06] bg-white/[0.02] text-[#78736E] hover:text-[#9A9590] hover:border-white/[0.1] transition-all cursor-pointer text-sm"
+              className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg border border-white/[0.06] bg-white/[0.02] text-[#8A857F] hover:text-[#9A9590] hover:border-white/[0.1] transition-all cursor-pointer text-sm"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -169,7 +173,7 @@ export default function Navbar() {
           <div className="flex md:hidden items-center gap-2">
             <button
               onClick={() => setPaletteOpen(true)}
-              className="p-2 text-[#78736E] rounded-lg hover:bg-white/[0.06] transition-colors bg-transparent border-none cursor-pointer"
+              className="p-2 text-[#8A857F] rounded-lg hover:bg-white/[0.06] transition-colors bg-transparent border-none cursor-pointer"
               aria-label="Search"
             >
               <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -210,7 +214,7 @@ export default function Navbar() {
                   <span key={i} className="flex items-center gap-2">
                     {i > 0 && <span className="text-[#625D58] select-none">/</span>}
                     {crumb.href ? (
-                      <Link href={crumb.href} className="text-[#78736E] hover:text-[#C4A265] transition-colors no-underline font-medium">
+                      <Link href={crumb.href} className="text-[#8A857F] hover:text-[#C4A265] transition-colors no-underline font-medium">
                         {crumb.label}
                       </Link>
                     ) : (

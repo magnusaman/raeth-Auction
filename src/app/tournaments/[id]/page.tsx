@@ -2,7 +2,9 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { TEAMS } from "@/lib/constants";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
 const TEAM_COLORS: Record<number, string> = Object.fromEntries(TEAMS.map((t, i) => [i, t.color]));
 
@@ -68,6 +70,7 @@ export default function TournamentDetailPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [showAllReasoning, setShowAllReasoning] = useState(false);
   const [expandedPredictions, setExpandedPredictions] = useState<Set<string>>(new Set());
+  const [confirmClear, setConfirmClear] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   function togglePredReasoning(key: string) {
@@ -96,17 +99,18 @@ export default function TournamentDetailPage() {
     try {
       await fetch(`/api/v1/tournaments/${id}/stop`, { method: "POST" });
       await fetchData();
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error(e); toast.error("Failed to stop predictions"); }
     finally { setActionLoading(null); }
   };
 
   const clearPredictions = async () => {
-    if (!confirm("Delete ALL predictions and evaluation for this tournament? This cannot be undone.")) return;
+    setConfirmClear(false);
     setActionLoading("clear");
     try {
       await fetch(`/api/v1/tournaments/${id}/clear-predictions`, { method: "POST" });
       await fetchData();
-    } catch (e) { console.error(e); }
+      toast.success("Predictions cleared");
+    } catch (e) { console.error(e); toast.error("Failed to clear predictions"); }
     finally { setActionLoading(null); }
   };
 
@@ -118,13 +122,17 @@ export default function TournamentDetailPage() {
 
   if (loading) return (
     <div className="py-24 text-center">
-      <div className="text-[40px] mb-4">&#127942;</div>
+      <div className="w-12 h-12 mx-auto mb-4 rounded-xl flex items-center justify-center" style={{ background: "rgba(196,162,101,0.08)", border: "1px solid rgba(196,162,101,0.12)" }}>
+        <svg className="w-6 h-6" style={{ color: "#C4A265" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" /></svg>
+      </div>
       <div className="text-[#9A9590] text-base">Loading tournament...</div>
     </div>
   );
   if (!data || data.status === "PENDING") return (
     <div className="py-24 text-center">
-      <div className="text-[40px] mb-4">&#9203;</div>
+      <div className="w-12 h-12 mx-auto mb-4 rounded-xl flex items-center justify-center" style={{ background: "rgba(196,162,101,0.08)", border: "1px solid rgba(196,162,101,0.12)" }}>
+        <div className="w-5 h-5 border-2 border-[#C4A265] border-t-transparent rounded-full animate-spin" />
+      </div>
       <div className="text-[#C4A265] text-lg font-semibold mb-2">Setting up tournament...</div>
       <div className="text-[#9A9590] text-base">Creating matches and generating squads</div>
     </div>
@@ -177,7 +185,7 @@ export default function TournamentDetailPage() {
           )}
           {currentPredictions > 0 && (
             <button
-              onClick={clearPredictions}
+              onClick={() => setConfirmClear(true)}
               disabled={!!actionLoading || isPredicting}
               className="px-5 py-2.5 text-base font-semibold rounded-xl cursor-pointer border transition-all duration-150 disabled:opacity-50"
               style={{ background: "rgba(249,115,22,0.08)", color: "#F97316", borderColor: "rgba(249,115,22,0.25)" }}
@@ -658,6 +666,16 @@ export default function TournamentDetailPage() {
           })()}
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmClear}
+        onClose={() => setConfirmClear(false)}
+        onConfirm={clearPredictions}
+        title="Clear All Predictions"
+        description="All predictions and evaluation data for this tournament will be permanently deleted. This cannot be undone."
+        confirmLabel="Clear All Data"
+        variant="warning"
+      />
     </div>
   );
 }

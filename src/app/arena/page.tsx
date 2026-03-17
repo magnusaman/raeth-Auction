@@ -106,7 +106,7 @@ export default function ArenaPage() {
         >
           <div className="relative flex-1 max-w-sm">
             <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#78736E]"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8A857F]"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -153,7 +153,7 @@ export default function ArenaPage() {
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                   filter === f
                     ? "text-[#E8E4DE]"
-                    : "text-[#78736E] hover:text-[#9A9590]"
+                    : "text-[#8A857F] hover:text-[#9A9590]"
                 }`}
                 style={
                   filter === f
@@ -166,7 +166,7 @@ export default function ArenaPage() {
             ))}
           </div>
 
-          <span className="text-sm text-[#78736E] font-mono ml-auto">
+          <span className="text-sm text-[#8A857F] font-mono ml-auto">
             {filtered.length} auction{filtered.length !== 1 ? "s" : ""}
           </span>
         </motion.div>
@@ -193,7 +193,11 @@ export default function ArenaPage() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="text-4xl mb-4">🎬</div>
+          <div className="w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center" style={{ background: "rgba(196,162,101,0.08)", border: "1px solid rgba(196,162,101,0.12)" }}>
+            <svg className="w-6 h-6" style={{ color: "#C4A265" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z" />
+            </svg>
+          </div>
           <p className="text-[#9A9590] mb-2 font-display text-lg">
             {auctions.length === 0
               ? "No completed auctions to replay yet"
@@ -248,8 +252,8 @@ export default function ArenaPage() {
                 >
                   {/* Top row: ID + status badges */}
                   <div className="flex items-center justify-between mb-3">
-                    <span className="font-mono text-xs text-[#78736E] group-hover:text-[#C4A265] transition-colors">
-                      {a.auction_id.slice(0, 16)}...
+                    <span className="font-mono text-xs text-[#8A857F] group-hover:text-[#C4A265] transition-colors">
+                      Auction #{filtered.length - filtered.indexOf(a)}
                     </span>
                     <div className="flex items-center gap-2">
                       {a.has_evaluation && (
@@ -310,7 +314,7 @@ export default function ArenaPage() {
                       <span className="font-mono font-semibold text-[#E8E4DE] text-sm">
                         {totalPlayers}
                       </span>
-                      <span className="text-xs text-[#78736E] uppercase tracking-wider">
+                      <span className="text-xs text-[#8A857F] uppercase tracking-wider">
                         players
                       </span>
                     </div>
@@ -318,11 +322,11 @@ export default function ArenaPage() {
                       <span className="font-mono font-semibold text-[#E8E4DE] text-sm">
                         ₹{totalSpent.toFixed(0)}
                       </span>
-                      <span className="text-xs text-[#78736E] uppercase tracking-wider">
+                      <span className="text-xs text-[#8A857F] uppercase tracking-wider">
                         Cr spent
                       </span>
                     </div>
-                    <span className="text-xs text-[#78736E] ml-auto font-mono">
+                    <span className="text-xs text-[#8A857F] ml-auto font-mono">
                       {dateStr}
                     </span>
                   </div>

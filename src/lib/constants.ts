@@ -12,13 +12,13 @@ export const TEAM_SHORT = TEAMS.map((t) => t.shortName);
 
 // ── Provider metadata (brand colors preserved) ──
 export const PROVIDER_META: Record<string, { icon: string; color: string }> = {
-  Anthropic: { icon: "🟣", color: "#A855F7" },
-  OpenAI: { icon: "🟢", color: "#10B981" },
-  Google: { icon: "🔵", color: "#4285F4" },
-  DeepSeek: { icon: "⚫", color: "#94A3B8" },
-  Meta: { icon: "🔷", color: "#0668E1" },
-  Mistral: { icon: "🟠", color: "#F97316" },
-  External: { icon: "🔌", color: "#C4A265" },
+  Anthropic: { icon: "●", color: "#A855F7" },
+  OpenAI: { icon: "●", color: "#10B981" },
+  Google: { icon: "●", color: "#4285F4" },
+  DeepSeek: { icon: "●", color: "#94A3B8" },
+  Meta: { icon: "●", color: "#0668E1" },
+  Mistral: { icon: "●", color: "#F97316" },
+  External: { icon: "◆", color: "#C4A265" },
 };
 
 // ── Available LLM models ──
