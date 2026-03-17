@@ -667,7 +667,7 @@ export default function Home() {
           </div>
           <div className="mt-10 text-center">
             <p className="text-sm text-[#8A857F] font-mono">
-              Built by <span className="text-[#9A9590]">Raeth</span> · Powered by AI models from Anthropic, Google, DeepSeek, Meta & Mistral
+              Built by <span className="text-[#9A9590]">Raeth</span> · Powered by AI models from Anthropic, OpenAI, Google, DeepSeek, Meta & Mistral
             </p>
           </div>
         </div>

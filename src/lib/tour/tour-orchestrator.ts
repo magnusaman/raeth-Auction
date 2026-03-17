@@ -10,9 +10,9 @@ import { emitTournamentUpdate } from "@/lib/emit";
 
 const DEFAULT_PREDICTORS = [
   { name: "Claude-Oracle", model: "anthropic/claude-sonnet-4.6" },
-  { name: "Gemini-Seer", model: "google/gemini-2.5-pro" },
+  { name: "Gemini-Seer", model: "google/gemini-3.1-pro-preview" },
+  { name: "GPT-Forecaster", model: "openai/gpt-5.4" },
   { name: "DeepSeek-Analyst", model: "deepseek/deepseek-chat-v3-0324" },
-  { name: "Llama-Strategist", model: "meta-llama/llama-4-scout" },
 ];
 
 /** Perturb a numeric stat by 1.1x to prevent fingerprinting */
