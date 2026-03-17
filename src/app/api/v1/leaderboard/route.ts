@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
 
       for (let rank = 0; rank < sorted.length; rank++) {
         const entry = sorted[rank];
-        const modelName = entry.agentName || "Unknown";
+        const modelName = (entry.agentName || "Unknown").replace(/\s*\[.*?\]\s*$/, "");
 
         if (!agentStats.has(modelName)) {
           agentStats.set(modelName, {
