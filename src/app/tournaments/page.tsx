@@ -330,11 +330,11 @@ export default function TournamentsPage() {
     <div className="mx-auto max-w-[1200px] px-6 py-12">
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-12">
+      <div className="flex flex-col sm:flex-row items-start justify-between gap-4 mb-12">
         <div>
-          <span className="text-base font-mono font-semibold tracking-[0.2em] uppercase" style={{ color: "#C4A265" }}>Predictive Reasoning</span>
+          <span className="text-sm md:text-base font-mono font-semibold tracking-[0.2em] uppercase" style={{ color: "#C4A265" }}>Predictive Reasoning</span>
           <div className="mt-3 flex items-center gap-3">
-            <h1 className="text-5xl font-bold text-gradient-brand m-0">TourBench</h1>
+            <h1 className="text-3xl md:text-5xl font-bold text-gradient-brand m-0">TourBench</h1>
             <div className="relative group">
               <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold cursor-help border border-[#8A857F] text-[#9A9590] hover:text-[#C4A265] hover:border-[#E8E4DE] transition-colors">?</span>
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg text-sm text-[#ccc] whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-200 z-50" style={{ background: "rgba(20,20,20,0.95)", border: "1px solid rgba(255,255,255,0.1)" }}>
@@ -685,7 +685,7 @@ export default function TournamentsPage() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-px rounded-2xl overflow-hidden mb-12" style={{ background: "rgba(255,255,255,0.06)" }}>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-px rounded-2xl overflow-hidden mb-12" style={{ background: "rgba(255,255,255,0.06)" }}>
         <div className="p-8 md:p-10 text-center" style={{ background: "#0a0a0a" }}>
           <div className="text-4xl font-bold font-mono text-[#E8E4DE]">{tournaments.length}</div>
           <div className="mt-2 text-sm font-semibold uppercase tracking-wider text-[#9A9590]">Tournaments</div>

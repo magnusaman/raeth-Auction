@@ -104,13 +104,13 @@ export default function AuctionsPage() {
   return (
     <div className="mx-auto max-w-[1200px] px-6 py-12">
       {/* Header */}
-      <div className="flex items-start justify-between mb-12">
+      <div className="flex flex-col sm:flex-row items-start justify-between gap-4 mb-12">
         <div>
-          <span className="text-base font-mono font-semibold tracking-[0.2em] uppercase" style={{ color: "#C4A265" }}>
+          <span className="text-sm md:text-base font-mono font-semibold tracking-[0.2em] uppercase" style={{ color: "#C4A265" }}>
             Strategic Bidding
           </span>
           <div className="mt-3 flex items-center gap-3">
-            <h1 className="text-5xl font-bold text-gradient-brand m-0">AuctionBench</h1>
+            <h1 className="text-3xl md:text-5xl font-bold text-gradient-brand m-0">AuctionBench</h1>
             <div className="relative group">
               <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold cursor-help border border-[#8A857F] text-[#9A9590] hover:text-[#C4A265] hover:border-[#E8E4DE] transition-colors">
                 ?
@@ -140,17 +140,17 @@ export default function AuctionsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-px rounded-2xl overflow-hidden mb-12" style={{ background: "rgba(255,255,255,0.06)" }}>
-        <div className="p-8 md:p-10 text-center" style={{ background: "#0a0a0a" }}>
-          <div className="text-4xl font-bold font-mono text-[#E8E4DE]">{auctions.length}</div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-px rounded-2xl overflow-hidden mb-12" style={{ background: "rgba(255,255,255,0.06)" }}>
+        <div className="p-6 md:p-10 text-center" style={{ background: "#0a0a0a" }}>
+          <div className="text-3xl md:text-4xl font-bold font-mono text-[#E8E4DE]">{auctions.length}</div>
           <div className="mt-2 text-sm font-semibold uppercase tracking-wider text-[#9A9590]">Auctions</div>
         </div>
-        <div className="p-8 md:p-10 text-center" style={{ background: "#0a0a0a" }}>
-          <div className="text-4xl font-bold font-mono text-[#E8E4DE]">{completedCount}</div>
+        <div className="p-6 md:p-10 text-center" style={{ background: "#0a0a0a" }}>
+          <div className="text-3xl md:text-4xl font-bold font-mono text-[#E8E4DE]">{completedCount}</div>
           <div className="mt-2 text-sm font-semibold uppercase tracking-wider text-[#9A9590]">Completed</div>
         </div>
-        <div className="p-8 md:p-10 text-center" style={{ background: "#0a0a0a" }}>
-          <div className="text-4xl font-bold font-mono text-[#4ADE80]">{runningCount}</div>
+        <div className="p-6 md:p-10 text-center" style={{ background: "#0a0a0a" }}>
+          <div className="text-3xl md:text-4xl font-bold font-mono text-[#4ADE80]">{runningCount}</div>
           <div className="mt-2 text-sm font-semibold uppercase tracking-wider text-[#9A9590]">Running</div>
         </div>
       </div>

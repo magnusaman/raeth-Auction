@@ -153,7 +153,7 @@ export default function LeaderboardPage() {
           {/* ── Podium — Top 3 ── */}
           {top3.length >= 3 && (
             <div ref={podiumRef} className="mb-12">
-              <div className="grid grid-cols-3 gap-4 items-end max-w-[800px] mx-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end max-w-[800px] mx-auto">
                 {PODIUM_ORDER.map((idx, visualIdx) => {
                   const agent = top3[idx];
                   if (!agent) return null;
