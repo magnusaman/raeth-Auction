@@ -11,6 +11,7 @@ export async function POST(
     const { id: tournamentId } = await params;
     const body = await req.json().catch(() => ({}));
     const agents: { name: string; model: string }[] | undefined = body.agents;
+    const userApiKey: string | undefined = body.openrouterApiKey;
 
     const tournament = await prisma.tournament.findUnique({
       where: { id: tournamentId },
@@ -25,7 +26,7 @@ export async function POST(
     }
 
     // Fire predictions in background
-    runPredictionsAndEvaluate(tournamentId, agents).catch((err) =>
+    runPredictionsAndEvaluate(tournamentId, agents, userApiKey).catch((err) =>
       console.error("[TourBench] Fatal error:", err)
     );
 

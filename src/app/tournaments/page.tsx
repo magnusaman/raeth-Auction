@@ -41,10 +41,12 @@ interface AuctionOption {
 }
 
 export default function TournamentsPage() {
+  // Injected state is set in the component body below
   const [tournaments, setTournaments] = useState<TournamentSummary[]>([]);
   const [auctions, setAuctions] = useState<AuctionOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
+  const [openrouterKey, setOpenrouterKey] = useState("");
   const [showSetup, setShowSetup] = useState(false);
   const [mode, setMode] = useState<"real" | "synthetic">("real");
   const [selectedSeason, setSelectedSeason] = useState("S4");
@@ -141,6 +143,10 @@ export default function TournamentsPage() {
   }
 
   async function launchTournament() {
+    if (!openrouterKey.trim()) {
+      toast.error("Please enter your OpenRouter API key to start the tournament");
+      return;
+    }
     setRunning(true);
     try {
       const agents = predictorModels.slice(0, agentCount).map((modelId, i) => {
@@ -155,7 +161,7 @@ export default function TournamentsPage() {
         const res = await fetch(`/api/v1/tournaments/${pendingTournamentId}/start`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ agents }),
+          body: JSON.stringify({ agents, openrouterApiKey: openrouterKey }),
         });
         const data = await res.json();
         if (!data.error) {
@@ -172,6 +178,7 @@ export default function TournamentsPage() {
           payload.auctionId = setupSource;
         }
 
+        payload.openrouterApiKey = openrouterKey;
         const res = await fetch("/api/v1/tournaments/run", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -661,6 +668,38 @@ export default function TournamentsPage() {
                 </div>
               </div>
             )}
+
+            {/* API Key Input */}
+            <div className="mb-4 w-full max-w-md mx-auto">
+              <label className="block text-xs font-semibold tracking-[0.15em] uppercase text-[#9A9590] mb-2">
+                OpenRouter API Key
+              </label>
+              <div className="relative">
+                <input
+                  type="password"
+                  placeholder="sk-or-v1-..."
+                  value={openrouterKey}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setOpenrouterKey(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl text-sm text-[#E8E4DE] placeholder:text-[#625D58] font-mono transition-all outline-none"
+                  style={{
+                    background: "rgba(255,255,255,0.03)",
+                    border: openrouterKey ? "1px solid rgba(74,222,128,0.3)" : "1px solid rgba(255,255,255,0.08)",
+                  }}
+                />
+                {openrouterKey && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-400 text-xs font-mono">
+                    &#x2713;
+                  </span>
+                )}
+              </div>
+              <p className="mt-1.5 text-xs text-[#8A857F]">
+                Get your key at{" "}
+                <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="text-[#C4A265] hover:underline">
+                  openrouter.ai/keys
+                </a>
+                {" "}&mdash; required to power AI predictions
+              </p>
+            </div>
 
             {/* Launch Button */}
             <div className="text-center pt-3">

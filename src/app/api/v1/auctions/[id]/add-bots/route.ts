@@ -119,6 +119,7 @@ export async function POST(
 
     // Merge custom auction settings (purse, squad sizes, overseas)
     const customConfig = body.config || {};
+    if (body.openrouterApiKey) existingConfig.openrouterApiKey = body.openrouterApiKey;
     if (customConfig.pursePerTeam) existingConfig.pursePerTeam = Math.min(200, Math.max(50, Number(customConfig.pursePerTeam)));
     if (customConfig.maxSquadSize) existingConfig.maxSquadSize = Math.min(25, Math.max(10, Number(customConfig.maxSquadSize)));
     if (customConfig.minSquadSize) existingConfig.minSquadSize = Math.min(existingConfig.maxSquadSize || 20, Math.max(5, Number(customConfig.minSquadSize)));

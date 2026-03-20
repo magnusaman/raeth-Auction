@@ -64,6 +64,7 @@ export interface LLMCallOptions {
   maxTokens?: number;
   temperature?: number;
   jsonMode?: boolean;
+  apiKeyOverride?: string;
 }
 
 export interface LLMCallResult {
@@ -87,7 +88,7 @@ export async function callLLM(
 ): Promise<LLMCallResult> {
   // Resolve which provider and model to use
   const { provider, resolvedModel } = resolveProvider(options.model);
-  const providerApiKey = process.env[provider.apiKeyEnvVar];
+  const providerApiKey = options.apiKeyOverride || process.env[provider.apiKeyEnvVar];
   if (!providerApiKey) {
     throw new Error(`No ${provider.apiKeyEnvVar} configured`);
   }

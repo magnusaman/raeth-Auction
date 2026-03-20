@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
     const auctionId = body.auctionId || undefined;
     const seasonId: string | undefined = body.seasonId;
     const agents: { name: string; model: string }[] | undefined = body.agents;
+    const userApiKey: string | undefined = body.openrouterApiKey;
 
     let tournamentId: string;
 
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Fire predictions in background (don't await)
-    runPredictionsAndEvaluate(tournamentId, agents).catch((err) =>
+    runPredictionsAndEvaluate(tournamentId, agents, userApiKey).catch((err) =>
       console.error("[TourBench] Fatal error:", err)
     );
 

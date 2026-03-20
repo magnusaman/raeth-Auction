@@ -385,9 +385,9 @@ function parsePrediction(response: string, team1Index: number, team2Index: numbe
   return { predictedWinner, confidence, predictedMargin, keyFactors, reasoning };
 }
 
-async function callOpenRouter(model: string, prompt: string, isRealData: boolean): Promise<string> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) throw new Error("OPENROUTER_API_KEY not set");
+async function callOpenRouter(model: string, prompt: string, isRealData: boolean, userApiKey?: string): Promise<string> {
+  const apiKey = userApiKey || process.env.OPENROUTER_API_KEY;
+  if (!apiKey) throw new Error("No API key available. Please provide your OpenRouter API key to run tournaments.");
 
   const systemPrompt = isRealData
     ? "You are an expert IPL cricket analyst. You have deep knowledge of IPL teams, players, venues, and match dynamics. Use ALL your cricket knowledge — team histories, player strengths/weaknesses, venue records, captaincy, batting orders, bowling attacks, and match-up analysis. Combine your knowledge with the stats and context provided in the prompt. Be data-driven and precise — higher confidence only when multiple factors clearly align."
@@ -492,7 +492,8 @@ async function waitForExternalPrediction(
 // Background prediction runner — called fire-and-forget from the API route
 export async function runPredictionsAndEvaluate(
   tournamentId: string,
-  customPredictors?: { name: string; model: string }[]
+  customPredictors?: { name: string; model: string }[],
+  userApiKey?: string
 ) {
   const predictors = customPredictors?.length ? customPredictors : DEFAULT_PREDICTORS;
 
@@ -551,7 +552,7 @@ export async function runPredictionsAndEvaluate(
           // External agent — wait for prediction via API
           parsed = await waitForExternalPrediction(tournamentId, pIdx, match, prompt, teamsConfig, isRealData);
         } else {
-          response = await callOpenRouter(predictor.model, prompt, isRealData);
+          response = await callOpenRouter(predictor.model, prompt, isRealData, userApiKey);
           parsed = parsePrediction(response, match.team1Index, match.team2Index, teamsConfig, isRealData);
         }
 
@@ -618,14 +619,15 @@ export async function runPredictionsAndEvaluate(
 // Full synchronous run (kept for direct use)
 export async function runFullTournament(
   auctionId?: string,
-  customPredictors?: { name: string; model: string }[]
+  customPredictors?: { name: string; model: string }[],
+  userApiKey?: string
 ): Promise<{
   tournamentId: string;
   champion: string;
   agentResults: { name: string; accuracy: number; brierScore: number }[];
 }> {
   const tournamentId = await createTournament(auctionId);
-  await runPredictionsAndEvaluate(tournamentId, customPredictors);
+  await runPredictionsAndEvaluate(tournamentId, customPredictors, userApiKey);
 
   const matches = await prisma.tournamentMatch.findMany({
     where: { tournamentId },

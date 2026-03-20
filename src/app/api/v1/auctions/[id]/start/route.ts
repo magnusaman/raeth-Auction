@@ -76,7 +76,8 @@ export async function POST(
     console.log(`[Start] Auction ${auctionId} started!`);
 
     // Run bidding loop in background (fire and forget)
-    runBiddingLoop(auctionId, agentTeams).catch((err) =>
+    const userApiKey = auctionConfig.openrouterApiKey || "";
+    runBiddingLoop(auctionId, agentTeams, userApiKey).catch((err) =>
       console.error(`[BiddingLoop] Fatal error:`, err)
     );
 
@@ -123,7 +124,8 @@ async function saveCostTracking(auctionId: string, costTracker: CostTracker) {
 // Background bidding loop (supports Round 1 + Round 2 for unsold players)
 async function runBiddingLoop(
   auctionId: string,
-  agentTeams: { teamId: string; teamIndex: number; agentId: string; config: AgentConfig; isExternal: boolean }[]
+  agentTeams: { teamId: string; teamIndex: number; agentId: string; config: AgentConfig; isExternal: boolean }[],
+  userApiKey?: string,
 ) {
   const minSquad = DEFAULT_AUCTION_CONFIG.minSquadSize;
   const costTracker = createCostTracker();
@@ -251,7 +253,7 @@ async function runBiddingLoop(
           // ─── Internal agent: call LLM with retry + validation ───
           const state = await getAuctionState(auctionId, agentTeam.teamId);
           decision = await getAgentDecision(
-            agentConfig(agentTeam), state, auctionId, agentTeam.teamId, currentRound, costTracker
+            agentConfig(agentTeam), state, auctionId, agentTeam.teamId, currentRound, costTracker, userApiKey
           );
         }
 
@@ -474,7 +476,8 @@ async function getAgentDecision(
   auctionId: string,
   teamId: string,
   currentRound: number = 1,
-  costTracker?: CostTracker
+  costTracker?: CostTracker,
+  userApiKey?: string
 ): Promise<BidAction> {
   if (!state.currentLot) return { action: "pass", reasoning: "No active lot" };
 
@@ -718,6 +721,7 @@ Should you BID or PASS? Respond with JSON: {"action": "...", "reasoning": "..."}
         maxTokens: 400,
         temperature: 0.3,
         jsonMode: true,
+        apiKeyOverride: userApiKey || undefined,
       },
       costTracker
     );

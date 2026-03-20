@@ -8,6 +8,7 @@ import { TEAMS, MIN_TEAMS, MAX_TEAMS } from "@/data/team-config";
 import { PROVIDER_META, AVAILABLE_MODELS, PROVIDER_GROUPS, DEFAULT_SELECTIONS } from "@/lib/constants";
 import AgentAvatar from "@/components/ui/AgentAvatar";
 import TeamHealthBar from "@/components/ui/TeamHealthBar";
+import { toast } from "sonner";
 
 function Badge({ text, color }: { text: string; color: string }) {
   return (
@@ -104,6 +105,7 @@ export default function AuctionPage() {
   const [customMaxSquad, setCustomMaxSquad] = useState(20);
   const [customMinSquad, setCustomMinSquad] = useState(15);
   const [customMaxOverseas, setCustomMaxOverseas] = useState(8);
+  const [openrouterKey, setOpenrouterKey] = useState("");
   const feedRef = useRef<HTMLDivElement>(null);
   // pollRef removed — now using SSE with auto-reconnect
   const dropdownRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -373,6 +375,7 @@ export default function AuctionPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           agents,
+          openrouterApiKey: openrouterKey || undefined,
           config: {
             pursePerTeam: customPurse,
             maxSquadSize: customMaxSquad,
@@ -398,6 +401,10 @@ export default function AuctionPage() {
   }
 
   async function handleStartAuction() {
+    if (!openrouterKey.trim()) {
+      toast.error("Please enter your OpenRouter API key to start the auction");
+      return;
+    }
     setStarting(true);
     try {
       if (!botsAdded) await addBots();
@@ -864,7 +871,47 @@ export default function AuctionPage() {
             const isDisabled = starting || addingBots || !modelSelections.slice(0, teamCount).every(Boolean) || hasUnconnectedExternal;
             return (
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 }} className="flex flex-col items-center gap-3">
-                <motion.button onClick={handleStartAuction} disabled={isDisabled} whileHover={!isDisabled ? { scale: 1.03, y: -2 } : undefined} whileTap={!isDisabled ? { scale: 0.98 } : undefined} className={`py-4 px-16 rounded-2xl border-none text-lg font-black tracking-wider transition-colors duration-200 relative overflow-hidden ${isDisabled ? "bg-[#222] text-[#9A9590] cursor-not-allowed" : "text-white cursor-pointer"}`} style={isDisabled ? undefined : { background: "linear-gradient(135deg, #C4A265, #3B82F6)", boxShadow: "0 6px 32px rgba(196,162,101,0.3), 0 0 60px rgba(59,130,246,0.1)" }}>
+                {/* API Key Input */}
+                <div className="mb-6 w-full max-w-md mx-auto">
+                  <label className="block text-xs font-semibold tracking-[0.15em] uppercase text-[#9A9590] mb-2">
+                    OpenRouter API Key
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="password"
+                      placeholder="sk-or-v1-..."
+                      value={openrouterKey}
+                      onChange={(e) => setOpenrouterKey(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl text-sm text-[#E8E4DE] placeholder:text-[#625D58] font-mono transition-all outline-none"
+                      style={{
+                        background: "rgba(255,255,255,0.03)",
+                        border: openrouterKey ? "1px solid rgba(74,222,128,0.3)" : "1px solid rgba(255,255,255,0.08)",
+                      }}
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor = "rgba(196,162,101,0.4)";
+                        e.currentTarget.style.boxShadow = "0 0 0 2px rgba(196,162,101,0.08)";
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.borderColor = openrouterKey ? "rgba(74,222,128,0.3)" : "rgba(255,255,255,0.08)";
+                        e.currentTarget.style.boxShadow = "none";
+                      }}
+                    />
+                    {openrouterKey && (
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-400 text-xs font-mono">
+                        &#x2713;
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1.5 text-xs text-[#8A857F]">
+                    Get your key at{" "}
+                    <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="text-[#C4A265] hover:underline">
+                      openrouter.ai/keys
+                    </a>
+                    {" "}&mdash; required to power AI agent decisions
+                  </p>
+                </div>
+
+                                <motion.button onClick={handleStartAuction} disabled={isDisabled} whileHover={!isDisabled ? { scale: 1.03, y: -2 } : undefined} whileTap={!isDisabled ? { scale: 0.98 } : undefined} className={`py-4 px-16 rounded-2xl border-none text-lg font-black tracking-wider transition-colors duration-200 relative overflow-hidden ${isDisabled ? "bg-[#222] text-[#9A9590] cursor-not-allowed" : "text-white cursor-pointer"}`} style={isDisabled ? undefined : { background: "linear-gradient(135deg, #C4A265, #3B82F6)", boxShadow: "0 6px 32px rgba(196,162,101,0.3), 0 0 60px rgba(59,130,246,0.1)" }}>
                   {!isDisabled && <span className="absolute inset-0 opacity-30" style={{ background: "linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.3) 50%, transparent 75%)", backgroundSize: "200% 100%", animation: "shimmer 2.5s linear infinite" }} />}
                   <span className="relative z-10">{addingBots ? "Preparing Agents..." : starting ? "Starting..." : "START AUCTION"}</span>
                 </motion.button>
